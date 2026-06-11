@@ -1,0 +1,57 @@
+/** Claves alineadas con el catálogo de reportes en Reports.jsx */
+export const REPORT_SECTION = {
+  KPI_GENERAL: 'KPI_GENERAL',
+  KPI_COMPARATIVE: 'KPI_COMPARATIVE',
+  DAILY_SALES: 'DAILY_SALES',
+  PAYMENT_METHODS: 'PAYMENT_METHODS',
+  PRODUCT_PERFORMANCE: 'PRODUCT_PERFORMANCE',
+  INVENTORY_MOVEMENTS: 'INVENTORY_MOVEMENTS',
+  INVENTORY_TURNOVER: 'INVENTORY_TURNOVER',
+  PURCHASES_VS_SALES: 'PURCHASES_VS_SALES',
+  SALES_BY_USER: 'SALES_BY_USER',
+  CUSTOMER_RANKING: 'CUSTOMER_RANKING',
+  STOCK_ALERTS: 'STOCK_ALERTS',
+  GOALS: 'GOALS',
+};
+
+export const ALL_METRIC_SECTIONS = [
+  REPORT_SECTION.KPI_GENERAL,
+  REPORT_SECTION.KPI_COMPARATIVE,
+  REPORT_SECTION.DAILY_SALES,
+  REPORT_SECTION.PAYMENT_METHODS,
+  REPORT_SECTION.PRODUCT_PERFORMANCE,
+  REPORT_SECTION.INVENTORY_MOVEMENTS,
+  REPORT_SECTION.INVENTORY_TURNOVER,
+  REPORT_SECTION.PURCHASES_VS_SALES,
+  REPORT_SECTION.SALES_BY_USER,
+  REPORT_SECTION.CUSTOMER_RANKING,
+  REPORT_SECTION.STOCK_ALERTS,
+];
+
+export const REPORT_SECTION_LABELS = {
+  [REPORT_SECTION.KPI_GENERAL]: 'KPIs generales',
+  [REPORT_SECTION.KPI_COMPARATIVE]: 'Comparativo de KPIs',
+  [REPORT_SECTION.DAILY_SALES]: 'Ventas diarias',
+  [REPORT_SECTION.PAYMENT_METHODS]: 'Métodos de pago',
+  [REPORT_SECTION.PRODUCT_PERFORMANCE]: 'Productos rentables',
+  [REPORT_SECTION.INVENTORY_MOVEMENTS]: 'Entradas y salidas',
+  [REPORT_SECTION.INVENTORY_TURNOVER]: 'Rotación de inventario',
+  [REPORT_SECTION.PURCHASES_VS_SALES]: 'Compras vs ventas',
+  [REPORT_SECTION.SALES_BY_USER]: 'Ventas por cajero',
+  [REPORT_SECTION.CUSTOMER_RANKING]: 'Ranking de clientes',
+  [REPORT_SECTION.STOCK_ALERTS]: 'Stock crítico',
+  [REPORT_SECTION.GOALS]: 'Metas comerciales',
+};
+
+export function resolvePrintSections(sections) {
+  if (!sections || sections === 'ALL') return ALL_METRIC_SECTIONS;
+  if (sections === 'GOALS') return [REPORT_SECTION.GOALS];
+  return Array.isArray(sections) ? sections : [sections];
+}
+
+export function printDocumentTitle(activeSections) {
+  if (activeSections.length === 1) {
+    return REPORT_SECTION_LABELS[activeSections[0]] || 'Reporte';
+  }
+  return 'Informe operativo completo';
+}

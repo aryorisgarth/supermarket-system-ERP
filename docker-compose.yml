@@ -1,0 +1,109 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: supermarket-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-mysql}
+      MYSQL_DATABASE: supermarket_system
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASSWORD:-mysql}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - supermarket-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: supermarket-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    networks:
+      - supermarket-net
+
+  api:
+    build:
+      context: ./02-BACKEND/supermarket-system-api
+      dockerfile: Dockerfile
+    container_name: supermarket-api
+    depends_on:
+      mysql:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks:
+      - supermarket-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # MySQL local del host (3306) = tus 80+ productos. Docker mysql (3307) es respaldo.
+      DB_URL: jdbc:mysql://host.docker.internal:3306/supermarket_system?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Managua
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-mysql}
+      DDL_AUTO: validate
+      BILLING_COUNTRY: NI
+      PAYMENT_CURRENCY: NIO
+      ISSUER_TAX_ID: J0310000000001
+      JWT_SECRET: ${JWT_SECRET:-dev-docker-jwt-secret-minimo-32-caracteres-2026}
+      CORS_ALLOWED_ORIGINS: http://localhost
+      SEED_ENABLED: "true"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/supermarket/protocol/openid-connect/certs
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/supermarket
+      PAYMENT_GATEWAY_PROVIDER: ${PAYMENT_GATEWAY_PROVIDER:-MOCK}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_51P1dummykey}
+
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
+
+  frontend:
+    build:
+      context: ./03-FRONTEND
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: supermarket-frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - supermarket-net
+    ports:
+      - "80:80"
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost/" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  supermarket-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  keycloak_data:

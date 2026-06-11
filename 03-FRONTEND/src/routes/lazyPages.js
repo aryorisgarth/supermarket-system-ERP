@@ -1,0 +1,31 @@
+import { lazy } from 'react';
+
+/** Páginas cargadas bajo demanda para reducir el bundle inicial. */
+export const LazyRoleHome = lazy(() => import('../pages/RoleHome'));
+export const LazyInventory = lazy(() => import('../pages/Inventory'));
+export const LazyBatchManagement = lazy(() => import('../pages/BatchManagement'));
+export const LazyPromotions = lazy(() => import('../pages/Promotions'));
+export const LazyElectronicInvoices = lazy(() => import('../pages/ElectronicInvoices'));
+export const LazyBilling = lazy(() => import('../pages/Billing'));
+export const LazySuppliers = lazy(() => import('../pages/Suppliers'));
+export const LazyPurchases = lazy(() => import('../pages/Purchases'));
+export const LazyCategories = lazy(() => import('../pages/Categories'));
+export const LazyUsers = lazy(() => import('../pages/Users'));
+export const LazyReports = lazy(() => import('../pages/Reports'));
+export const LazyMaintenance = lazy(() => import('../pages/Maintenance'));
+export const LazyAuditLogs = lazy(() => import('../pages/AuditLogs'));
+export const LazySettings = lazy(() => import('../pages/Settings'));
+export const LazyAdminBillingControl = lazy(() => import('../pages/AdminBillingControl'));
+export const LazyFinance = lazy(() => import('../pages/Finance'));
+export const LazyCashRegisterControl = lazy(() => import('../pages/CashRegisterControl'));
+export const LazyDailyClose = lazy(() => import('../pages/DailyClose'));
+export const LazySystemAlerts = lazy(() => import('../pages/SystemAlerts'));
+export const LazyProfile = lazy(() => import('../pages/Profile'));
+export const LazyCashierDashboard = lazy(() => import('../pages/CashierDashboard'));
+export const LazyWarehouseDashboard = lazy(() => import('../pages/warehouse/WarehouseDashboard'));
+export const LazyWarehouseReceptionList = lazy(() => import('../pages/warehouse/WarehouseReceptionList'));
+export const LazyWarehouseReceiveOrder = lazy(() => import('../pages/warehouse/WarehouseReceiveOrder'));
+export const LazyWarehouseProducts = lazy(() => import('../pages/warehouse/WarehouseProducts'));
+export const LazyWarehouseCountList = lazy(() => import('../pages/warehouse/WarehouseCountList'));
+export const LazyWarehouseCountSession = lazy(() => import('../pages/warehouse/WarehouseCountSession'));
+export const LazyNotificationRules = lazy(() => import('../pages/NotificationRules'));
