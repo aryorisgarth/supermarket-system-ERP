@@ -4,7 +4,7 @@ import { formatMoney } from '../../utils/formatMoney';
 
 const InventoryCatalogView = ({ products, loading }) => {
   const [copiedCode, setCopiedCode] = useState(null);
-  const [viewMode, setViewMode] = useState('LIST'); // 'LIST' o 'GRID'
+  const [viewMode, setViewMode] = useState('LIST'); 
 
   const handleCopy = (code) => {
     navigator.clipboard.writeText(code);
@@ -58,7 +58,7 @@ const InventoryCatalogView = ({ products, loading }) => {
                     !product.isActive ? 'opacity-70 bg-slate-50/50 dark:bg-slate-900/10' : ''
                   }`}
                 >
-                  {/* Producto */}
+                  
                   <td className="py-4 px-6">
                     <div className="font-black text-[var(--app-text)] text-sm mb-1">{product.name}</div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -71,14 +71,14 @@ const InventoryCatalogView = ({ products, loading }) => {
                     </div>
                   </td>
 
-                  {/* Descripción */}
+                  
                   <td className="py-4 px-6 max-w-[240px]">
                     <p className="text-[var(--app-text-soft)] italic line-clamp-2" title={product.description}>
                       {product.description || 'Sin descripción comercial.'}
                     </p>
                   </td>
 
-                  {/* Proveedor */}
+                  
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-1.5 font-semibold text-[var(--app-text-soft)]">
                       <Building2 size={13} className="text-[var(--app-text-muted)]" />
@@ -89,7 +89,7 @@ const InventoryCatalogView = ({ products, loading }) => {
                     </div>
                   </td>
 
-                  {/* Precios */}
+                  
                   <td className="py-4 px-6 text-right tabular-nums">
                     <div className="font-semibold text-[var(--app-text-muted)] text-[10px]">
                       Compra: <span className="font-bold text-[var(--app-text-soft)]">{formatMoney(product.purchasePrice)}</span>
@@ -99,7 +99,7 @@ const InventoryCatalogView = ({ products, loading }) => {
                     </div>
                   </td>
 
-                  {/* Presentaciones y códigos */}
+                  
                   <td className="py-4 px-6">
                     {product.uomConversions && product.uomConversions.length > 0 ? (
                       <div className="flex flex-wrap gap-2 max-w-[380px]">
@@ -146,7 +146,7 @@ const InventoryCatalogView = ({ products, loading }) => {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Barra de Herramientas de Catálogo */}
+      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[var(--app-surface)] p-4 rounded-2xl border border-[var(--app-border)] shadow-sm">
         <div className="flex items-center gap-2">
           <Info size={16} className="text-[var(--app-primary)]" />
@@ -155,7 +155,7 @@ const InventoryCatalogView = ({ products, loading }) => {
           </p>
         </div>
         
-        {/* Conmutador de Vistas */}
+        
         <div className="flex items-center gap-1 bg-[var(--app-bg-subtle)] p-1 rounded-xl border border-[var(--app-border)] self-end sm:self-auto">
           <button
             type="button"
@@ -186,7 +186,7 @@ const InventoryCatalogView = ({ products, loading }) => {
         </div>
       </div>
 
-      {/* Renderizado de la vista elegida */}
+      
       {viewMode === 'LIST' ? renderListView() : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in">
           {products.map((product) => (
@@ -196,7 +196,7 @@ const InventoryCatalogView = ({ products, loading }) => {
                 !product.isActive ? 'opacity-75 bg-slate-50/50 dark:bg-slate-900/10' : ''
               }`}
             >
-              {/* Card Header */}
+              
               <div className="p-5 border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/30">
                 <div className="flex justify-between items-start gap-3">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[10px] font-black uppercase tracking-wider border border-[var(--app-primary)]/10">
@@ -223,9 +223,9 @@ const InventoryCatalogView = ({ products, loading }) => {
                 </div>
               </div>
 
-              {/* Card Body */}
+              
               <div className="p-5 flex-1 space-y-4">
-                {/* Description */}
+                
                 <div className="text-xs text-[var(--app-text-soft)] leading-relaxed italic bg-[var(--app-bg-subtle)]/40 p-3 rounded-2xl border border-[var(--app-border)]/50">
                   <span className="block text-[9px] font-black uppercase tracking-widest text-[var(--app-text-muted)] not-italic mb-1">
                     Descripción Comercial:
@@ -233,7 +233,7 @@ const InventoryCatalogView = ({ products, loading }) => {
                   {product.description || 'Sin descripción detallada disponible en el catálogo.'}
                 </div>
 
-                {/* Supplier & Stock details */}
+                
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div className="space-y-1">
                     <span className="block text-[9px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
@@ -254,7 +254,7 @@ const InventoryCatalogView = ({ products, loading }) => {
                   </div>
                 </div>
 
-                {/* Price section */}
+                
                 <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[var(--app-border)]/60">
                   <div className="bg-[var(--app-bg-subtle)]/40 p-3 rounded-2xl border border-[var(--app-border)]/50">
                     <span className="block text-[9px] font-black uppercase tracking-widest text-[var(--app-text-muted)] mb-1">
@@ -274,7 +274,7 @@ const InventoryCatalogView = ({ products, loading }) => {
                   </div>
                 </div>
 
-                {/* Presentations & Barcodes */}
+                
                 {product.uomConversions && product.uomConversions.length > 0 && (
                   <div className="space-y-2 pt-2 border-t border-[var(--app-border)]/60">
                     <span className="block text-[9px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">

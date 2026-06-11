@@ -1,15 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-/**
- * Lista paginada con búsqueda y filtros en backend.
- * @param {Object} options
- * @param {(params: object) => Promise<{content?: array, totalElements?: number, totalPages?: number}>} options.loadPage
- * @param {unknown[]} [options.filterDeps=[]] — cambios reinician a página 1 y recargan
- * @param {(params: object) => object} [options.buildParams] — params extra (status, type, etc.)
- * @param {number} [options.debounceMs=350]
- * @param {number} [options.initialPageSize=10]
- * @param {string} [options.sort='name,asc']
- */
+
 export function useBackendList({
   loadPage,
   filterDeps = [],

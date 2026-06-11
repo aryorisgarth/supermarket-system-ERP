@@ -5,9 +5,7 @@ import Dashboard from './Dashboard';
 import ConsultantDashboard from './ConsultantDashboard';
 import SupervisorDashboard from './SupervisorDashboard';
 
-/**
- * Pantalla de inicio segun rol: cada perfil ve su panel, no el dashboard administrativo generico.
- */
+
 const RoleHome = () => {
   const roleName = AuthService.getCurrentUser()?.role?.name;
 

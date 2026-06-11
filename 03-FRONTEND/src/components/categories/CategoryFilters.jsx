@@ -22,7 +22,7 @@ const CategoryFilters = ({
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3.5 w-full lg:w-auto items-center">
-          {/* Reset */}
+          
           {hasActiveFilters && (
             <button 
               onClick={onClearFilters}

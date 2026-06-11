@@ -499,7 +499,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
         maxWidth: collapsed ? 72 : 260 
       }}
     >
-      {/* Brand Header */}
+      
       <div className={`relative px-4 py-5 ${collapsed ? 'px-2' : 'px-6'}`}>
         <div className={`flex items-center gap-3.5 ${collapsed ? 'justify-center' : ''}`}>
           <motion.div
@@ -549,7 +549,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
         </motion.button>
       </div>
 
-      {/* Search Box */}
+      
       {!collapsed && (
         <div className="px-4 pb-2">
           <div className="relative">
@@ -578,7 +578,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
             )}
           </div>
 
-          {/* Search results dropdown */}
+          
           {showSearchResults && (
             <div className="absolute left-4 right-4 mt-1.5 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]/95 backdrop-blur-md shadow-xl overflow-hidden z-30 animate-fade-in">
               {searchResults.length === 0 ? (
@@ -604,7 +604,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
         </div>
       )}
 
-      {/* Main Navigation */}
+      
       <nav
         className={`pos-scroll flex-1 space-y-4 overflow-y-auto pb-4 transition-all duration-300 ${
           collapsed ? 'px-2' : 'px-4'
@@ -662,7 +662,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
         })}
       </nav>
 
-      {/* Footer Area */}
+      
       <div className={`mt-auto p-3 ${collapsed ? 'px-1' : 'p-4'}`}>
         <div
           className={`flex items-center rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40 transition-all duration-300 ${

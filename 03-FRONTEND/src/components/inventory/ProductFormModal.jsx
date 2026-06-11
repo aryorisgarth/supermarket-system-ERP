@@ -199,7 +199,7 @@ const ProductFormModal = ({
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in">
       <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-xl w-full overflow-hidden my-8">
-        {/* Header */}
+        
         <div className="bg-gradient-to-r from-primary to-primary-dark p-5 text-white flex justify-between items-center shadow-sm">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/10 rounded-lg text-white">
@@ -222,11 +222,11 @@ const ProductFormModal = ({
           </button>
         </div>
 
-        {/* Form */}
+        
         <form onSubmit={handleSave}>
           <div className="p-5 space-y-4 max-h-[65vh] overflow-y-auto bg-[var(--app-surface)]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Codigo */}
+              
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <Barcode size={13} /> Código de Barras
@@ -242,7 +242,7 @@ const ProductFormModal = ({
                 />
               </div>
 
-              {/* Nombre */}
+              
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Nombre Comercial</label>
                 <input
@@ -257,7 +257,7 @@ const ProductFormModal = ({
               </div>
             </div>
 
-            {/* Descripcion */}
+            
             <div className="space-y-1">
               <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Detalles / Descripción</label>
               <input
@@ -271,7 +271,7 @@ const ProductFormModal = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Categoría */}
+              
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <Tag size={13} /> Categoría
@@ -292,7 +292,7 @@ const ProductFormModal = ({
                 </select>
               </div>
 
-              {/* Proveedor */}
+              
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <Building2 size={13} /> Proveedor
@@ -315,7 +315,7 @@ const ProductFormModal = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Costo */}
+              
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <DollarSign size={13} /> Costo / unidad venta
@@ -333,7 +333,7 @@ const ProductFormModal = ({
                 />
               </div>
 
-              {/* Precio Venta */}
+              
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <DollarSign size={13} /> Precio Venta
@@ -351,7 +351,7 @@ const ProductFormModal = ({
                 />
               </div>
 
-              {/* IVA */}
+              
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <Percent size={13} /> Tipo Impuesto
@@ -371,7 +371,7 @@ const ProductFormModal = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Stock Inicial */}
+              
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Stock Inicial</label>
                 <input
@@ -386,7 +386,7 @@ const ProductFormModal = ({
                 />
               </div>
 
-              {/* Minimo */}
+              
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Umbral Mínimo</label>
                 <input
@@ -446,7 +446,7 @@ const ProductFormModal = ({
                     : '';
                   return (
                     <div key={index} className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3 space-y-2">
-                      {/* Fila 1: Label, Factor, Default, Quitar */}
+                      
                       <div className="grid grid-cols-[1fr_90px_70px_auto] gap-2 items-start">
                         <div className="space-y-0.5">
                           <input
@@ -488,7 +488,7 @@ const ProductFormModal = ({
                           Quitar
                         </button>
                       </div>
-                      {/* Fila 2: Barcode */}
+                      
                       <div className="flex items-center gap-2">
                         <div className="flex-1 relative">
                           <Barcode size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--app-text-muted)]" />
@@ -500,7 +500,7 @@ const ProductFormModal = ({
                             className="ui-input text-xs font-mono pl-7 w-full"
                           />
                         </div>
-                        {/* Auto-generar */}
+                        
                         {autoBarcode && !pack.barcode && (
                           <button
                             type="button"
@@ -511,7 +511,7 @@ const ProductFormModal = ({
                             <Wand2 size={11} /> Auto
                           </button>
                         )}
-                        {/* Copiar */}
+                        
                         {pack.barcode && (
                           <button
                             type="button"
@@ -523,7 +523,7 @@ const ProductFormModal = ({
                           </button>
                         )}
                       </div>
-                      {/* Preview barcode */}
+                      
                       {pack.barcode && (
                         <p className="text-[9px] text-[var(--app-text-muted)] font-mono bg-[var(--app-bg-subtle)] rounded-lg px-2 py-1">
                           📦 Escanear en bodega/conteo: <span className="font-black text-[var(--app-text)]">{pack.barcode}</span>
@@ -535,7 +535,7 @@ const ProductFormModal = ({
               </div>
             </div>
 
-            {/* Switch habilitado */}
+            
             <div className="flex items-center gap-3 pt-2">
               <input
                 type="checkbox"
@@ -551,7 +551,7 @@ const ProductFormModal = ({
             </div>
           </div>
 
-          {/* Footer */}
+          
           <div className="p-5 bg-[var(--app-bg-subtle)]/50 border-t border-[var(--app-border)] flex justify-end gap-3.5">
             <button
               type="button"

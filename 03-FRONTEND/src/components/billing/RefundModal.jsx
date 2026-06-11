@@ -128,7 +128,7 @@ const RefundModal = ({ saleId, invoiceNumber, onClose, onDone }) => {
   return (
     <div className="fixed inset-0 bg-[var(--app-bg)]/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
       <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-2xl w-full overflow-hidden max-h-[92vh] flex flex-col">
-        {/* Header */}
+        
         <div className="bg-gradient-to-r from-rose-600 to-rose-500 p-5 text-white flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/15 rounded-lg">

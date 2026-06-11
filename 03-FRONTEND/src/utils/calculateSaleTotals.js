@@ -5,7 +5,7 @@ const roundMoney = (value) => {
   return Math.round((Number(value || 0) + Number.EPSILON) * factor) / factor;
 };
 
-/** Totales alineados con SaleServiceImpl (BigDecimal scale 4, HALF_UP). */
+
 export const calculateSaleTotals = (cart, defaultTaxRate = 15) => {
   let netSubtotal = 0;
   let tax = 0;

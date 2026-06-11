@@ -33,7 +33,7 @@ const ProductCatalog = ({
   return (
     <div className="pos-panel flex min-h-0 flex-col gap-3 overflow-hidden p-4">
       
-      {/* BARRA DE BÚSQUEDA INDUSTRIAL */}
+      
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -53,14 +53,14 @@ const ProductCatalog = ({
           />
         </div>
         
-        {/* Indicador de Estado del Escáner */}
+        
         <div className="hidden items-center gap-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-primary-soft)] px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--app-primary)] sm:flex">
           <Barcode size={14} />
           <span>Lector Listo</span>
         </div>
       </motion.div>
 
-      {/* CONTENEDOR DE CATÁLOGO / GRILLA */}
+      
       <div className="min-h-0 flex-1 overflow-hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-32 text-[var(--app-text-muted)]">
@@ -92,7 +92,7 @@ const ProductCatalog = ({
                       : 'border-[var(--app-border)] hover:-translate-y-0.5 hover:border-[var(--app-primary)] hover:shadow-[var(--app-shadow)]'
                   }`}
                 >
-                  {/* Bloque Superior de Información */}
+                  
                   <div className="flex-1 p-3">
                     <div className="flex justify-between items-start gap-2 mb-2">
                       {product.category?.name ? (
@@ -116,10 +116,10 @@ const ProductCatalog = ({
                     </span>
                   </div>
 
-                  {/* Bloque Inferior Accionable (Footer de Tarjeta) */}
+                  
                   <div className="mt-auto flex items-center justify-between gap-2 border-t border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-3 py-2.5">
                     
-                    {/* Alertas de Stock */}
+                    
                     <div className="flex items-center">
                       {isInactive ? (
                         <span className="text-[10px] font-bold uppercase text-danger dark:text-danger bg-danger/10 dark:bg-danger/10 px-2 py-0.5 rounded">Inactivo</span>
@@ -136,7 +136,7 @@ const ProductCatalog = ({
                       )}
                     </div>
 
-                    {/* Botón de acción rápido */}
+                    
                     {!isDisabled && (
                       <span
                         className="flex items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-1.5 text-[var(--app-text-soft)] shadow-sm transition group-hover:border-[var(--app-primary)] group-hover:bg-[var(--app-primary)] group-hover:text-white"
@@ -148,7 +148,7 @@ const ProductCatalog = ({
 
                   </div>
 
-                  {/* Overlay completo para hacer la tarjeta clickeable de forma limpia */}
+                  
                 </button>
               );
             })}

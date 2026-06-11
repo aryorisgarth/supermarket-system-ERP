@@ -64,7 +64,7 @@ const CheckoutPanel = ({
   const [manualAmount, setManualAmount] = useState('');
   const [manualMethod, setManualMethod] = useState('CASH');
 
-  // --- Autocompletado de clientes ---
+  
   const [customerQuery, setCustomerQuery] = useState('');
   const [customerResults, setCustomerResults] = useState([]);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
@@ -72,7 +72,7 @@ const CheckoutPanel = ({
   const customerDropdownRef = useRef(null);
   const debounceRef = useRef(null);
 
-  // Debounce: buscar clientes en backend tras 300ms de inactividad
+  
   const searchCustomers = useCallback((query) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!query || query.length < 2) {
@@ -115,7 +115,7 @@ const CheckoutPanel = ({
     setShowCustomerDropdown(false);
   };
 
-  // Cerrar dropdown al hacer click fuera
+  
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (customerDropdownRef.current && !customerDropdownRef.current.contains(e.target)) {

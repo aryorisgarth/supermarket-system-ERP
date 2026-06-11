@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 
 const StockAdjustmentModal = ({ isOpen, onClose, product, onSuccess }) => {
   const [adjustQty, setAdjustQty] = useState('');
-  const [adjustType, setAdjustType] = useState('ADD'); // 'ADD' = Ingreso (+), 'SUB' = Salida (-)
+  const [adjustType, setAdjustType] = useState('ADD'); 
   const [adjustNotes, setAdjustNotes] = useState('');
   const [adjusting, setAdjusting] = useState(false);
 
@@ -85,7 +85,7 @@ const StockAdjustmentModal = ({ isOpen, onClose, product, onSuccess }) => {
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
       <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-sm w-full overflow-hidden">
-        {/* Header */}
+        
         <div className="bg-gradient-to-r from-primary to-primary-dark p-5 text-white flex justify-between items-center shadow-sm">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/10 rounded-lg text-white">
@@ -104,14 +104,14 @@ const StockAdjustmentModal = ({ isOpen, onClose, product, onSuccess }) => {
           </button>
         </div>
 
-        {/* Form */}
+        
         <form onSubmit={handleSubmit} className="p-5 space-y-4 bg-[var(--app-surface)]">
           <div className="bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] p-3 rounded-xl text-xs font-bold text-[var(--app-text-muted)] flex justify-between items-center shadow-inner">
             <span>Stock Actual en Bodega:</span>
             <span className="text-[var(--app-primary)] font-black text-sm">{product.currentStock} unidades</span>
           </div>
 
-          {/* Tipo de Ajuste */}
+          
           <div className="space-y-1">
             <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider block">Tipo de Movimiento</label>
             <div className="grid grid-cols-2 gap-2">
@@ -132,7 +132,7 @@ const StockAdjustmentModal = ({ isOpen, onClose, product, onSuccess }) => {
             </div>
           </div>
 
-          {/* Cantidad */}
+          
           <div className="space-y-1">
             <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider block">Cantidad a Ajustar</label>
             <input
@@ -160,7 +160,7 @@ const StockAdjustmentModal = ({ isOpen, onClose, product, onSuccess }) => {
             />
           </div>
 
-          {/* Acciones */}
+          
           <div className="flex gap-3 pt-4 border-t border-[var(--app-border)]">
             <button
               type="button"

@@ -150,17 +150,17 @@ const Dashboard = () => {
         label: 'Ingresos',
         data: weeklySales.map((sale) => sale.amount),
         fill: true,
-        borderColor: '#1e40af',
+        borderColor: '#0F4C81',
         backgroundColor: (context) => {
           const ctx = context.chart.ctx;
           const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-          gradient.addColorStop(0, 'rgba(30, 64, 175, 0.25)');
-          gradient.addColorStop(1, 'rgba(30, 64, 175, 0)');
+          gradient.addColorStop(0, 'rgba(15, 76, 129, 0.25)');
+          gradient.addColorStop(1, 'rgba(15, 76, 129, 0)');
           return gradient;
         },
         borderWidth: 4,
         pointBackgroundColor: '#ffffff',
-        pointBorderColor: '#1e40af',
+        pointBorderColor: '#0F4C81',
         pointBorderWidth: 3,
         pointRadius: 5,
         pointHoverRadius: 8,
@@ -175,7 +175,7 @@ const Dashboard = () => {
       {
         label: 'Unidades Vendidas',
         data: topProducts.slice(0, 5).map(p => p.quantity),
-        backgroundColor: '#3b82f6',
+        backgroundColor: '#0F4C81',
         borderRadius: 8,
         barThickness: 32,
       }

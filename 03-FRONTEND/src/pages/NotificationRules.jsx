@@ -54,7 +54,7 @@ const NotificationRules = () => {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form states
+  
   const [formData, setFormData] = useState({
     alertType: 'INVENTORY',
     severity: 'WARNING',
@@ -72,7 +72,7 @@ const NotificationRules = () => {
       setRules(rulesData || []);
       setRoles(rolesData || []);
 
-      // Default roleId to the first available role if roles list is loaded
+      
       if (rolesData && rolesData.length > 0) {
         setFormData((prev) => ({ ...prev, roleId: rolesData[0].id }));
       }
@@ -90,7 +90,7 @@ const NotificationRules = () => {
 
   const handleToggleActive = async (rule) => {
     try {
-      // Toggle local state immediately for snappy UI feel
+      
       setRules((prevRules) =>
         prevRules.map((r) =>
           r.id === rule.id ? { ...r, isActive: !r.isActive } : r
@@ -100,7 +100,7 @@ const NotificationRules = () => {
       await NotificationRuleService.toggle(rule.id);
     } catch (error) {
       console.error('Error toggling rule status:', error);
-      // Revert local state on error
+      
       setRules((prevRules) =>
         prevRules.map((r) =>
           r.id === rule.id ? { ...r, isActive: rule.isActive } : r
@@ -131,7 +131,7 @@ const NotificationRules = () => {
           timer: 1500,
           showConfirmButton: false,
         });
-        // Remove from list
+        
         setRules((prevRules) => prevRules.filter((r) => r.id !== rule.id));
       } catch (error) {
         console.error('Error deleting rule:', error);
@@ -176,7 +176,7 @@ const NotificationRules = () => {
         showConfirmButton: false,
       });
       setShowModal(false);
-      // Actualizar lista
+      
       setRules((prevRules) => [newRule, ...prevRules]);
     } catch (error) {
       console.error('Error creating rule:', error);
@@ -328,11 +328,11 @@ const NotificationRules = () => {
         )}
       </Card>
 
-      {/* Modal de Creación */}
+      
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-[var(--app-surface)] border border-[var(--app-border)] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-scale-up">
-            {/* Modal Header */}
+            
             <div className="flex justify-between items-center px-6 py-5 border-b border-[var(--app-border)]">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--app-primary-soft)] text-[var(--app-primary)]">
@@ -351,7 +351,7 @@ const NotificationRules = () => {
               </button>
             </div>
 
-            {/* Modal Body / Form */}
+            
             <form onSubmit={handleSubmit}>
               <div className="p-6 space-y-4">
                 <Field label="Tipo de Alerta" icon={AlertTriangle}>
@@ -415,7 +415,7 @@ const NotificationRules = () => {
                 </Field>
               </div>
 
-              {/* Modal Footer */}
+              
               <div className="px-6 py-4 bg-[var(--app-bg-subtle)] border-t border-[var(--app-border)] flex justify-end gap-3">
                 <Button variant="secondary" type="button" onClick={() => setShowModal(false)}>
                   Cancelar

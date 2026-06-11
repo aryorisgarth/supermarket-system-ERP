@@ -18,10 +18,7 @@ const PromotionService = {
     return response.data;
   },
 
-  /**
-   * Calcula el mejor descuento vigente para un producto y cantidad dados.
-   * Devuelve null si no hay ninguna promo aplicable.
-   */
+  
   apply: async (productId, quantity = 1, uomConversionId = null) => {
     const params = { productId, quantity };
     if (uomConversionId) {

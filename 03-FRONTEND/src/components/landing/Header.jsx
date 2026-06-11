@@ -16,7 +16,7 @@ const Header = ({ activeNav, scrollToSection, cartCount }) => {
           </span>
         </div>
 
-        {/* Navegación Superior */}
+        
         <nav className="hidden md:flex items-center gap-8 text-sm font-bold">
           {navLinks.map((link) => (
             <button
@@ -41,7 +41,7 @@ const Header = ({ activeNav, scrollToSection, cartCount }) => {
           ))}
         </nav>
 
-        {/* Iconos de cabecera */}
+        
         <div className="flex items-center gap-3">
           <button className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#6B7280] transition hover:bg-slate-200 hover:text-[#0F4C81]" aria-label="Notificaciones">
             <Bell size={18} />

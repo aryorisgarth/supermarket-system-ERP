@@ -5,9 +5,7 @@ import { formatMoney } from '../../utils/formatMoney';
 
 const PRESETS = [1, 2, 5, 10, 20, 50];
 
-/**
- * Modal POS para ingresar cantidad (verduras, granel, etc.) sin pulsar + muchas veces.
- */
+
 const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConfirm, onClose }) => {
   const [qty, setQty] = useState('1');
   const isEdit = mode === 'edit';

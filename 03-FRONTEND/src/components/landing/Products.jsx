@@ -56,7 +56,7 @@ const Products = ({ activeCategory, setActiveCategory, handleAddToCart }) => {
           </p>
         </div>
 
-        {/* Categorías */}
+        
         <div className="flex overflow-x-auto gap-6 pb-8 scrollbar-none snap-x md:grid md:grid-cols-3 lg:grid-cols-6 md:overflow-visible">
           {categories.map((cat) => {
             const isActive = activeCategory === cat.id;
@@ -89,7 +89,7 @@ const Products = ({ activeCategory, setActiveCategory, handleAddToCart }) => {
           })}
         </div>
 
-        {/* Productos Destacados por Categoría Activa */}
+        
         <div className="mt-12">
           <h3 className="text-lg font-black tracking-tight text-slate-900 uppercase mb-8 border-b border-slate-200 pb-2">
             Destacados en {categories.find((c) => c.id === activeCategory)?.label}

@@ -1,4 +1,4 @@
-/** Indica en esta pestaña que el cajero abrió turno (evita GET /current al cargar con caja cerrada). */
+
 export const CASH_REGISTER_OPEN_KEY = 'pos_cash_register_open';
 
 export const ROLES_WITH_CASH_REGISTER = [

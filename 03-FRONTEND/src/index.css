@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #3b82f6;
-  --color-primary-dark: #2563eb;
-  --color-primary-light: #93c5fd;
+  --color-primary: #0F4C81;
+  --color-primary-dark: #0B3961;
+  --color-primary-light: #84b2db;
   --color-secondary: #64748b;
   --color-success: #10b981;
   --color-warning: #f59e0b;
@@ -117,7 +117,7 @@ button:disabled {
   color: var(--app-primary-strong);
 }
 
-/* Animaciones sutiles profesionales */
+
 .animate-fade-in {
   animation: fadeIn 0.28s cubic-bezier(0.2, 0, 0, 1);
 }
@@ -170,7 +170,7 @@ button:disabled {
   box-shadow: var(--app-shadow-soft);
 }
 
-/* Barra superior global */
+
 .app-header {
   position: sticky;
   top: 0;
@@ -324,7 +324,7 @@ button:disabled {
   color: var(--app-danger);
 }
 
-/* Widget de caja en header */
+
 .app-cash-register {
   display: flex;
   align-items: center;
@@ -528,7 +528,7 @@ button:disabled {
   }
 }
 
-/* UI Core Components */
+
 .ui-card {
   @apply bg-[var(--app-surface)] border border-[var(--app-border)] rounded-[var(--radius-xl)] transition-all duration-300;
   box-shadow: var(--shadow-sm);
@@ -768,7 +768,7 @@ button:disabled {
   background-clip: content-box;
 }
 
-/* Glassmorphism moderno */
+
 .glass-card {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
@@ -780,7 +780,7 @@ button:disabled {
   border-color: var(--app-border);
 }
 
-/* Gradientes sutiles */
+
 .gradient-primary {
   background: var(--app-primary);
 }
@@ -797,7 +797,7 @@ button:disabled {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
-/* Sombras modernas */
+
 .shadow-enterprise {
   box-shadow: var(--app-shadow-soft);
 }
@@ -810,7 +810,7 @@ button:disabled {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
-/* Estilo empresarial limpio */
+
 .enterprise-card {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
@@ -821,11 +821,11 @@ button:disabled {
 
 .enterprise-card-hover:hover {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border-color: #2563eb;
+  border-color: #0F4C81;
   transform: translateY(-2px);
 }
 
-/* Botones empresariales */
+
 .btn-enterprise {
   transition: all 0.2s ease;
   font-weight: 500;
@@ -840,7 +840,7 @@ button:disabled {
   transform: translateY(0);
 }
 
-/* Estilo Térmico del Ticket Digital */
+
 .ticket-paper {
   background: #ffffff;
   position: relative;
@@ -907,7 +907,7 @@ button:disabled {
   }
 }
 
-/* ——— Login ——— */
+
 .login-page {
   background: var(--app-bg);
   color: var(--app-text);
@@ -916,7 +916,7 @@ button:disabled {
 .login-brand-panel {
   background:
     radial-gradient(ellipse 80% 60% at 20% 10%, rgba(255, 255, 255, 0.12), transparent),
-    linear-gradient(145deg, #1d4ed8 0%, #2563eb 42%, #1e40af 100%);
+    linear-gradient(145deg, #0b3961 0%, #0F4C81 42%, #185c94 100%);
 }
 
 .login-brand-glow {
@@ -1013,7 +1013,7 @@ button:disabled {
   opacity: 0.75;
 }
 
-/* Contenedor flexible para páginas full-height (POS) */
+
 .app-page-flex {
   display: flex;
   flex: 1;
@@ -1022,7 +1022,7 @@ button:disabled {
   width: 100%;
 }
 
-/* POS — pantalla completa sin scroll de página */
+
 .pos-billing-page {
   flex: 1;
   min-height: 0;
@@ -1050,7 +1050,7 @@ button:disabled {
   }
 }
 
-/* Toolbar POS: buscador + categorías en la misma línea (mínima altura) */
+
 .pos-toolbar {
   display: flex;
   align-items: center;
@@ -1115,7 +1115,7 @@ button:disabled {
   display: none;
 }
 
-/* Zona principal: ticket ancho + cobro fijo al lado (mínimo scroll) */
+
 .pos-layout {
   flex: 1;
   min-height: 0;
@@ -1143,14 +1143,14 @@ button:disabled {
   overflow: hidden;
 }
 
-/* Móvil muy pequeño: reparto 58/42 — cobro usable sin quedar en 24vh */
+
 @media (max-width: 639px) {
   .pos-layout {
     grid-template-rows: minmax(0, 58fr) minmax(220px, 42fr);
   }
 }
 
-/* Tablet+: ticket y cobro lado a lado — el cajero ve ambos sin bajar */
+
 @media (min-width: 640px) {
   .pos-layout {
     grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr);
@@ -1178,7 +1178,7 @@ button:disabled {
   }
 }
 
-/* Panel de cobro — zonas fijas + scroll solo en lista de pagos */
+
 .pos-checkout {
   display: flex;
   flex-direction: column;
@@ -1351,7 +1351,7 @@ button:disabled {
 }
 
 
-/* Ticket / tabla de venta */
+
 .pos-ticket {
   background: var(--app-surface);
 }
@@ -1366,7 +1366,7 @@ button:disabled {
 }
 
 @media (min-width: 640px) {
-  /* Con cobro al lado, el total ya está en el panel derecho */
+  
   .pos-ticket-totals {
     display: none;
   }
@@ -1416,7 +1416,7 @@ button:disabled {
   vertical-align: middle;
 }
 
-/* Anchos de columnas — ticket */
+
 .pos-col-line { width: 4%; }
 .pos-col-code { width: 14%; }
 .pos-col-desc { width: 34%; }
@@ -1479,7 +1479,7 @@ button:disabled {
   outline-offset: -2px;
 }
 
-/* Barra inferior cantidad */
+
 .pos-entry-bar {
   display: flex;
   flex-wrap: wrap;
@@ -1565,7 +1565,7 @@ button:disabled {
   }
 }
 
-/* Modal categorías — lista, no grid */
+
 .pos-category-picker {
   display: flex;
   flex-direction: column;
@@ -1614,7 +1614,7 @@ button:disabled {
   overflow: auto;
 }
 
-/* Lista táctil — sin tabla, sin stock */
+
 .pos-catalog-quick-list {
   list-style: none;
   margin: 0;
@@ -1701,9 +1701,9 @@ button:disabled {
   100% { transform: scale(1); }
 }
 
-/* pos-search-input definido en bloque .pos-top-bar */
 
-/* Tablas y overflow horizontal en móvil */
+
+
 .table-scroll {
   width: 100%;
   overflow-x: auto;
@@ -1715,7 +1715,7 @@ button:disabled {
   padding-right: max(1rem, env(safe-area-inset-right));
 }
 
-/* Pestañas con scroll horizontal en móvil */
+
 .ui-tabs-scroll {
   display: flex;
   overflow-x: auto;
@@ -1727,7 +1727,7 @@ button:disabled {
   display: none;
 }
 
-/* Tablas de datos */
+
 .table-scroll {
   width: 100%;
   overflow-x: auto;
@@ -1764,7 +1764,7 @@ button:disabled {
   min-height: 200px;
 }
 
-/* Modal cantidad POS */
+
 .pos-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1797,7 +1797,7 @@ button:disabled {
   -moz-appearance: textfield;
 }
 
-/* Modales y formularios en pantallas pequeñas */
+
 @media (max-width: 640px) {
   .ui-modal-panel,
   .swal2-popup {
@@ -1806,7 +1806,7 @@ button:disabled {
   }
 }
 
-/* Efecto de borde dentado (sierra) superior e inferior */
+
 .ticket-paper::before,
 .ticket-paper::after {
   content: "";
@@ -1834,7 +1834,7 @@ button:disabled {
   background-position: bottom left;
 }
 
-/* Estilos de Impresión Profesional */
+
 @media print {
   body {
     background: #ffffff !important;
@@ -1842,21 +1842,21 @@ button:disabled {
     font-size: 12px !important;
   }
   
-  /* Ocultar toda la app en la impresión */
+  
   #root > *, 
   div[role="dialog"],
   .no-print {
     display: none !important;
   }
   
-  /* Mostrar únicamente el área de impresión del ticket */
+  
   .print-area {
     display: block !important;
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
-    max-width: 80mm !important; /* Ancho estándar de ticket */
+    max-width: 80mm !important; 
     margin: 0 auto !important;
     padding: 10px !important;
     box-shadow: none !important;
@@ -1866,10 +1866,10 @@ button:disabled {
 
   .print-area::before,
   .print-area::after {
-    display: none !important; /* Ocultar los dientes en la impresión física */
+    display: none !important; 
   }
 
-  /* Reportes operativos (Reports.jsx) */
+  
   body.report-print-mode > *:not(.report-print-area) {
     display: none !important;
   }
@@ -1895,7 +1895,7 @@ button:disabled {
   }
 
   .report-print-header {
-    border-bottom: 2px solid #1e40af;
+    border-bottom: 2px solid #0F4C81;
     margin-bottom: 16px;
     padding-bottom: 12px;
   }
@@ -1943,7 +1943,7 @@ button:disabled {
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #1e40af;
+    color: #0F4C81;
     border-bottom: 1px solid #e2e8f0;
     padding-bottom: 4px;
     margin: 0 0 10px;
@@ -2084,9 +2084,7 @@ button:disabled {
   }
 }
 
-/* ==========================================================================
-   SweetAlert2 Dark Mode Overrides
-   ========================================================================== */
+
 .dark .swal2-popup {
   background: var(--app-surface) !important;
   color: var(--app-text) !important;

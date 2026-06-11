@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AuthService from './AuthService';
 
-// Creamos la instancia de Axios con la URL base desde las variables de entorno
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
@@ -22,7 +22,7 @@ const getFreshToken = async () => {
   return tokenRefreshPromise;
 };
 
-// Interceptor de Petición: adjunta el token administrado por Keycloak
+
 api.interceptors.request.use(
   async (config) => {
     const token = await getFreshToken();
@@ -34,7 +34,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor de Respuesta: si Keycloak rechaza la sesión, vuelve al login centralizado.
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {

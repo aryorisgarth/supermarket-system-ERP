@@ -17,11 +17,7 @@ const getQtyBadgeClass = (quantity, justAdded) => {
   return `bg-[var(--app-primary-soft)] text-[var(--app-primary)] ${justAdded ? 'pos-qty-badge--pulse' : ''}`;
 };
 
-/**
- * Ticket POS — columnas estándar de caja:
- * # | Código | Descripción | Cant. | P. unit. | Importe
- * (Descuento / IVA por línea se resuelven después en cobro)
- */
+
 const ShoppingCart = ({
   cart,
   selectedLineId,

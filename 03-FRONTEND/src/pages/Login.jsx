@@ -90,7 +90,7 @@ const Login = () => {
         icon: 'error',
         title: 'No se pudo iniciar sesión',
         text: error?.message || 'Verifica tus credenciales o la configuración de Keycloak.',
-        confirmButtonColor: '#3b82f6',
+        confirmButtonColor: '#0F4C81',
       });
     } finally {
       setLoading(false);

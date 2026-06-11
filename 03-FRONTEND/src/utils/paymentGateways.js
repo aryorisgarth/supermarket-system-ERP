@@ -1,4 +1,4 @@
-/** Pasarelas soportadas por el backend (PaymentGatewayService.resolveGateway). */
+
 export const PAYMENT_GATEWAY_OPTIONS = [
   {
     value: 'MOCK',

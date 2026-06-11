@@ -77,7 +77,7 @@ const Toast = ({
 	);
 };
 
-// Toast Container para manejar múltiples toasts
+
 export const ToastContainer = ({ toasts, removeToast }) => {
 	const position = toasts.length > 0 ? toasts[0].position : 'top-right';
 	
@@ -106,7 +106,7 @@ export const ToastContainer = ({ toasts, removeToast }) => {
 	);
 };
 
-// Hook para usar toasts en cualquier componente
+
 let toastId = 0;
 const toastListeners = new Set();
 

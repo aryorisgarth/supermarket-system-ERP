@@ -10,18 +10,18 @@ import { useBilling } from '../hooks/useBilling';
 
 const Billing = () => {
   const {
-    // States & Derived
+    
     cart, searchQuery, categories, selectedCategory, categoryProducts, loadingCategoryProducts, 
     showCategoryProductsModal, entryMode, entryQty, selectedLineId, lastAddedLineId,
     selectedCustomer, amountReceived, isMultiPayment, payments, couponCode, validatingCoupon,
     showReceipt, receiptData, showPrintButton, showQuickAccess, canApplyDiscount,
     subtotal, discountTotal, tax, total, taxRate, billingConfig, entryBarProduct,
 
-    // Setters
+    
     setSearchQuery, setEntryQty, setSelectedCustomer, setPayments, setPaymentMethod, setAmountReceived, 
     setCouponCode, setIsMultiPayment, setShowQuickAccess, setShowReceipt, setShowCategoryProductsModal,
 
-    // Actions
+    
     handleSearch, handleKeyDown, handleCategoryClick, selectCartLine, removeFromCart, handleSetLineDiscount,
     handleCancelCurrentPurchase, confirmEntry, clearEntry, handleValidateCoupon, handleCheckout,
     handlePrintReceipt, handleReprintTicket, handleEditSale, handleCancelSale,
@@ -31,7 +31,7 @@ const Billing = () => {
   return (
     <CashRegisterOpenGate>
       <div className="pos-billing-page animate-fade-in no-print app-page-flex w-full min-w-0 overflow-hidden bg-[var(--app-bg)] font-sans">
-        {/* Una sola franja fina: buscador + categorías → el ticket empieza enseguida abajo */}
+        
         <div className="pos-toolbar shrink-0">
           <input
             id="pos-search-input"
@@ -86,7 +86,7 @@ const Billing = () => {
             />
           </div>
 
-          {/* BLOQUE COBRO */}
+          
           <div className="pos-checkout-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] lg:rounded-2xl">
             <CheckoutPanel
               selectedCustomer={selectedCustomer}

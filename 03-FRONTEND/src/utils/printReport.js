@@ -12,7 +12,7 @@ export function printReport() {
   setTimeout(cleanup, 1000);
 }
 
-/** Espera un tick para que React renderice la hoja con las secciones elegidas. */
+
 export function printReportDeferred(callback) {
   requestAnimationFrame(() => {
     setTimeout(() => {

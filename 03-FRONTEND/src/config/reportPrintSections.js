@@ -1,4 +1,4 @@
-/** Claves alineadas con el catálogo de reportes en Reports.jsx */
+
 export const REPORT_SECTION = {
   KPI_GENERAL: 'KPI_GENERAL',
   KPI_COMPARATIVE: 'KPI_COMPARATIVE',

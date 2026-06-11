@@ -83,9 +83,7 @@ const CashierDashboard = () => {
     let preview = null;
     try {
       preview = await CashRegisterService.getCurrentSummary();
-    } catch {
-      /* resumen opcional antes del cierre */
-    }
+    } catch 
 
     const { value: formValues } = await Swal.fire({
       title: 'Cierre de turno',

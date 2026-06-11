@@ -1,4 +1,4 @@
-/** Mensaje legible desde errores de axios o del interceptor (string). */
+
 const API_ERROR_TRANSLATIONS = {
   'Product cannot be deleted because it has associated batches':
     'No se puede eliminar el producto porque tiene lotes en bodega. Desactívelo en inventario en lugar de borrarlo.',

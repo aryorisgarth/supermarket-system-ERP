@@ -39,7 +39,7 @@ const CategoryTable = ({
               </tr>
             ) : categories.map((category) => (
               <tr key={category.id} className="text-xs hover:bg-[var(--app-bg-subtle)]/30 transition-colors group">
-                {/* Categoría */}
+                
                 <td className="p-4 pl-6">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-[var(--app-bg-subtle)] rounded-xl flex items-center justify-center text-[var(--app-primary)] border border-[var(--app-border)] shrink-0 group-hover:scale-105 transition-transform duration-200">
@@ -52,14 +52,14 @@ const CategoryTable = ({
                   </div>
                 </td>
 
-                {/* Descripción */}
+                
                 <td className="p-4">
                   <span className="font-bold text-[var(--app-text-soft)] line-clamp-2 max-w-[400px] leading-relaxed" title={category.description}>
                     {category.description || '— Sin descripción disponible —'}
                   </span>
                 </td>
 
-                {/* Acciones */}
+                
                 <td className="p-4 pr-6 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <button 

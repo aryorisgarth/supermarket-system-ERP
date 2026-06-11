@@ -2,9 +2,7 @@ import { Scale, X } from 'lucide-react';
 import Button from '../ui/Button';
 import { formatMoney } from '../../utils/formatMoney';
 
-/**
- * Barra inferior del POS: un solo lugar para cantidad y agregar/actualizar (como caja real).
- */
+
 const PosLineEntryBar = ({
   mode = 'idle',
   product,

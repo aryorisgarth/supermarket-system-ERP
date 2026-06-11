@@ -25,12 +25,12 @@ const Categories = () => {
     handleItemsPerPageChange,
   } = useBackendList({ loadPage, sort: 'name,asc' });
 
-  // Modal form states
+  
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // Form fields
+  
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -148,7 +148,7 @@ const Categories = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+      
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-black text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
@@ -165,7 +165,7 @@ const Categories = () => {
         </button>
       </div>
 
-      {/* Filtros */}
+      
       <CategoryFilters
         searchTerm={searchTerm}
         onSearchChange={(e) => setSearchTerm(e.target.value)}
@@ -173,7 +173,7 @@ const Categories = () => {
         hasActiveFilters={searchTerm}
       />
 
-      {/* Tabla */}
+      
       <CategoryTable
         categories={categories}
         loading={loading}
@@ -193,11 +193,11 @@ const Categories = () => {
         label="categorías"
       />
 
-      {/* Modal de Crear/Editar */}
+      
       {showModal && (
         <div className="fixed inset-0 bg-[var(--app-bg)]/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-md w-full overflow-hidden">
-            {/* Header */}
+            
             <div className="bg-gradient-to-r from-primary to-primary-dark p-5 text-white flex justify-between items-center shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white/10 rounded-lg text-white">
@@ -220,7 +220,7 @@ const Categories = () => {
               </button>
             </div>
 
-            {/* Form */}
+            
             <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-[var(--app-surface)]">
               <div>
                 <label className="block text-xs font-bold text-[var(--app-text)] mb-1.5 uppercase tracking-wider">

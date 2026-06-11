@@ -155,13 +155,13 @@ const AuthService = {
   getValidToken,
   refreshCurrentUser: () => syncUserFromBackend(),
 
-  /** Cambia contraseña en BD local (usuarios sincronizados con el backend). */
+  
   changePassword: async (currentPassword, newPassword) => {
     const response = await api.post('/auth/change-password', { currentPassword, newPassword });
     return response.data;
   },
 
-  /** Redirige a Keycloak para cambio de contraseña (login OAuth). */
+  
   changePasswordViaKeycloak: () => doUpdatePassword(),
 
   getAccountConsoleUrl,

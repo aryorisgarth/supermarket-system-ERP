@@ -10,7 +10,7 @@ const MetadataService = {
     'companyName,asc',
   ),
 
-  // Obtener categorías de impuestos activas
+  
   getTaxCategories: async () => {
     const response = await api.get('/tax-categories/active');
     return response.data;

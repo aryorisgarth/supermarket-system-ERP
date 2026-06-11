@@ -3,7 +3,7 @@ const About = () => {
     <section id="about" className="py-24 bg-slate-50 border-b border-slate-100">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          {/* Lado izquierdo: Imagen con decoración */}
+          
           <div className="relative">
             <div className="absolute -inset-4 rounded-[2.5rem] bg-[#0F4C81]/5 blur-xl" />
             <img
@@ -13,7 +13,7 @@ const About = () => {
             />
           </div>
 
-          {/* Lado derecho: Texto informativo */}
+          
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-[#0F4C81] bg-[#0F4C81]/10 px-3 py-1.5 rounded-full">
               NOSOTROS
@@ -28,7 +28,7 @@ const About = () => {
               Nuestro sistema integrado y automatizado de control de stock asegura que nunca recibas algo fuera de su punto óptimo de maduración y frescura.
             </p>
 
-            {/* Estadísticas */}
+            
             <div className="mt-10 grid grid-cols-3 gap-6 border-t border-slate-200 pt-8">
               <div>
                 <p className="text-3xl font-black text-[#0F4C81]">100%</p>

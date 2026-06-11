@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 
-/** Páginas cargadas bajo demanda para reducir el bundle inicial. */
+
 export const LazyRoleHome = lazy(() => import('../pages/RoleHome'));
 export const LazyInventory = lazy(() => import('../pages/Inventory'));
 export const LazyBatchManagement = lazy(() => import('../pages/BatchManagement'));

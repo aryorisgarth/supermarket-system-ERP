@@ -49,7 +49,7 @@ export function CashRegisterProvider({ children }) {
     }
   }, [enabled, applyClosed]);
 
-  /** Consulta el servidor aunque no haya flag en sessionStorage (p. ej. pantalla Mi turno). */
+  
   const syncSessionFromServer = useCallback(async () => {
     if (!enabled) {
       setLoading(false);
@@ -184,7 +184,7 @@ export function useCashRegister() {
   return ctx;
 }
 
-/** Para componentes opcionales (p. ej. sidebar) si el provider no envuelve la ruta. */
+
 export function useCashRegisterOptional() {
   return useContext(CashRegisterContext);
 }

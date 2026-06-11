@@ -45,7 +45,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
   return (
     <div className="fixed inset-0 bg-[var(--app-bg)]/60 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-8 animate-fade-in overflow-y-auto">
       <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-3xl w-full overflow-hidden">
-        {/* Header */}
+        
         <div className="bg-gradient-to-r from-slate-800 to-slate-700 p-5 text-white flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/10 rounded-lg"><FileText size={18} /></div>
@@ -62,17 +62,17 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
           </div>
         </div>
 
-        {/* Contenido */}
+        
         <div ref={printRef} className="p-6 space-y-5 text-[var(--app-text)]">
 
-          {/* Advertencia entorno TEST */}
+          
           {isTest && (
             <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 text-amber-700 px-4 py-2.5 rounded-xl text-xs font-bold">
               <AlertTriangle size={14} /> DOCUMENTO EN AMBIENTE DE PRUEBA — No tiene validez fiscal
             </div>
           )}
 
-          {/* Cabecera del documento */}
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-[var(--app-border)]">
             <div className="md:col-span-2 space-y-1">
               <div className="flex items-center gap-2 mb-2">
@@ -92,7 +92,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
             </div>
           </div>
 
-          {/* Emisor / Receptor */}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-[var(--app-bg-subtle)]/50 rounded-xl p-4 space-y-1">
               <div className="flex items-center gap-1.5 mb-2 text-[var(--app-text-muted)]"><Building2 size={13} /><span className="text-[10px] font-black uppercase tracking-wider">Emisor</span></div>
@@ -111,7 +111,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
             </div>
           </div>
 
-          {/* Datos generales */}
+          
           <div className="grid grid-cols-3 gap-3 text-center">
             {[['N° Factura', invoice.invoiceNumber], ['Fecha Emisión', fmt(invoice.issuedAt)], ['Tipo', 'FACTURA']].map(([l, v]) => (
               <div key={l} className="bg-[var(--app-bg-subtle)]/50 rounded-xl p-3">
@@ -121,7 +121,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
             ))}
           </div>
 
-          {/* Líneas */}
+          
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
@@ -156,7 +156,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
             </table>
           </div>
 
-          {/* Totales */}
+          
           <div className="flex justify-end">
             <div className="min-w-[240px] space-y-1.5">
               {[
@@ -176,7 +176,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
             </div>
           </div>
 
-          {/* Pagos */}
+          
           {invoice.payments?.length > 0 && (
             <div>
               <p className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)] mb-2">Forma de Pago</p>
@@ -190,7 +190,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
             </div>
           )}
 
-          {/* Pie */}
+          
           <p className="text-center text-[10px] text-[var(--app-text-muted)] border-t border-[var(--app-border)] pt-4">
             Verifique este documento en {invoice.verificationUrl} · Generado por Sistema de Gestión Supermercado
           </p>

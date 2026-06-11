@@ -22,7 +22,7 @@ const ProductBatchService = {
     return response.data;
   },
 
-  // Lotes con existencia que vencen dentro de N días (global)
+  
   getExpiring: async (withinDays = 30) => {
     const response = await api.get('/product-batches/expiring', {
       params: { withinDays },
@@ -30,13 +30,13 @@ const ProductBatchService = {
     return response.data;
   },
 
-  // Lotes con existencia ya vencidos (global)
+  
   getExpired: async () => {
     const response = await api.get('/product-batches/expired');
     return response.data;
   },
 
-  // Resumen tipo semáforo: vencidos, ≤7, ≤15, ≤30 días
+  
   getSummary: async () => {
     const response = await api.get('/product-batches/summary');
     return response.data;

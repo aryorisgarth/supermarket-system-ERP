@@ -75,16 +75,16 @@ const Inventory = () => {
     sort: 'name,asc',
   });
 
-  // Dropdown options loaded from backend
+  
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [taxCategories, setTaxCategories] = useState([]);
 
-  // Modal form states
+  
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
-  // Quick Stock Adjustment Modal States
+  
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [adjustProduct, setAdjustProduct] = useState(null);
 
@@ -252,7 +252,7 @@ const Inventory = () => {
         }
       />
 
-      {/* Selector de Pestañas Rápidas */}
+      
       <div className="ui-tabs-scroll flex gap-1 border-b border-[var(--app-border)]">
         <button 
           onClick={() => { setActiveTab('ALL'); setCatFilter(''); setSupFilter(''); }}
@@ -278,7 +278,7 @@ const Inventory = () => {
       </div>
 
 
-      {/* Filtros */}
+      
       <InventoryFilters
         searchTerm={searchTerm}
         onSearchChange={(e) => setSearchTerm(e.target.value)}
@@ -292,7 +292,7 @@ const Inventory = () => {
         hasActiveFilters={catFilter || supFilter || searchTerm || (activeTab !== 'ALL' && activeTab !== 'CATALOG')}
       />
 
-      {/* Grid Principal Compacto (Enterprise Grid) / Catálogo Comercial */}
+      
       {activeTab === 'CATALOG' ? (
         <InventoryCatalogView
           products={products}
@@ -311,7 +311,7 @@ const Inventory = () => {
         />
       )}
 
-      {/* Paginación */}
+      
       <BackendPagination
         currentPage={currentPage}
         totalPages={totalPages}
@@ -324,7 +324,7 @@ const Inventory = () => {
         label="productos"
       />
 
-      {/* Modal Ajuste Rápido de Stock */}
+      
       <StockAdjustmentModal
         isOpen={showAdjustModal}
         product={adjustProduct}

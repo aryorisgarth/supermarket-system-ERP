@@ -1,8 +1,4 @@
-/**
- * Presentaciones de compra / inventario (Nicaragua).
- * Todas las etiquetas expresan cuántas UNIDADES BASE (factor) contiene el empaque.
- * Orden típico de menor a mayor: UN → M-CAJ/PAQ → CAJILLA → CAJA → REJILLA/SACO
- */
+
 
 export const PACK_DEFINITIONS = {
   UN: 'Unidad base de inventario y venta al detalle (1 pieza).',
@@ -16,7 +12,7 @@ export const PACK_DEFINITIONS = {
   SACO: 'Saco o bulto mayorista (ej. 50 unidades).',
 };
 
-/** Jerarquía explicada para huevos (pregunta frecuente en bodega). */
+
 export const EGG_HIERARCHY_HELP =
   'Huevos (de menor a mayor): 1 UN = 1 huevo → M-CAJ = 6 → CAJILLA = 30 → CAJA = 60 (2 cajillas en cartón) → REJILLA = 360 (12 cajillas en rejilla del proveedor). La rejilla es más grande que la caja; la caja trae cajillas, no media cajillas.';
 
@@ -82,7 +78,7 @@ export const PACK_TEMPLATES = {
   },
 };
 
-/** Plantilla sugerida según categoría del catálogo o nombre del producto. */
+
 export const CATEGORY_TEMPLATE_MAP = {
   Bebidas: 'beverages',
   Lácteos: 'dairy',
@@ -151,7 +147,7 @@ export function sortPurchasePacks(packs) {
   );
 }
 
-/** Resumen visual: 1 REJILLA = 360 uds. → 1 CAJA = 60 uds. … */
+
 export function buildHierarchySummary(packs, unitLabel = 'uds. inventario') {
   const sorted = sortPurchasePacks(packs)
     .map((pack) => ({ ...pack, factor: Number(pack.factor) || 0 }))

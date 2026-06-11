@@ -133,7 +133,7 @@ const Maintenance = () => {
         <p className="text-[var(--app-text-muted)] text-sm font-medium">Respaldo y restauración integral de la base de datos MySQL. Acceso exclusivo para el Ingeniero de Sistemas.</p>
       </div>
 
-      {/* Banner de Política Activa de Respaldos */}
+      
       <div className="bg-[var(--app-primary-soft)] border border-[var(--app-primary)]/10 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-[var(--app-surface)] text-[var(--app-primary)] rounded-2xl shrink-0 border border-[var(--app-border)] shadow-sm">
@@ -154,7 +154,7 @@ const Maintenance = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Card Respaldo */}
+        
         <div className="bg-[var(--app-surface)] p-8 rounded-3xl border border-[var(--app-border)] shadow-sm hover:shadow-xl transition-all duration-300 space-y-6">
           <div className="p-3 bg-[var(--app-primary-soft)] rounded-2xl w-fit text-[var(--app-primary)] border border-[var(--app-primary)]/10">
             <Download size={32} strokeWidth={2.5} />
@@ -179,7 +179,7 @@ const Maintenance = () => {
           </button>
         </div>
 
-        {/* Card Restaurar */}
+        
         <div className="bg-[var(--app-surface)] p-8 rounded-3xl border border-[var(--app-border)] shadow-sm hover:shadow-xl transition-all duration-300 space-y-6">
           <div className="p-3 bg-[var(--app-danger-soft)] rounded-2xl w-fit text-[var(--app-danger)] border border-[var(--app-danger)]/10">
             <ShieldAlert size={32} strokeWidth={2.5} />

@@ -11,9 +11,7 @@ const EXPIRY_PRESETS = [
 
 export { EXPIRY_PRESETS };
 
-/**
- * Buscador de productos para promociones — usa GET /products?q=&categoryId=&supplierId=
- */
+
 const ProductSearchPicker = ({
   productId,
   selectedProduct,

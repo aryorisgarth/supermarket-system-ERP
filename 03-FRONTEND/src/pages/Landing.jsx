@@ -49,7 +49,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-800">
-      {/* Toast de Notificaciones */}
+      
       {notification && (
         <div className="fixed bottom-6 right-6 z-50 flex max-w-md animate-fade-in-up items-center gap-3 rounded-2xl bg-[#0F4C81] px-5 py-4 text-sm font-semibold text-white shadow-2xl ring-4 ring-[#0F4C81]/15">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs text-[#0F4C81]">✓</span>
@@ -57,7 +57,7 @@ const Landing = () => {
         </div>
       )}
 
-      {/* Cabecera */}
+      
       <Header
         activeNav={activeNav}
         scrollToSection={scrollToSection}
@@ -65,30 +65,30 @@ const Landing = () => {
       />
 
       <main>
-        {/* Banner de Presentación */}
+        
         <Hero scrollToSection={scrollToSection} />
 
-        {/* Sección Nosotros */}
+        
         <About />
 
-        {/* Sección Servicios */}
+        
         <Services />
 
-        {/* Sección Productos */}
+        
         <Products
           activeCategory={activeCategory}
           setActiveCategory={setActiveCategory}
           handleAddToCart={handleAddToCart}
         />
 
-        {/* Sección Contacto */}
+        
         <Contact
           handleContactSubmit={handleContactSubmit}
           formSending={formSending}
         />
       </main>
 
-      {/* Pie de Página */}
+      
       <Footer />
     </div>
   );

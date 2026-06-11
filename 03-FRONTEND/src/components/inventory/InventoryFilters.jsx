@@ -17,7 +17,7 @@ const InventoryFilters = ({
   return (
     <div className="ui-card p-4 sm:p-5 shadow-enterprise border-[var(--app-border)]">
       <div className="flex flex-col lg:flex-row items-center gap-4">
-        {/* BUSCADOR */}
+        
         <div className="relative w-full lg:max-w-md">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--app-text-muted)] pointer-events-none" />
           <input
@@ -38,7 +38,7 @@ const InventoryFilters = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          {/* CATEGORIA */}
+          
           <div className="relative flex-1 min-w-[160px] lg:w-48">
             <Tag size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--app-primary)] opacity-60 pointer-events-none" />
             <select
@@ -53,7 +53,7 @@ const InventoryFilters = ({
             </select>
           </div>
 
-          {/* PROVEEDOR */}
+          
           <div className="relative flex-1 min-w-[160px] lg:w-56">
             <Building2 size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--app-primary)] opacity-60 pointer-events-none" />
             <select
@@ -68,7 +68,7 @@ const InventoryFilters = ({
             </select>
           </div>
 
-          {/* LIMPIAR */}
+          
           {hasActiveFilters && (
             <Button 
               variant="ghost" 

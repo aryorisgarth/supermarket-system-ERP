@@ -122,7 +122,7 @@ export const useReportsData = (firstDayOfYearStr, todayStr) => {
     }
   };
 
-  // Cálculos derivados
+  
   const totalWeeklySales = weeklySales.reduce((acc, s) => acc + s.amount, 0);
 
   const barData = {

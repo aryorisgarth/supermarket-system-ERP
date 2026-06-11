@@ -8,7 +8,7 @@ export const parseClosureAlerts = (alertsJson, fallback = []) => {
   }
 };
 
-/** Snapshot unificado para acta impresa (oficial o preliminar). */
+
 export const buildClosurePrintSnapshot = ({
   date,
   officialClosure,

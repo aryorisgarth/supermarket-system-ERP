@@ -4,10 +4,7 @@ import { normalizeProduct } from '../utils/normalizeProduct';
 
 const BARCODE_PATTERN = /^[a-zA-Z0-9_-]{3,}$/;
 
-/**
- * Hook reutilizable para escaneo por código de barras (lector USB o teclado).
- * Enter dispara la búsqueda; devuelve el producto normalizado o null.
- */
+
 export default function useBarcodeScan({ onFound, onNotFound, onError } = {}) {
   const [scanValue, setScanValue] = useState('');
   const [scanning, setScanning] = useState(false);

@@ -49,7 +49,7 @@ const SkeletonLoader = ({
 	return renderSkeleton();
 };
 
-// Componentes especializados
+
 export const SkeletonCard = ({ className = '' }) => (
 	<div className={`bg-white rounded-lg shadow-enterprise border border-border-light p-6 ${className}`}>
 		<SkeletonLoader variant="circle" width={48} height={48} className="mb-4" />
@@ -61,13 +61,13 @@ export const SkeletonCard = ({ className = '' }) => (
 
 export const SkeletonTable = ({ rows = 5, columns = 4 }) => (
 	<div className="space-y-3">
-		{/* Header */}
+		
 		<div className="flex gap-4 pb-2 border-b border-border-light">
 			{Array.from({ length: columns }).map((_, index) => (
 				<SkeletonLoader key={`header-${index}`} variant="text" width="20%" />
 			))}
 		</div>
-		{/* Rows */}
+		
 		{Array.from({ length: rows }).map((_, rowIndex) => (
 			<div key={`row-${rowIndex}`} className="flex gap-4 py-2">
 				{Array.from({ length: columns }).map((_, colIndex) => (
@@ -94,14 +94,14 @@ export const SkeletonList = ({ count = 5 }) => (
 
 export const SkeletonDashboard = () => (
 	<div className="space-y-6">
-		{/* Stats Cards */}
+		
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 			{Array.from({ length: 4 }).map((_, index) => (
 				<SkeletonCard key={`stat-${index}`} />
 			))}
 		</div>
 		
-		{/* Chart Section */}
+		
 		<div className="bg-white rounded-lg shadow-enterprise border border-border-light p-6">
 			<SkeletonLoader variant="text" width="30%" className="mb-6" />
 			<div className="h-64">
@@ -109,7 +109,7 @@ export const SkeletonDashboard = () => (
 			</div>
 		</div>
 		
-		{/* Recent Activity */}
+		
 		<div className="bg-white rounded-lg shadow-enterprise border border-border-light p-6">
 			<SkeletonLoader variant="text" width="30%" className="mb-6" />
 			<SkeletonList count={5} />

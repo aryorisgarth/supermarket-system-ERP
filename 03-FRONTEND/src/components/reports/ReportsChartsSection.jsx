@@ -33,7 +33,7 @@ const ReportsChartsSection = ({
 }) => {
   return (
     <>
-      {/* Gráficos Principales */}
+      
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader icon={BarChart} title="Flujo de Ventas Diarias" description="Rendimiento de los últimos 7 días." />
@@ -68,7 +68,7 @@ const ReportsChartsSection = ({
         </Card>
       </div>
 
-      {/* Métodos de Pago y Productos */}
+      
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader icon={PieChartIcon} title="Ingresos por Medio de Pago" description="Preferencia de los clientes." />

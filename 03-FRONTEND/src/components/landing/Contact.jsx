@@ -3,7 +3,7 @@ const Contact = ({ handleContactSubmit, formSending }) => {
     <section id="contact" className="py-24 bg-white">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-2">
-          {/* Información de contacto */}
+          
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-[#0F4C81] bg-[#0F4C81]/10 px-3 py-1.5 rounded-full">
               CONTÁCTANOS
@@ -46,7 +46,7 @@ const Contact = ({ handleContactSubmit, formSending }) => {
             </div>
           </div>
 
-          {/* Formulario de contacto */}
+          
           <div className="rounded-3xl border border-slate-100 bg-slate-50 p-8 shadow-xl">
             <form onSubmit={handleContactSubmit} className="space-y-6">
               <div>

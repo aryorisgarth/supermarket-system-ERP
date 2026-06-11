@@ -1,7 +1,7 @@
 import api from './api';
 import SaleService from './SaleService';
 
-/** Construye el modelo de vista para el modal a partir de la FE y la venta. */
+
 export const buildInvoiceView = (ei, sale) => {
   const cuf = ei.fiscalUuid || '';
   const verificationUrl = `${window.location.origin}/verify?cuf=${encodeURIComponent(cuf)}`;
@@ -74,18 +74,18 @@ const ElectronicInvoiceService = {
     return res.data;
   },
 
-  /** Emite/recupera FE y carga la venta para el visor completo. */
+  
   issueWithSale: async (saleId) => {
     const ei = await ElectronicInvoiceService.issue(saleId);
     let sale = null;
-    try { sale = await SaleService.getById(saleId); } catch (_) { /* opcional */ }
+    try { sale = await SaleService.getById(saleId); } catch (_) 
     return buildInvoiceView(ei, sale);
   },
 
   bySaleWithDetails: async (saleId) => {
     const ei = await ElectronicInvoiceService.bySale(saleId);
     let sale = null;
-    try { sale = await SaleService.getById(saleId); } catch (_) { /* opcional */ }
+    try { sale = await SaleService.getById(saleId); } catch (_) 
     return buildInvoiceView(ei, sale);
   },
 

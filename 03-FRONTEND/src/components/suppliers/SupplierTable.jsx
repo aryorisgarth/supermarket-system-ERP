@@ -42,7 +42,7 @@ const SupplierTable = ({
               </tr>
             ) : suppliers.map((supplier) => (
               <tr key={supplier.id} className="text-xs hover:bg-surface dark:hover:bg-surface-dark transition-colors group">
-                {/* Empresa */}
+                
                 <td className="p-3.5 pl-6">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center text-text-muted border border-border-light dark:border-border-light-dark shrink-0 group-hover:scale-105 transition-transform duration-200">
@@ -55,12 +55,12 @@ const SupplierTable = ({
                   </div>
                 </td>
 
-                {/* Contacto */}
+                
                 <td className="p-3.5">
                   <span className="font-medium text-text-secondary dark:text-text-secondary-dark">{supplier.contactName || '—'}</span>
                 </td>
 
-                {/* Teléfono */}
+                
                 <td className="p-3.5">
                   <div className="flex items-center gap-1 text-text-secondary dark:text-text-secondary-dark">
                     <Phone size={12} className="opacity-60" />
@@ -68,7 +68,7 @@ const SupplierTable = ({
                   </div>
                 </td>
 
-                {/* Email */}
+                
                 <td className="p-3.5">
                   <div className="flex items-center gap-1 text-text-secondary dark:text-text-secondary-dark">
                     <Mail size={12} className="opacity-60" />
@@ -76,7 +76,7 @@ const SupplierTable = ({
                   </div>
                 </td>
 
-                {/* Dirección */}
+                
                 <td className="p-3.5">
                   <div className="flex items-center gap-1 text-text-secondary dark:text-text-secondary-dark">
                     <MapPin size={12} className="opacity-60" />
@@ -84,7 +84,7 @@ const SupplierTable = ({
                   </div>
                 </td>
 
-                {/* Acciones */}
+                
                 <td className="p-3.5 pr-6 text-center">
                   <div className="flex items-center justify-center gap-1.5">
                     <button 

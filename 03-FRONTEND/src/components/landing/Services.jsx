@@ -15,7 +15,7 @@ const Services = () => {
         </div>
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Servicio 1 */}
+          
           <div className="group rounded-3xl border border-slate-100 p-8 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-slate-200 hover:-translate-y-1 bg-white">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-colors group-hover:bg-[#0F4C81] group-hover:text-white mb-6">
               <span className="text-xl">🚚</span>
@@ -26,7 +26,7 @@ const Services = () => {
             </p>
           </div>
 
-          {/* Servicio 2 */}
+          
           <div className="group rounded-3xl border border-slate-100 p-8 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-slate-200 hover:-translate-y-1 bg-white">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-[#0F4C81] group-hover:text-white mb-6">
               <span className="text-xl">🍏</span>
@@ -37,7 +37,7 @@ const Services = () => {
             </p>
           </div>
 
-          {/* Servicio 3 */}
+          
           <div className="group rounded-3xl border border-slate-100 p-8 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-slate-200 hover:-translate-y-1 bg-white">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-[#0F4C81] group-hover:text-white mb-6">
               <span className="text-xl">📄</span>
@@ -48,7 +48,7 @@ const Services = () => {
             </p>
           </div>
 
-          {/* Servicio 4 */}
+          
           <div className="group rounded-3xl border border-slate-100 p-8 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-slate-200 hover:-translate-y-1 bg-white">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0F4C81]/10 text-[#0F4C81] transition-colors group-hover:bg-[#0F4C81] group-hover:text-white mb-6">
               <span className="text-xl">⭐</span>

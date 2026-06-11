@@ -110,7 +110,7 @@ const WarehouseCountSession = () => {
       setActing(true);
       const updated = await InventoryCountService.scan(session.id, barcode, qty, selectedBatchId);
       setSession(updated);
-      setScanQty(1); // reset cantidad después de escanear
+      setScanQty(1); 
     } catch (error) {
       Swal.fire('Error', getApiErrorMessage(error, 'No se pudo registrar el escaneo.'), 'error');
     } finally {
@@ -193,7 +193,7 @@ const WarehouseCountSession = () => {
               onKeyDown={handleScanKeyDown}
               disabled={scanning || acting}
             />
-            {/* Campo de cantidad */}
+            
             <div className="flex flex-col items-center gap-1 shrink-0">
               <label className="text-[10px] font-black uppercase text-[var(--app-text-muted)] whitespace-nowrap">Cantidad</label>
               <input
@@ -246,7 +246,7 @@ const WarehouseCountSession = () => {
 
                 return (
                   <tr key={line.id} className="hover:bg-[var(--app-surface-2)]/50 transition-colors">
-                    {/* Producto + Lote */}
+                    
                     <td className="p-2 pl-3">
                       <p className="font-black text-[var(--app-text)]">{line.productName}</p>
                       <div className="flex flex-wrap gap-1.5 mt-0.5">
@@ -259,7 +259,7 @@ const WarehouseCountSession = () => {
                       </div>
                     </td>
 
-                    {/* Presentación escaneada */}
+                    
                     <td className="p-2 text-center">
                       {hasUom ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 text-[10px] font-bold">
@@ -270,7 +270,7 @@ const WarehouseCountSession = () => {
                       )}
                     </td>
 
-                    {/* Cantidad Comercial (cuántas presentaciones se escanearon) */}
+                    
                     <td className="p-2 text-center">
                       <span className="font-black text-[var(--app-text)]">{commercialQty}</span>
                       {hasUom && (
@@ -278,19 +278,19 @@ const WarehouseCountSession = () => {
                       )}
                     </td>
 
-                    {/* Equivalente UBI acumulado */}
+                    
                     <td className="p-2 text-center">
                       <span className="font-bold text-[var(--app-text)]">{ubiQty}</span>
                       <p className="text-[9px] text-[var(--app-text-muted)]">UN</p>
                     </td>
 
-                    {/* Sistema UBI */}
+                    
                     <td className="p-2 text-center">
                       <span className="font-bold text-[var(--app-text)]">{Number(line.systemQuantity)}</span>
                       <p className="text-[9px] text-[var(--app-text-muted)]">UN</p>
                     </td>
 
-                    {/* Varianza */}
+                    
                     <td className={`p-2 text-center ${varTone}`}>
                       {variance > 0 ? `+${variance}` : variance}
                       <p className="text-[9px] font-normal text-[var(--app-text-muted)]">UN</p>

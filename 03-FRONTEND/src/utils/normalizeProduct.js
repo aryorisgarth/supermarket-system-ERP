@@ -1,6 +1,4 @@
-/**
- * Unifica campos de producto entre API (camelCase), snake_case o columnas de INSERT masivo.
- */
+
 export function normalizeProduct(raw) {
   if (!raw || typeof raw !== 'object') {
     return raw;

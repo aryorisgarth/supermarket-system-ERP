@@ -1,4 +1,4 @@
-/** Ruta de inicio según rol (login y rutas no permitidas). */
+
 export function getDefaultPathForRole(roleName) {
   const paths = {
     CAJERO: '/cajero',

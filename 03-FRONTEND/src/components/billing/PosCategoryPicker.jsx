@@ -6,10 +6,7 @@ const money = formatMoney;
 
 const LONG_PRESS_MS = 550;
 
-/**
- * Catálogo rápido para cajero: un toque = +1 al ticket. Sin stock ni botones de confirmar.
- * Mantener pulsado = cantidad personalizada (barra inferior del POS).
- */
+
 const PosCategoryPicker = ({
   open,
   category,

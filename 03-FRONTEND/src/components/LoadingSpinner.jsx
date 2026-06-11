@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
-// Spinner simple con animación
+
 export const Spinner = ({ size = 24, className = '' }) => (
 	<motion.div
 		initial={{ opacity: 0 }}
@@ -14,7 +14,7 @@ export const Spinner = ({ size = 24, className = '' }) => (
 	</motion.div>
 );
 
-// Spinner con texto
+
 export const SpinnerWithText = ({ text = 'Cargando...', size = 24, className = '' }) => (
 	<div className={`flex flex-col items-center gap-3 ${className}`}>
 		<motion.div
@@ -35,7 +35,7 @@ export const SpinnerWithText = ({ text = 'Cargando...', size = 24, className = '
 	</div>
 );
 
-// Dots spinner
+
 export const DotsSpinner = ({ className = '' }) => (
 	<div className={`flex gap-1 ${className}`}>
 		{[0, 1, 2].map((i) => (
@@ -56,7 +56,7 @@ export const DotsSpinner = ({ className = '' }) => (
 	</div>
 );
 
-// Pulse spinner
+
 export const PulseSpinner = ({ size = 40, className = '' }) => (
 	<motion.div
 		className={`relative ${className}`}
@@ -100,7 +100,7 @@ export const PulseSpinner = ({ size = 40, className = '' }) => (
 	</motion.div>
 );
 
-// Progress bar
+
 export const ProgressBar = ({ progress = 0, className = '', showPercentage = true }) => (
 	<div className={`w-full ${className}`}>
 		<div className="flex justify-between items-center mb-2">
@@ -120,7 +120,7 @@ export const ProgressBar = ({ progress = 0, className = '', showPercentage = tru
 	</div>
 );
 
-// Linear progress bar (sin porcentaje)
+
 export const LinearProgress = ({ className = '' }) => (
 	<div className={`w-full h-1 bg-slate-200 rounded-full overflow-hidden ${className}`}>
 		<motion.div
@@ -137,7 +137,7 @@ export const LinearProgress = ({ className = '' }) => (
 	</div>
 );
 
-// Full page loading overlay
+
 export const PageLoader = ({ text = 'Cargando...' }) => (
 	<div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
 		<motion.div
@@ -159,7 +159,7 @@ export const PageLoader = ({ text = 'Cargando...' }) => (
 	</div>
 );
 
-// Button loading state
+
 export const ButtonLoader = ({ className = '' }) => (
 	<motion.div
 		className={`flex items-center justify-center ${className}`}

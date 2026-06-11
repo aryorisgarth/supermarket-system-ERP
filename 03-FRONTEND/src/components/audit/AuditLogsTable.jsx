@@ -26,7 +26,7 @@ const AuditLogsTable = ({
 }) => {
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Barra de Filtros Rápidos (Quick Tags) */}
+      
       <div className="flex flex-wrap gap-2 items-center">
         <span className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)] mr-2">
           Filtros Rápidos:
@@ -93,7 +93,7 @@ const AuditLogsTable = ({
         </button>
       </div>
 
-      {/* Tabla de Eventos */}
+      
       <Card padded={false} className="overflow-hidden">
         <div className="border-b border-[var(--app-border)] p-6">
           <CardHeader
@@ -171,7 +171,7 @@ const AuditLogsTable = ({
           </div>
         )}
 
-        {/* Paginación */}
+        
         <div className="p-4 border-t border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40">
           <BackendPagination
             currentPage={page + 1}

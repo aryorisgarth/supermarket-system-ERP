@@ -3,10 +3,7 @@ import { Wallet, Power, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCashRegister } from '../context/CashRegisterContext';
 
-/**
- * Bloquea el POS hasta que exista un turno de caja abierto.
- * No llama a /current mientras la caja esté marcada como cerrada en sesión.
- */
+
 const CashRegisterOpenGate = ({ children }) => {
   const { enabled, isOpen, loading, promptAndOpenSession } = useCashRegister();
 

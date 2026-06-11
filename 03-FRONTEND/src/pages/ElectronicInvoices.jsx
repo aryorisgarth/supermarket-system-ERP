@@ -43,7 +43,7 @@ const ElectronicInvoices = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+      
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-black text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
@@ -58,7 +58,7 @@ const ElectronicInvoices = () => {
         </div>
       </div>
 
-      {/* Filtro */}
+      
       <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl p-4">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-text-muted)]" />
@@ -66,7 +66,7 @@ const ElectronicInvoices = () => {
         </div>
       </div>
 
-      {/* Tabla */}
+      
       <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16 text-[var(--app-text-muted)]"><Loader2 className="animate-spin mr-2" size={20} /> Cargando...</div>

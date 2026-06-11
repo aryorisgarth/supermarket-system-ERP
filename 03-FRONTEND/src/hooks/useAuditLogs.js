@@ -28,14 +28,14 @@ export const useAuditLogs = () => {
   const [appliedFilters, setAppliedFilters] = useState(initialFilters);
   const [selectedLog, setSelectedLog] = useState(null);
 
-  // Estados agregados para diseño premium y analíticos
-  const [activeTab, setActiveTab] = useState('table'); // 'table' o 'analytics'
+  
+  const [activeTab, setActiveTab] = useState('table'); 
   const [quickFilter, setQuickFilter] = useState('ALL');
-  const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // 0 (desactivado), 10, 30, 60 segundos
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); 
   const [countdown, setCountdown] = useState(0);
 
-  // Estados agregados para el visor de diferencias JSON
-  const [modalTab, setModalTab] = useState('diff'); // 'diff' o 'raw'
+  
+  const [modalTab, setModalTab] = useState('diff'); 
   const [showUnchanged, setShowUnchanged] = useState(false);
 
   const fetchLogs = useCallback(async () => {
@@ -66,7 +66,7 @@ export const useAuditLogs = () => {
     fetchLogs();
   }, [page, size, appliedFilters, fetchLogs]);
 
-  // Manejo de Auto-Refresco
+  
   useEffect(() => {
     if (autoRefreshInterval === 0) {
       setCountdown(0);
@@ -160,7 +160,7 @@ export const useAuditLogs = () => {
       log.ipAddress || '127.0.0.1',
     ]);
 
-    let csvContent = '\uFEFF'; // UTF-8 BOM
+    let csvContent = '\uFEFF'; 
     csvContent += headers.join(',') + '\n';
     rows.forEach((row) => {
       const escapedRow = row.map((val) => {
@@ -228,7 +228,7 @@ export const useAuditLogs = () => {
           {
             label: 'Eventos',
             data: topModules.map((m) => m[1]),
-            backgroundColor: '#1e40af',
+            backgroundColor: '#0F4C81',
             borderRadius: 8,
           },
         ],

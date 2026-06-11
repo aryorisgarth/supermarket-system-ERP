@@ -24,7 +24,7 @@ const CommercialGoalsTab = ({
 }) => {
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Formulario de Creación de Metas */}
+      
       {showGoalForm && (
         <div className="bg-white/95 border border-amber-200 rounded-3xl p-6 shadow-xl max-w-xl animate-fade-in">
           <h3 className="font-black text-slate-800 flex items-center gap-2 mb-4">
@@ -117,7 +117,7 @@ const CommercialGoalsTab = ({
         </div>
       )}
 
-      {/* Cargador e Indicadores de Metas */}
+      
       {loadingGoals ? (
         <div className="h-64 flex flex-col items-center justify-center text-slate-400 gap-3">
           <Loader2 className="animate-spin text-primary" size={36} />
@@ -137,7 +137,7 @@ const CommercialGoalsTab = ({
               CUSTOM: 'Personalizada',
             }[g.goalType];
 
-            // Determinar el color del progreso y tema
+            
             let themeColor = 'from-blue-500 to-indigo-600';
             let bgSoft = 'bg-blue-50 text-blue-700 border-blue-200';
             if (g.isAchieved || g.status === 'COMPLETED') {
@@ -157,7 +157,7 @@ const CommercialGoalsTab = ({
                 className="bg-white border border-slate-100 rounded-3xl p-5 hover:shadow-lg transition-all duration-300 flex flex-col justify-between group"
               >
                 <div className="space-y-4">
-                  {/* Cabecera de la Tarjeta */}
+                  
                   <div className="flex justify-between items-start gap-3">
                     <div>
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border tracking-wider ${bgSoft}`}>
@@ -172,7 +172,7 @@ const CommercialGoalsTab = ({
                     </span>
                   </div>
 
-                  {/* Progreso Visual en Anillo/Barra */}
+                  
                   <div className="space-y-1.5 pt-1">
                     <div className="flex justify-between text-xs font-bold">
                       <span className="text-slate-400 uppercase tracking-wide">Progreso ({progress.toFixed(1)}%)</span>
@@ -193,14 +193,14 @@ const CommercialGoalsTab = ({
                   </div>
                 </div>
 
-                {/* Footer con fechas y estados */}
+                
                 <div className="border-t border-slate-100 mt-5 pt-4 flex justify-between items-center text-xs font-semibold text-slate-400">
                   <span className="flex items-center gap-1.5">
                     <Calendar size={13} />
                     {new Date(g.endDate).toLocaleDateString('es-NI', { day: '2-digit', month: 'short' })}
                   </span>
 
-                  {/* Estado Operativo */}
+                  
                   {g.status === 'COMPLETED' && (
                     <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 text-[10px] font-bold">
                       <CheckCircle size={12} /> Completada

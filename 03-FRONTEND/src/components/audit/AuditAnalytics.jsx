@@ -48,7 +48,7 @@ const AuditAnalytics = ({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Gráfico 1: Riesgos */}
+        
         <Card>
           <CardHeader icon={PieIcon} title="Severidad de Eventos" description="Distribución por nivel de riesgo" />
           <div className="h-64 mt-4 flex items-center justify-center">
@@ -60,7 +60,7 @@ const AuditAnalytics = ({
           </div>
         </Card>
 
-        {/* Gráfico 2: Módulos más Modificados */}
+        
         <Card>
           <CardHeader icon={BarChart2} title="Módulos Críticos" description="Top 5 de módulos con más actividad" />
           <div className="h-64 mt-4">
@@ -72,7 +72,7 @@ const AuditAnalytics = ({
           </div>
         </Card>
 
-        {/* Gráfico 3: Actividad por Usuario */}
+        
         <Card>
           <CardHeader icon={Users} title="Top Usuarios" description="Usuarios más activos en auditoría" />
           <div className="h-64 mt-4">
@@ -86,7 +86,7 @@ const AuditAnalytics = ({
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        {/* Resumen Operacional Extra */}
+        
         <Card>
           <CardHeader icon={Activity} title="Análisis de Actividad de Auditoría" description="Análisis ejecutivo basado en el lote cargado." />
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -117,7 +117,7 @@ const AuditAnalytics = ({
           </div>
         </Card>
 
-        {/* Panel de Alertas de Seguridad Críticas */}
+        
         <Card>
           <CardHeader icon={AlertOctagon} title="Alertas Críticas Recientes" description="Últimos eventos de riesgo Alto o Crítico" />
           <div className="mt-4 space-y-3">

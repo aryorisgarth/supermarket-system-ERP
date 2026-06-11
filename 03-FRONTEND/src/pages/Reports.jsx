@@ -8,11 +8,11 @@ import { printReportDeferred } from '../utils/printReport';
 import { REPORT_SECTION } from '../config/reportPrintSections';
 import { formatMoney } from '../utils/formatMoney';
 
-// Hooks personalizados
+
 import { useReportsData } from '../hooks/useReportsData';
 import { useCommercialGoals } from '../hooks/useCommercialGoals';
 
-// Subcomponentes modulares
+
 import AvailableReports from '../components/reports/AvailableReports';
 import InventoryFlowAnalysis from '../components/reports/InventoryFlowAnalysis';
 import PurchasesVsSalesAnalysis from '../components/reports/PurchasesVsSalesAnalysis';
@@ -44,13 +44,13 @@ const getReportCatalog = (reportsData) => [
 ];
 
 const Reports = () => {
-  const [activeTab, setActiveTab] = useState('METRICS'); // METRICS, GOALS
+  const [activeTab, setActiveTab] = useState('METRICS'); 
   const [printSections, setPrintSections] = useState('ALL');
 
   const todayStr = new Date().toISOString().split('T')[0];
   const firstDayOfYearStr = `${new Date().getFullYear()}-01-01`;
 
-  // Consumir Custom Hooks
+  
   const reportsData = useReportsData(firstDayOfYearStr, todayStr);
   const goalsData = useCommercialGoals(activeTab);
 
@@ -130,7 +130,7 @@ const Reports = () => {
         actions={exportActions}
       />
 
-      {/* Tabs */}
+      
       <div className="ui-tabs-scroll flex gap-1 border-b border-[var(--app-border)]">
         <button
           type="button"

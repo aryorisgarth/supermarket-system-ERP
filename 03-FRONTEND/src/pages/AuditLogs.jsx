@@ -4,7 +4,7 @@ import PageHeader from '../components/ui/PageHeader';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 
-// Hook personalizado y helpers
+
 import useAuditLogs from '../hooks/useAuditLogs';
 import {
   actionOptions,
@@ -16,7 +16,7 @@ import {
   parseJson,
 } from '../utils/auditLogsHelper';
 
-// Subcomponentes modulares
+
 import AuditStats from '../components/audit/AuditStats';
 import AuditFilterForm from '../components/audit/AuditFilterForm';
 import AuditLogsTable from '../components/audit/AuditLogsTable';
@@ -65,7 +65,7 @@ const AuditLogs = () => {
 
   const exportActions = (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Control de Auto-Refresco */}
+      
       <div className="flex items-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 shadow-sm">
         <span className="text-[10px] font-black uppercase text-[var(--app-text-muted)] tracking-wider">
           {autoRefreshInterval > 0 ? `Refresco en: ${countdown}s` : 'Auto-Refresco'}
@@ -124,10 +124,10 @@ const AuditLogs = () => {
         }
       />
 
-      {/* Tarjetas de Estadísticas */}
+      
       <AuditStats summary={summary} operationalSummary={operationalSummary} />
 
-      {/* Tabs */}
+      
       <div className="flex gap-1 border-b border-[var(--app-border)]">
         <button
           type="button"

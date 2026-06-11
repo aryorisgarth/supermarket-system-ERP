@@ -93,7 +93,7 @@ export const doLogout = (options = {}) =>
     ...options,
   });
 
-/** Redirige al flujo seguro de Keycloak para cambiar contraseña. */
+
 export const doUpdatePassword = (options = {}) =>
   keycloak.login({
     action: 'UPDATE_PASSWORD',
@@ -141,7 +141,7 @@ const normalizeRole = (role = '') => {
 const resolveApplicationRole = (roles = []) =>
   ['ADMIN_INGENIERO', 'ADMINISTRADOR', 'SUPERVISOR', 'CAJERO', 'CONSULTOR'].find((role) => roles.includes(role)) || null;
 
-// Aliases de compatibilidad para imports antiguos.
+
 export const initAuth = initKeycloak;
 export const getToken = getValidToken;
 export const loginUser = doLogin;

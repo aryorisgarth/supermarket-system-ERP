@@ -1,4 +1,4 @@
-/** Permisos base por rol (alineados con migraciones Flyway). Fallback si /auth/me no devolvió permisos. */
+
 export const ROLE_DEFAULT_PERMISSIONS = {
   CAJERO: ['SALE_CREATE', 'CASH_OPEN', 'CASH_CLOSE'],
   BODEGUERO: [
