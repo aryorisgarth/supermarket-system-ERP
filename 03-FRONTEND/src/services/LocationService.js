@@ -49,6 +49,11 @@ const LocationService = {
     });
     return response.data;
   },
+
+  getProductsByLocation: async (locationId) => {
+    const response = await api.get(`/locations/${locationId}/products`);
+    return response.data;
+  },
 };
 
 export default LocationService;

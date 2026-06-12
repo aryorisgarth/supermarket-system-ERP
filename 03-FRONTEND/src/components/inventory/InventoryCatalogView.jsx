@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
-import { Package, Tag, Building2, Barcode, Copy, Check, Info, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import { Package, Tag, Building2, Barcode, Copy, Check, Info, AlertCircle, LayoutGrid, List, MapPin, Loader2 } from 'lucide-react';
+import LocationService from '../../services/LocationService';
 import { formatMoney } from '../../utils/formatMoney';
 
 const InventoryCatalogView = ({ products, loading }) => {
   const [copiedCode, setCopiedCode] = useState(null);
-  const [viewMode, setViewMode] = useState('LIST'); 
+  const [viewMode, setViewMode] = useState('LIST');
+  
+  // Lazy loading state for product locations
+  const [locationsMap, setLocationsMap] = useState({});
+  const [loadingProductId, setLoadingProductId] = useState(null);
+  const [expandedProductIds, setExpandedProductIds] = useState(new Set());
 
   const handleCopy = (code) => {
     navigator.clipboard.writeText(code);
@@ -12,6 +18,30 @@ const InventoryCatalogView = ({ products, loading }) => {
     setTimeout(() => {
       setCopiedCode(null);
     }, 1500);
+  };
+
+  const toggleLocations = async (productId) => {
+    const next = new Set(expandedProductIds);
+    if (next.has(productId)) {
+      next.delete(productId);
+      setExpandedProductIds(next);
+      return;
+    }
+    
+    next.add(productId);
+    setExpandedProductIds(next);
+    
+    if (!locationsMap[productId]) {
+      setLoadingProductId(productId);
+      try {
+        const data = await LocationService.getProductLocations(productId);
+        setLocationsMap(prev => ({ ...prev, [productId]: data || [] }));
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingProductId(null);
+      }
+    }
   };
 
   if (loading) {
@@ -65,6 +95,11 @@ const InventoryCatalogView = ({ products, loading }) => {
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[9px] font-black uppercase tracking-wider border border-[var(--app-primary)]/10">
                         {product.category?.name || 'Sin Categoría'}
                       </span>
+                      {product.brand && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 text-[9px] font-black uppercase tracking-wider border border-blue-100 dark:border-blue-900">
+                          {product.brand.name}
+                        </span>
+                      )}
                       <span className="font-mono text-[10px] text-[var(--app-text-muted)] bg-[var(--app-bg-subtle)] px-2 py-0.5 rounded border border-[var(--app-border)]">
                         {product.barcode}
                       </span>
@@ -84,8 +119,39 @@ const InventoryCatalogView = ({ products, loading }) => {
                       <Building2 size={13} className="text-[var(--app-text-muted)]" />
                       {product.supplier?.companyName || 'Sin Proveedor'}
                     </div>
-                    <div className="text-[10px] text-[var(--app-text-muted)] mt-1">
-                      Stock: <span className="font-bold text-[var(--app-text-soft)]">{product.currentStock} {product.uomBase || 'UN'}</span>
+                    <div className="text-[10px] text-[var(--app-text-muted)] mt-1 flex flex-col gap-1">
+                      <span>Stock: <span className="font-bold text-[var(--app-text-soft)]">{product.currentStock} {product.uomBase || 'UN'}</span></span>
+                      
+                      {/* Collapsible locations for list view */}
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => toggleLocations(product.id)}
+                          className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-[var(--app-primary)] hover:opacity-75 cursor-pointer mt-0.5"
+                        >
+                          <MapPin size={9} />
+                          {expandedProductIds.has(product.id) ? 'Ocultar ubicaciones' : 'Ver ubicaciones'}
+                        </button>
+                        
+                        {expandedProductIds.has(product.id) && (
+                          <div className="mt-1.5 space-y-1 pl-2 border-l-2 border-[var(--app-primary)]/20 animate-fade-in max-w-[220px]">
+                            {loadingProductId === product.id ? (
+                              <span className="text-[8px] text-[var(--app-text-muted)] font-black">
+                                <Loader2 className="animate-spin inline mr-1" size={8} /> Cargando...
+                              </span>
+                            ) : !locationsMap[product.id] || locationsMap[product.id].length === 0 ? (
+                              <span className="text-[8px] text-[var(--app-text-muted)] font-black block italic">Sin existencias en ubicaciones</span>
+                            ) : (
+                              locationsMap[product.id].map(loc => (
+                                <div key={loc.id} className="text-[8px] text-[var(--app-text-soft)] font-bold flex justify-between">
+                                  <span>{loc.locationCode} ({loc.isPisoVenta ? 'Exh' : 'Bod'}):</span>
+                                  <span className="font-black text-[var(--app-text)] pl-1.5">{loc.stock} u.</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </td>
 
@@ -199,9 +265,16 @@ const InventoryCatalogView = ({ products, loading }) => {
               
               <div className="p-5 border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/30">
                 <div className="flex justify-between items-start gap-3">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[10px] font-black uppercase tracking-wider border border-[var(--app-primary)]/10">
-                    <Tag size={10} /> {product.category?.name || 'Sin Categoría'}
-                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[10px] font-black uppercase tracking-wider border border-[var(--app-primary)]/10">
+                      <Tag size={10} /> {product.category?.name || 'Sin Categoría'}
+                    </span>
+                    {product.brand && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 text-[9px] font-black uppercase tracking-wider border border-blue-100 dark:border-blue-900">
+                        {product.brand.name}
+                      </span>
+                    )}
+                  </div>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
                       product.isActive
@@ -239,7 +312,7 @@ const InventoryCatalogView = ({ products, loading }) => {
                     <span className="block text-[9px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
                       Proveedor
                     </span>
-                    <span className="font-bold text-[var(--app-text)] flex items-center gap-1.5">
+                    <span className="font-bold text-[var(--app-text)] flex items-center gap-1.5 truncate">
                       <Building2 size={13} className="text-[var(--app-text-muted)]" />
                       {product.supplier?.companyName || 'Sin Proveedor'}
                     </span>
@@ -248,11 +321,47 @@ const InventoryCatalogView = ({ products, loading }) => {
                     <span className="block text-[9px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
                       Stock Físico
                     </span>
-                    <span className="font-bold text-[var(--app-text)]">
+                    <span className="font-bold text-[var(--app-text)] block">
                       {product.currentStock} {product.uomBase || 'UN'}
                     </span>
+                    
+                    {/* Collapsible locations quick-trigger on Grid view */}
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleLocations(product.id)}
+                        className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-[var(--app-primary)] hover:opacity-75 cursor-pointer"
+                      >
+                        <MapPin size={9} />
+                        {expandedProductIds.has(product.id) ? 'Ocultar stock' : 'Ver stock'}
+                      </button>
+                    </div>
                   </div>
                 </div>
+
+                {/* Collapsed visual layout of store and warehouse zones */}
+                {expandedProductIds.has(product.id) && (
+                  <div className="bg-[var(--app-bg-subtle)]/50 p-3 rounded-2xl border border-[var(--app-border)] text-[10px] space-y-1.5 animate-fade-in">
+                    <span className="block text-[8px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">Distribución Física de Stock:</span>
+                    {loadingProductId === product.id ? (
+                      <div className="text-center py-2 text-[9px] text-[var(--app-text-muted)] font-black">
+                        <Loader2 className="animate-spin inline mr-1" size={12} /> Cargando ubicaciones...
+                      </div>
+                    ) : !locationsMap[product.id] || locationsMap[product.id].length === 0 ? (
+                      <div className="text-[9px] text-[var(--app-text-muted)] font-bold italic py-1">No hay existencias registradas en ubicaciones específicas.</div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 max-h-[120px] overflow-y-auto pr-1">
+                        {locationsMap[product.id].map(loc => (
+                          <div key={loc.id} className="p-1.5 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl flex justify-between items-center text-[9px]">
+                            <span className="font-black text-[var(--app-text)]">{loc.locationCode}</span>
+                            <span className="text-[var(--app-text-muted)] font-bold">({loc.isPisoVenta ? 'Exh' : 'Bod'})</span>
+                            <span className="font-black text-[var(--app-primary)]">{loc.stock} u</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 
                 <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[var(--app-border)]/60">
