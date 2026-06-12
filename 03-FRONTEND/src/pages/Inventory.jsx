@@ -22,6 +22,7 @@ import {
 import ProductService from '../services/ProductService';
 import InventoryMovementService from '../services/InventoryMovementService';
 import MetadataService from '../services/MetadataService';
+import BrandService from '../services/BrandService';
 import { normalizeProductList } from '../utils/normalizeProduct';
 import Swal from 'sweetalert2';
 import InventoryFilters from '../components/inventory/InventoryFilters';
@@ -79,6 +80,7 @@ const Inventory = () => {
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [taxCategories, setTaxCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
 
   
   const [showModal, setShowModal] = useState(false);
@@ -98,10 +100,11 @@ const Inventory = () => {
   const fetchProducts = reload;
 
   const loadMetadata = async () => {
-    const [categoriesResult, suppliersResult, taxResult] = await Promise.allSettled([
+    const [categoriesResult, suppliersResult, taxResult, brandsResult] = await Promise.allSettled([
       MetadataService.getCategories(),
       MetadataService.getSuppliers(),
       MetadataService.getTaxCategories(),
+      BrandService.getAll(),
     ]);
 
     if (categoriesResult.status === 'fulfilled') {
@@ -120,6 +123,12 @@ const Inventory = () => {
       setTaxCategories(taxResult.value || []);
     } else {
       console.error('Tax categories metadata error:', taxResult.reason);
+    }
+
+    if (brandsResult.status === 'fulfilled') {
+      setBrands(brandsResult.value || []);
+    } else {
+      console.error('Brands metadata error:', brandsResult.reason);
     }
   };
 
@@ -344,6 +353,7 @@ const Inventory = () => {
         categories={categories}
         suppliers={suppliers}
         taxCategories={taxCategories}
+        brands={brands}
         onClose={() => setShowModal(false)}
         onSuccess={fetchProducts}
       />

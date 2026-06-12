@@ -29,3 +29,6 @@ export const LazyWarehouseProducts = lazy(() => import('../pages/warehouse/Wareh
 export const LazyWarehouseCountList = lazy(() => import('../pages/warehouse/WarehouseCountList'));
 export const LazyWarehouseCountSession = lazy(() => import('../pages/warehouse/WarehouseCountSession'));
 export const LazyNotificationRules = lazy(() => import('../pages/NotificationRules'));
+export const LazyBrands = lazy(() => import('../pages/Brands'));
+export const LazyLocations = lazy(() => import('../pages/Locations'));
+

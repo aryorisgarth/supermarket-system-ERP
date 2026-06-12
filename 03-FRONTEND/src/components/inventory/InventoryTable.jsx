@@ -72,11 +72,16 @@ const InventoryTable = ({
                       <p className="font-black text-[var(--app-text)] line-clamp-2 max-w-[320px] whitespace-normal leading-snug group-hover:text-[var(--app-primary)] transition-colors text-sm" title={product.name}>
                         {product.name}
                       </p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <Barcode size={10} className="text-[var(--app-text-muted)]" />
                         <span className="text-[10px] text-[var(--app-text-muted)] font-black font-mono tracking-tighter uppercase tabular-nums bg-[var(--app-bg-subtle)] px-1.5 py-0.5 rounded-md border border-[var(--app-border)]">
                           {product.barcode}
                         </span>
+                        {product.brand && (
+                          <span className="text-[10px] text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-300 px-1.5 py-0.5 rounded-md border border-blue-100 dark:border-blue-900 font-bold uppercase tracking-wider">
+                            {product.brand.name}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

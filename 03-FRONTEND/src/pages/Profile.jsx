@@ -126,63 +126,15 @@ const Profile = () => {
   const handlePasswordRequest = async () => {
     const result = await Swal.fire({
       title: 'Cambiar contraseña',
-      html: `
-        <div style="text-align:left;display:grid;gap:12px;margin-top:8px">
-          <label style="font-size:12px;font-weight:700;color:#64748b">Contraseña actual</label>
-          <input id="swal-current" type="password" class="swal2-input" placeholder="Contraseña actual" style="margin:0">
-          <label style="font-size:12px;font-weight:700;color:#64748b">Nueva contraseña</label>
-          <input id="swal-new" type="password" class="swal2-input" placeholder="Mínimo 8 caracteres" style="margin:0">
-          <label style="font-size:12px;font-weight:700;color:#64748b">Confirmar nueva</label>
-          <input id="swal-confirm" type="password" class="swal2-input" placeholder="Repita la nueva contraseña" style="margin:0">
-        </div>
-      `,
-      focusConfirm: false,
+      text: 'Serás redirigido al portal de Keycloak para actualizar tu contraseña de forma segura.',
+      icon: 'info',
       showCancelButton: true,
-      confirmButtonText: 'Guardar',
+      confirmButtonText: 'Continuar',
       cancelButtonText: 'Cancelar',
-      showDenyButton: true,
-      denyButtonText: 'Usar Keycloak',
-      preConfirm: () => {
-        const current = document.getElementById('swal-current')?.value || '';
-        const next = document.getElementById('swal-new')?.value || '';
-        const confirm = document.getElementById('swal-confirm')?.value || '';
-        if (!current || !next || !confirm) {
-          Swal.showValidationMessage('Complete todos los campos');
-          return false;
-        }
-        if (next.length < 8) {
-          Swal.showValidationMessage('La nueva contraseña debe tener al menos 8 caracteres');
-          return false;
-        }
-        if (next !== confirm) {
-          Swal.showValidationMessage('La confirmación no coincide');
-          return false;
-        }
-        return { current, next };
-      },
     });
 
-    if (result.isDenied) {
+    if (result.isConfirmed) {
       AuthService.changePasswordViaKeycloak();
-      return;
-    }
-
-    if (!result.isConfirmed || !result.value) return;
-
-    try {
-      await AuthService.changePassword(result.value.current, result.value.next);
-      await Swal.fire({
-        icon: 'success',
-        title: 'Contraseña actualizada',
-        text: 'Si inicias sesión con Keycloak, usa también "Usar Keycloak" para sincronizar el acceso OAuth.',
-        confirmButtonText: 'Entendido',
-      });
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'No se pudo cambiar',
-        text: error?.response?.data?.message || error?.message || 'Verifique la contraseña actual.',
-      });
     }
   };
 

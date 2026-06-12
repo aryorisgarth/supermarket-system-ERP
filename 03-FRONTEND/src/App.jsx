@@ -39,6 +39,8 @@ import {
   LazyWarehouseCountList,
   LazyWarehouseCountSession,
   LazyNotificationRules,
+  LazyBrands,
+  LazyLocations,
 } from './routes/lazyPages';
 
 const LazyPage = ({ Page }) => (
@@ -216,6 +218,18 @@ function App() {
             <Route path="/categorias" element={
               <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']}>
                 <LazyPage Page={LazyCategories} />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/marcas" element={
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']}>
+                <LazyPage Page={LazyBrands} />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/ubicaciones" element={
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']}>
+                <LazyPage Page={LazyLocations} />
               </ProtectedRoute>
             } />
 

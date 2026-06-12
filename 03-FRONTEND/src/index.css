@@ -84,7 +84,7 @@ body {
   min-height: 100vh;
   width: 100%;
   background:
-    linear-gradient(180deg, rgba(47, 111, 237, 0.035), transparent 240px),
+    linear-gradient(180deg, rgba(15, 76, 129, 0.035), transparent 240px),
     var(--app-bg);
   color: var(--app-text);
   transition: background-color 0.2s ease, color 0.2s ease;

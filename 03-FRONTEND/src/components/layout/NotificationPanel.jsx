@@ -81,7 +81,9 @@ const NotificationPanel = () => {
     try {
       await SystemAlertService.resolve(alert.id);
       await loadAlerts();
-    } catch 
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const activeCount = alerts.length;

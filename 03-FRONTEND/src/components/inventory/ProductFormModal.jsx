@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Package, Barcode, Tag, Building2, DollarSign, Percent, Loader2, Save, Copy, Wand2 } from 'lucide-react';
+import { X, Package, Barcode, Tag, Building2, DollarSign, Percent, Loader2, Save, Copy, Wand2, Bookmark } from 'lucide-react';
 import {
   buildHierarchySummary,
   defaultPurchasePacksForForm,
@@ -13,6 +13,7 @@ import {
 import ProductService from '../../services/ProductService';
 import { getApiErrorMessage } from '../../utils/apiError';
 import Swal from 'sweetalert2';
+import ProductLocationsSection from './ProductLocationsSection';
 
 const ProductFormModal = ({
   isOpen,
@@ -21,6 +22,7 @@ const ProductFormModal = ({
   categories,
   suppliers,
   taxCategories,
+  brands,
   onSuccess
 }) => {
   const [formData, setFormData] = useState({
@@ -34,6 +36,8 @@ const ProductFormModal = ({
     categoryId: '',
     supplierId: '',
     taxCategoryId: '',
+    brandId: '',
+    minStockExhibicion: '5',
     isActive: true
   });
   const [purchasePacks, setPurchasePacks] = useState(defaultPurchasePacksForForm());
@@ -61,7 +65,9 @@ const ProductFormModal = ({
         categoryId: product.category?.id || categories[0]?.id || '',
         supplierId: product.supplierId || product.supplier?.id || suppliers[0]?.id || '',
         taxCategoryId: product.taxCategoryId || product.taxCategory?.id || taxCategories[0]?.id || '',
-        isActive: product.isActive !== false
+        isActive: product.isActive !== false,
+        brandId: product.brand?.id || '',
+        minStockExhibicion: product.minStockExhibicion || '5'
       });
       const categoryName = product.category?.name || resolveCategoryName(product.category?.id);
       const templateKey = resolvePackTemplateKey(categoryName, product.name);
@@ -105,6 +111,8 @@ const ProductFormModal = ({
         categoryId: categories[0]?.id || '',
         supplierId: suppliers[0]?.id || '',
         taxCategoryId: taxCategories[0]?.id || '',
+        brandId: '',
+        minStockExhibicion: '5',
         isActive: true
       });
       setPurchasePacks(defaultPurchasePacksForForm(categoryName, ''));
@@ -144,6 +152,8 @@ const ProductFormModal = ({
       categoryId: parseInt(formData.categoryId),
       supplierId: parseInt(formData.supplierId),
       taxCategoryId: parseInt(formData.taxCategoryId),
+      brandId: formData.brandId ? parseInt(formData.brandId) : null,
+      minStockExhibicion: parseFloat(formData.minStockExhibicion),
       purchasePacks: purchasePacks
         .filter((pack) => pack.label?.trim() && Number(pack.factor) > 0)
         .map((pack, index) => ({
@@ -311,6 +321,38 @@ const ProductFormModal = ({
                     <option key={sup.id} value={sup.id}>{sup.companyName || sup.name}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
+                  <Bookmark size={13} /> Marca
+                </label>
+                <select
+                  name="brandId"
+                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs cursor-pointer shadow-sm"
+                  value={formData.brandId}
+                  onChange={handleChange}
+                >
+                  <option value="">Sin marca / Genérico</option>
+                  {brands && brands.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Mínimo en Exhibición</label>
+                <input
+                  type="number"
+                  name="minStockExhibicion"
+                  required
+                  min="0"
+                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
+                  value={formData.minStockExhibicion}
+                  onChange={handleChange}
+                />
               </div>
             </div>
 
@@ -536,6 +578,13 @@ const ProductFormModal = ({
             </div>
 
             
+            {product && (
+              <ProductLocationsSection 
+                product={product} 
+                onStockChanged={onSuccess} 
+              />
+            )}
+
             <div className="flex items-center gap-3 pt-2">
               <input
                 type="checkbox"

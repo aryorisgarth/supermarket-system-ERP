@@ -161,6 +161,11 @@ const AuthService = {
     return response.data;
   },
 
+  forgotPassword: async (email) => {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
   
   changePasswordViaKeycloak: () => doUpdatePassword(),
 

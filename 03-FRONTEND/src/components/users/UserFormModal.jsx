@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 
 const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
   const [fullName, setFullName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [roleName, setRoleName] = useState('CAJERO');
@@ -13,13 +14,21 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
   useEffect(() => {
     if (isOpen) {
       if (isEditMode && user) {
-        setFullName(user.fullName || '');
+        const parts = (user.fullName || '').trim().split(' ');
+        if (parts.length > 1) {
+          setFullName(parts[0]);
+          setLastName(parts.slice(1).join(' '));
+        } else {
+          setFullName(user.fullName || '');
+          setLastName('');
+        }
         setEmail(user.email || '');
         setPassword('');
         setRoleName(user.role?.name || 'CAJERO');
         setIsActive(user.isActive !== false);
       } else {
         setFullName('');
+        setLastName('');
         setEmail('');
         setPassword('');
         setRoleName('CAJERO');
@@ -32,22 +41,23 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!fullName.trim() || !email.trim() || !password.trim()) {
-      Swal.fire('Campos obligatorios', 'Por favor, rellena todos los campos incluyendo la contraseña para validar con el DTO.', 'warning');
+    if (!fullName.trim() || !lastName.trim() || !email.trim()) {
+      Swal.fire('Campos obligatorios', 'Por favor, rellena los campos de nombres, apellidos y correo.', 'warning');
       return;
     }
 
-    if (password.length < 8) {
+    if (isEditMode && password.trim() !== '' && password.length < 8) {
       Swal.fire('Contraseña inválida', 'La contraseña debe tener al menos 8 caracteres.', 'warning');
       return;
     }
 
     const userData = {
       fullName,
+      lastName,
       email,
-      password,
       roleName,
-      isActive
+      isActive,
+      ...(isEditMode && password.trim() !== '' ? { password } : {})
     };
 
     try {
@@ -65,8 +75,8 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
         Swal.fire({
           icon: 'success',
           title: '¡Usuario creado!',
-          text: 'El nuevo empleado ha sido registrado.',
-          timer: 1500,
+          text: 'El nuevo empleado ha sido registrado y sus credenciales enviadas por correo.',
+          timer: 2000,
           showConfirmButton: false
         });
       }
@@ -94,14 +104,26 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-[var(--app-surface)]">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Nombre Completo</label>
+            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Nombres</label>
             <input
               type="text"
               required
-              placeholder="Ej. Juan Pérez"
+              placeholder="Ej. Juan Carlos"
               className="w-full px-4 py-3 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold text-xs text-[var(--app-text)]"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Apellidos</label>
+            <input
+              type="text"
+              required
+              placeholder="Ej. Pérez Gómez"
+              className="w-full px-4 py-3 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold text-xs text-[var(--app-text)]"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
             />
           </div>
 
@@ -117,23 +139,34 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-center">
-              <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Contraseña</label>
-              {isEditMode && <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">REQUERIDA</span>}
+          {isEditMode ? (
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Contraseña</label>
+                <span className="text-[9px] font-black text-slate-500 bg-slate-500/10 px-2 py-0.5 rounded-full border border-slate-500/20">OPCIONAL</span>
+              </div>
+              <div className="relative">
+                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--app-text-muted)] opacity-50" />
+                <input
+                  type="password"
+                  placeholder="Dejar en blanco para conservar actual"
+                  className="w-full pl-12 pr-4 py-3 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold text-xs text-[var(--app-text)]"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="relative">
-              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--app-text-muted)] opacity-50" />
-              <input
-                type="password"
-                required
-                placeholder="Mínimo 8 caracteres"
-                className="w-full pl-12 pr-4 py-3 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold text-xs text-[var(--app-text)]"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+          ) : (
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl flex items-start gap-3">
+              <Lock size={18} className="text-primary shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <h4 className="text-[11px] font-black text-primary uppercase tracking-wider">Contraseña Automatizada</h4>
+                <p className="text-[10px] text-[var(--app-text-soft)] font-medium leading-relaxed">
+                  Por seguridad, el sistema generará una contraseña temporal compleja y la enviará por correo al empleado de manera inmediata.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Rol de Sistema</label>
@@ -143,6 +176,7 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
               onChange={(e) => setRoleName(e.target.value)}
             >
               <option value="CAJERO">CAJERO OPERATIVO</option>
+              <option value="BODEGUERO">BODEGUERO (INVENTARIO)</option>
               <option value="SUPERVISOR">SUPERVISOR DE TIENDA</option>
               <option value="ADMINISTRADOR">ADMINISTRADOR GENERAL</option>
               <option value="ADMIN_INGENIERO">INGENIERO DE SISTEMAS</option>

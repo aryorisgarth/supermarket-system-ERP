@@ -78,14 +78,14 @@ const ElectronicInvoiceService = {
   issueWithSale: async (saleId) => {
     const ei = await ElectronicInvoiceService.issue(saleId);
     let sale = null;
-    try { sale = await SaleService.getById(saleId); } catch (_) 
+    try { sale = await SaleService.getById(saleId); } catch (_) {}
     return buildInvoiceView(ei, sale);
   },
 
   bySaleWithDetails: async (saleId) => {
     const ei = await ElectronicInvoiceService.bySale(saleId);
     let sale = null;
-    try { sale = await SaleService.getById(saleId); } catch (_) 
+    try { sale = await SaleService.getById(saleId); } catch (_) {}
     return buildInvoiceView(ei, sale);
   },
 

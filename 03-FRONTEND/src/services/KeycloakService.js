@@ -63,6 +63,9 @@ export const loginWithDirectGrant = async (username, password) => {
 
   if (!response.ok) {
     const errData = await response.json().catch(() => ({}));
+    if (errData.error_description === 'Account is not fully set up') {
+      throw new Error('PASSWORD_CHANGE_REQUIRED');
+    }
     throw new Error(errData.error_description || 'Usuario o contraseña incorrectos.');
   }
 

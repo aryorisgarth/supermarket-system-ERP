@@ -26,6 +26,8 @@ import {
   ClipboardCheck,
   PackageCheck,
   X,
+  MapPin,
+  Bookmark,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -161,6 +163,20 @@ const sections = [
         icon: Tag,
         label: 'Categorias',
         path: '/categorias',
+        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
+        permissions: ['INVENTORY_ADJUST'],
+      },
+      {
+        icon: Bookmark,
+        label: 'Marcas',
+        path: '/marcas',
+        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
+        permissions: ['INVENTORY_ADJUST'],
+      },
+      {
+        icon: MapPin,
+        label: 'Ubicaciones',
+        path: '/ubicaciones',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['INVENTORY_ADJUST'],
       },
@@ -325,7 +341,7 @@ const SidebarItem = ({ icon: Icon, label, path, active, onNavigate, badge, colla
     title={collapsed ? label : undefined}
     className={`group relative flex items-center rounded-[var(--radius-lg)] px-3 py-2.5 text-sm font-bold transition-all duration-200 ${
       active
-        ? 'bg-gradient-to-r from-[var(--app-primary)] to-indigo-600 text-white shadow-md shadow-primary/10 dark:shadow-blue-500/10'
+        ? 'bg-[var(--app-primary)] text-white shadow-md shadow-primary/10 dark:shadow-blue-500/10'
         : 'text-[var(--app-text-soft)] hover:bg-[var(--app-bg-subtle)] hover:text-[var(--app-text)]'
     } ${collapsed ? 'justify-center px-0' : 'justify-between'}`}
   >
@@ -505,7 +521,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
           <motion.div
             whileHover={{ scale: 1.06, rotate: 5 }}
             transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--app-primary)] to-indigo-600 text-white shadow-md shadow-primary/20 p-[2px] overflow-hidden bg-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--app-primary)] text-white shadow-md shadow-primary/20 p-[2px] overflow-hidden bg-white"
           >
             <div className="w-full h-full rounded-[10px] bg-white flex items-center justify-center overflow-hidden">
               <img src={logo || "/supernova_logo.png"} alt="Logo" className="w-full h-full object-contain p-1" />
@@ -520,7 +536,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
               className="min-w-0 flex-1 overflow-hidden"
             >
               <h1
-                className="truncate text-base font-black tracking-tight bg-gradient-to-r from-[var(--app-primary)] via-indigo-500 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400"
+                className="truncate text-base font-black tracking-tight text-[var(--app-primary)] dark:text-blue-400"
                 title={storeName}
               >
                 {storeName}
@@ -669,7 +685,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
             collapsed ? 'flex-col gap-2 px-0 py-3 justify-center w-full' : 'gap-3 px-4 py-3'
           }`}
         >
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[var(--app-primary)] to-indigo-600 text-white text-xs font-black shadow-sm uppercase">
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--app-primary)] text-white text-xs font-black shadow-sm uppercase">
             {userInitials}
             <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5 rounded-full border-2 border-[var(--app-surface)] bg-emerald-500" />
           </div>
