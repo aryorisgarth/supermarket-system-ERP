@@ -20,7 +20,7 @@ const PromotionsFilters = ({ searchTerm, setSearchTerm, filterActive, setFilterA
             <button 
               key={k} 
               onClick={() => setFilterActive(k)} 
-              className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 filterActive === k 
                   ? 'bg-[var(--app-surface)] text-[var(--app-primary)] shadow-sm border border-[var(--app-border)]' 
                   : 'text-[var(--app-text-soft)] hover:text-[var(--app-text)]'
@@ -36,7 +36,7 @@ const PromotionsFilters = ({ searchTerm, setSearchTerm, filterActive, setFilterA
         <button
           type="button"
           onClick={() => setViewMode('CARD')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
             viewMode === 'CARD'
               ? 'bg-[var(--app-surface)] text-[var(--app-primary)] shadow-sm border border-[var(--app-border)]'
               : 'text-[var(--app-text-muted)] hover:text-[var(--app-text)]'
@@ -49,7 +49,7 @@ const PromotionsFilters = ({ searchTerm, setSearchTerm, filterActive, setFilterA
         <button
           type="button"
           onClick={() => setViewMode('TABLE')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
             viewMode === 'TABLE'
               ? 'bg-[var(--app-surface)] text-[var(--app-primary)] shadow-sm border border-[var(--app-border)]'
               : 'text-[var(--app-text-muted)] hover:text-[var(--app-text)]'

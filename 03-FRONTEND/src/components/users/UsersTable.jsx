@@ -11,7 +11,7 @@ const getRoleBadge = (role) => {
     'CONSULTOR': 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
   };
   return (
-    <span className={`px-3 py-1 rounded-full text-[10px] font-black border uppercase tracking-widest ${styles[role] || 'bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)] border-[var(--app-border)]'}`}>
+    <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-widest ${styles[role] || 'bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)] border-[var(--app-border)]'}`}>
       {role?.replace('_', ' ') || 'S/R'}
     </span>
   );
@@ -19,7 +19,7 @@ const getRoleBadge = (role) => {
 
 const getStatusBadge = (active) => {
   return (
-    <span className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest ${active !== false ? 'text-emerald-500' : 'text-[var(--app-text-muted)]'}`}>
+    <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${active !== false ? 'text-emerald-500' : 'text-[var(--app-text-muted)]'}`}>
       <Circle size={8} fill="currentColor" />
       {active !== false ? 'Activo' : 'Inactivo'}
     </span>
@@ -59,7 +59,7 @@ const UsersTable = ({
       {loading ? (
         <div className="h-64 flex flex-col items-center justify-center text-[var(--app-text-muted)] gap-3">
           <Loader2 className="animate-spin text-[var(--app-primary)]" size={40} />
-          <p className="font-black uppercase tracking-widest text-xs">Cargando personal...</p>
+          <p className="font-bold uppercase tracking-widest text-xs">Cargando personal...</p>
         </div>
       ) : users.length === 0 ? (
         <div className="bg-[var(--app-surface)] border border-[var(--app-border)] p-12 rounded-3xl text-center text-[var(--app-text-muted)]">
@@ -70,11 +70,11 @@ const UsersTable = ({
           <table className="w-full border-collapse text-left text-sm">
             <thead>
               <tr className="bg-[var(--app-bg-subtle)] border-b border-[var(--app-border)]">
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">Empleado</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">Correo</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">Rol</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">Estado</th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)] text-right">Acciones</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Empleado</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Correo</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Rol</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Estado</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)] text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--app-border)]">
@@ -91,7 +91,7 @@ const UsersTable = ({
                   <tr key={user.id} className="hover:bg-[var(--app-bg-subtle)]/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-[var(--app-primary-soft)] text-[var(--app-primary)] flex items-center justify-center font-black text-xs border border-[var(--app-border)]">
+                        <div className="h-9 w-9 rounded-xl bg-[var(--app-primary-soft)] text-[var(--app-primary)] flex items-center justify-center font-bold text-xs border border-[var(--app-border)]">
                           {initials || 'U'}
                         </div>
                         <span className="font-bold text-[var(--app-text)]">{user.fullName}</span>

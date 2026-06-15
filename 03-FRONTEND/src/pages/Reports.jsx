@@ -135,7 +135,7 @@ const Reports = () => {
         <button
           type="button"
           onClick={() => setActiveTab('METRICS')}
-          className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap px-6 py-3.5 border-b-2 text-xs font-black uppercase tracking-widest transition-all ${
+          className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap px-6 py-3.5 border-b-2 text-xs font-bold uppercase tracking-widest transition-all ${
             activeTab === 'METRICS'
               ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]/30'
               : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'
@@ -146,7 +146,7 @@ const Reports = () => {
         <button
           type="button"
           onClick={() => setActiveTab('GOALS')}
-          className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap px-6 py-3.5 border-b-2 text-xs font-black uppercase tracking-widest transition-all ${
+          className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap px-6 py-3.5 border-b-2 text-xs font-bold uppercase tracking-widest transition-all ${
             activeTab === 'GOALS'
               ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]/30'
               : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'

@@ -32,8 +32,8 @@ const typeLabel = {
 
 const Stat = ({ title, value, tone = 'blue' }) => (
   <Card>
-    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--app-text-muted)]">{title}</p>
-    <p className={`mt-2 text-2xl font-black ${tone === 'red' ? 'text-[var(--app-danger)]' : tone === 'amber' ? 'text-amber-500' : 'text-[var(--app-text)]'}`}>
+    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--app-text-muted)]">{title}</p>
+    <p className={`mt-2 text-2xl font-bold ${tone === 'red' ? 'text-[var(--app-danger)]' : tone === 'amber' ? 'text-amber-500' : 'text-[var(--app-text)]'}`}>
       {value}
     </p>
   </Card>
@@ -191,12 +191,12 @@ const SystemAlerts = () => {
         {loading ? (
           <div className="flex h-64 flex-col items-center justify-center gap-3 text-[var(--app-text-muted)]">
             <Loader2 className="animate-spin text-[var(--app-primary)]" size={40} />
-            <p className="text-xs font-black uppercase tracking-widest">Cargando alertas...</p>
+            <p className="text-xs font-bold uppercase tracking-widest">Cargando alertas...</p>
           </div>
         ) : filteredAlerts.length === 0 ? (
           <div className="p-16 text-center">
             <CheckCircle2 size={44} className="mx-auto text-[var(--app-success)]" />
-            <p className="mt-4 text-sm font-black uppercase tracking-widest text-[var(--app-text-muted)]">Sin alertas para el filtro seleccionado</p>
+            <p className="mt-4 text-sm font-bold uppercase tracking-widest text-[var(--app-text-muted)]">Sin alertas para el filtro seleccionado</p>
           </div>
         ) : (
           <div className="divide-y divide-[var(--app-border)]">
@@ -208,9 +208,9 @@ const SystemAlerts = () => {
                     <Badge tone="blue">{typeLabel[alert.type] || alert.sourceModule || alert.type}</Badge>
                     <Badge tone={alert.status === 'ACTIVE' ? 'amber' : 'green'}>{alert.status === 'ACTIVE' ? 'Activa' : 'Resuelta'}</Badge>
                   </div>
-                  <h3 className="mt-3 text-lg font-black text-[var(--app-text)]">{alert.title}</h3>
+                  <h3 className="mt-3 text-lg font-bold text-[var(--app-text)]">{alert.title}</h3>
                   <p className="mt-1 text-sm font-bold text-[var(--app-text-soft)]">{alert.message}</p>
-                  <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
+                  <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
                     Actualizada: {alert.updatedAt ? new Date(alert.updatedAt).toLocaleString() : '-'}
                   </p>
                 </div>

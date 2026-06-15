@@ -154,7 +154,7 @@ const Promotions = () => {
         <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-3xl p-16 flex flex-col items-center justify-center gap-3 text-[var(--app-text-muted)] text-center">
           <Tag size={40} className="opacity-40 text-[var(--app-text-muted)]" />
           <div>
-            <p className="font-black text-sm text-[var(--app-text)]">No se encontraron promociones</p>
+            <p className="font-bold text-sm text-[var(--app-text)]">No se encontraron promociones</p>
             <p className="text-xs text-[var(--app-text-muted)] mt-1">Crea una nueva promoción para comenzar a aplicar descuentos automáticos.</p>
           </div>
         </div>

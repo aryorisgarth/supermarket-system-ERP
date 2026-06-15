@@ -50,8 +50,8 @@ const StatCard = ({ title, value, hint, icon: Icon, tone = 'blue' }) => {
     <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--app-text-muted)]">{title}</p>
-          <p className="mt-2 truncate text-xl font-black text-[var(--app-text)] tabular-nums">{value}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--app-text-muted)]">{title}</p>
+          <p className="mt-2 truncate text-xl font-bold text-[var(--app-text)] tabular-nums">{value}</p>
           {hint && <p className="mt-1 text-[10px] font-bold uppercase text-[var(--app-text-muted)]">{hint}</p>}
         </div>
         <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${toneClass}`}>
@@ -129,7 +129,7 @@ const KardexModal = ({ isOpen, onClose, product }) => {
       <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-6xl w-full overflow-hidden">
         <div className="bg-[var(--app-text)] p-5 text-[var(--app-surface)] flex justify-between items-center shadow-sm">
           <div>
-            <h3 className="text-sm font-black uppercase tracking-wider">Kardex de Inventario</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider">Kardex de Inventario</h3>
             <p className="opacity-70 text-[11px] font-medium mt-1">
               {product.name} | SKU {product.barcode} | Stock actual: {number(product.currentStock)}
             </p>
@@ -187,23 +187,23 @@ const KardexModal = ({ isOpen, onClose, product }) => {
                               {movement.createdAt ? new Date(movement.createdAt).toLocaleString() : '-'}
                             </td>
                             <td className="p-3">
-                              <span className={`px-2.5 py-1 rounded-full font-black text-[10px] border ${isEntry
+                              <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] border ${isEntry
                                   ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                                   : 'bg-red-500/10 text-red-600 border-red-500/20'
                                 }`}>
                                 {movementLabel[movement.movementType] || movement.movementType}
                               </span>
                             </td>
-                            <td className="p-3 text-right font-black text-emerald-600">{isEntry ? number(movement.quantity) : '-'}</td>
-                            <td className="p-3 text-right font-black text-red-600">{!isEntry ? number(movement.quantity) : '-'}</td>
+                            <td className="p-3 text-right font-bold text-emerald-600">{isEntry ? number(movement.quantity) : '-'}</td>
+                            <td className="p-3 text-right font-bold text-red-600">{!isEntry ? number(movement.quantity) : '-'}</td>
                             <td className="p-3 text-right font-bold tabular-nums">{number(movement.previousStock)}</td>
-                            <td className="p-3 text-right font-black text-[var(--app-text)] tabular-nums">{number(movement.newStock)}</td>
+                            <td className="p-3 text-right font-bold text-[var(--app-text)] tabular-nums">{number(movement.newStock)}</td>
                             <td className="p-3 text-right">
                               <p className="font-bold">{movement.unitCost != null ? money(movement.unitCost) : '-'}</p>
                               <p className="text-[10px] text-[var(--app-text-muted)]">{movement.totalCost != null ? money(movement.totalCost) : ''}</p>
                             </td>
                             <td className="p-3">
-                              <p className="font-black text-[var(--app-text)]">{sourceLabel[movement.sourceType] || movement.sourceType || 'Movimiento'}</p>
+                              <p className="font-bold text-[var(--app-text)]">{sourceLabel[movement.sourceType] || movement.sourceType || 'Movimiento'}</p>
                               <p className="text-[10px] font-bold text-[var(--app-text-muted)]">
                                 {movement.referenceId ? `Ref #${movement.referenceId}` : 'Sin referencia'}
                               </p>
@@ -222,7 +222,7 @@ const KardexModal = ({ isOpen, onClose, product }) => {
                   <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4">
                     <div className="flex items-center gap-2 text-[var(--app-primary)]">
                       <Boxes size={16} />
-                      <p className="text-[10px] font-black uppercase tracking-widest">Ficha del producto</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest">Ficha del producto</p>
                     </div>
                     <div className="mt-3 space-y-2 text-xs font-bold text-[var(--app-text-soft)]">
                       <p className="flex justify-between gap-3"><span>Stock mínimo</span><b>{number(product.minimumStock)}</b></p>
@@ -235,9 +235,9 @@ const KardexModal = ({ isOpen, onClose, product }) => {
                   <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4">
                     <div className="flex items-center gap-2 text-[var(--app-primary)]">
                       <FileText size={16} />
-                      <p className="text-[10px] font-black uppercase tracking-widest">Último evento</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest">Último evento</p>
                     </div>
-                    <p className="mt-3 text-sm font-black text-[var(--app-text)]">
+                    <p className="mt-3 text-sm font-bold text-[var(--app-text)]">
                       {summary.lastMovement ? movementLabel[summary.lastMovement.movementType] || summary.lastMovement.movementType : 'Sin evento'}
                     </p>
                     <p className="mt-1 text-xs font-bold text-[var(--app-text-muted)]">
@@ -253,7 +253,7 @@ const KardexModal = ({ isOpen, onClose, product }) => {
                   <button
                     type="button"
                     onClick={fetchMovements}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-xs font-black uppercase tracking-widest text-[var(--app-text-soft)] transition hover:border-[var(--app-primary)]/40 hover:text-[var(--app-primary)]"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-xs font-bold uppercase tracking-widest text-[var(--app-text-soft)] transition hover:border-[var(--app-primary)]/40 hover:text-[var(--app-primary)]"
                   >
                     <RefreshCw size={14} />
                     Actualizar Kardex

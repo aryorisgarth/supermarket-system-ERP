@@ -15,7 +15,7 @@ const DemoAccountsPanel = ({ showDemo, setShowDemo, onSelectAccount }) => {
 			<button
 				type="button"
 				onClick={() => setShowDemo((v) => !v)}
-				className="w-full text-center text-xs font-black uppercase tracking-wider text-[#0F4C81] hover:text-[#0B3961] transition"
+				className="w-full text-center text-xs font-bold uppercase tracking-wider text-[#0F4C81] hover:text-[#0B3961] transition"
 			>
 				{showDemo ? 'Ocultar Accesos de Prueba' : 'Acceso Rápido de Prueba (Demo)'}
 			</button>
@@ -26,7 +26,7 @@ const DemoAccountsPanel = ({ showDemo, setShowDemo, onSelectAccount }) => {
 					animate={{ opacity: 1, height: 'auto' }}
 					className="mt-4 overflow-hidden rounded-2.5xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4"
 				>
-					<p className="mb-3 text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">
+					<p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
 						Selecciona un rol para autocompletar credenciales
 					</p>
 					<div className="grid grid-cols-2 gap-2.5">
@@ -42,7 +42,7 @@ const DemoAccountsPanel = ({ showDemo, setShowDemo, onSelectAccount }) => {
 									<span className={`flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br ${acc.color} text-white`}>
 										<RoleIcon size={14} />
 									</span>
-									<span className="mt-2.5 block text-xs font-black text-[var(--app-text)] group-hover:text-[#0F4C81] transition">{acc.role}</span>
+									<span className="mt-2.5 block text-xs font-bold text-[var(--app-text)] group-hover:text-[#0F4C81] transition">{acc.role}</span>
 									<span className="mt-0.5 block w-full truncate text-[9px] font-bold text-[var(--app-text-muted)]">{acc.email}</span>
 								</button>
 							);

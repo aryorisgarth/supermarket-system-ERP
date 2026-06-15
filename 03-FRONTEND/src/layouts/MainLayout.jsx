@@ -40,7 +40,6 @@ const MainLayout = ({ children }) => {
 
   const handleLogout = async () => {
     await AuthService.logout();
-    navigate('/login');
   };
 
   return (

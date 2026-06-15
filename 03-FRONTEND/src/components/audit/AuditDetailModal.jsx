@@ -34,7 +34,7 @@ const AuditDetailModal = ({
       return (
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 flex flex-col">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)] mb-2 flex items-center gap-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] mb-2 flex items-center gap-1.5">
               <FileJson size={12} /> Estado Anterior (JSON Raw)
             </span>
             <pre className="max-h-80 overflow-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-raised)] p-3 text-xs font-mono text-[var(--app-text-soft)]">
@@ -42,7 +42,7 @@ const AuditDetailModal = ({
             </pre>
           </div>
           <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 flex flex-col">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)] mb-2 flex items-center gap-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] mb-2 flex items-center gap-1.5">
               <FileJson size={12} /> Estado Posterior (JSON Raw)
             </span>
             <pre className="max-h-80 overflow-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-raised)] p-3 text-xs font-mono text-[var(--app-text-soft)]">
@@ -103,13 +103,13 @@ const AuditDetailModal = ({
             />
             Mostrar campos sin cambios ({fields.filter((f) => f.type === 'equal').length})
           </label>
-          <span className="text-[10px] font-black uppercase text-[var(--app-text-muted)] tracking-wider">
+          <span className="text-[10px] font-bold uppercase text-[var(--app-text-muted)] tracking-wider">
             Exhibiendo {filteredFields.length} campos
           </span>
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-[var(--app-border)]">
-          <div className="grid grid-cols-[180px_1fr_1fr_100px] border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-3 text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
+          <div className="grid grid-cols-[180px_1fr_1fr_100px] border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-3 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
             <span>Campo</span>
             <span>Antes</span>
             <span>Después</span>
@@ -137,7 +137,7 @@ const AuditDetailModal = ({
 
               return (
                 <div key={key} className={`grid grid-cols-[180px_1fr_1fr_100px] gap-3 p-3 text-xs items-center ${rowBg}`}>
-                  <span className="font-black text-[var(--app-text)] truncate" title={key}>
+                  <span className="font-bold text-[var(--app-text)] truncate" title={key}>
                     {key}
                   </span>
                   <span className="font-mono text-[var(--app-text-muted)] truncate" title={oldStr}>
@@ -177,7 +177,7 @@ const AuditDetailModal = ({
               <Terminal size={22} />
             </span>
             <div>
-              <h3 className="text-lg font-black">Detalle de Auditoría #{selectedLog.id}</h3>
+              <h3 className="text-lg font-bold">Detalle de Auditoría #{selectedLog.id}</h3>
               <p className="mt-1 text-xs font-bold text-white/80">
                 {getActionLabel(selectedLog.action)} en {getModuleLabel(selectedLog.affectedTable)} por{' '}
                 {selectedLog.userFullName || 'Sistema'}.
@@ -198,19 +198,19 @@ const AuditDetailModal = ({
           
           <div className="mb-6 grid gap-3 grid-cols-2 md:grid-cols-4">
             <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4">
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Fecha y Hora</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Fecha y Hora</p>
               <p className="mt-1 text-xs font-bold">{formatDateTime(selectedLog.logDate)}</p>
             </div>
             <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4">
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Registro Afectado</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Registro Afectado</p>
               <p className="mt-1 font-mono text-xs font-bold">#{selectedLog.recordId || '-'}</p>
             </div>
             <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4">
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Dirección IP</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Dirección IP</p>
               <p className="mt-1 font-mono text-xs font-bold">{selectedLog.ipAddress || '127.0.0.1'}</p>
             </div>
             <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4">
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Clasificación de Riesgo</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Clasificación de Riesgo</p>
               <p className="mt-1 flex items-center gap-1.5 text-xs font-bold">
                 <Check size={14} className="text-[var(--app-success)]" />
                 {getRisk(selectedLog).label}
@@ -222,7 +222,7 @@ const AuditDetailModal = ({
           <div className="flex gap-2 mb-4 border-b border-[var(--app-border)] pb-2">
             <button
               onClick={() => setModalTab('diff')}
-              className={`flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              className={`flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                 modalTab === 'diff'
                   ? 'bg-[var(--app-primary-soft)] text-[var(--app-primary)]'
                   : 'text-[var(--app-text-muted)] hover:text-[var(--app-text)]'
@@ -232,7 +232,7 @@ const AuditDetailModal = ({
             </button>
             <button
               onClick={() => setModalTab('raw')}
-              className={`flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              className={`flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                 modalTab === 'raw'
                   ? 'bg-[var(--app-primary-soft)] text-[var(--app-primary)]'
                   : 'text-[var(--app-text-muted)] hover:text-[var(--app-text)]'

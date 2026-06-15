@@ -9,7 +9,7 @@ const BackupsTab = ({ form, setField }) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="border-b border-[var(--app-border)] pb-4">
-        <h3 className="text-lg font-black text-[var(--app-text)] flex items-center gap-2">
+        <h3 className="text-lg font-bold text-[var(--app-text)] flex items-center gap-2">
           <Database className="text-[var(--app-primary)]" size={20} />
           Política de respaldos
         </h3>
@@ -40,7 +40,7 @@ const BackupsTab = ({ form, setField }) => {
       </div>
       <Link
         to="/mantenimiento"
-        className="inline-flex items-center gap-2 rounded-2xl border border-[var(--app-primary)]/30 bg-[var(--app-primary-soft)] px-4 py-3 text-xs font-black uppercase tracking-wider text-[var(--app-primary)] hover:opacity-90"
+        className="inline-flex items-center gap-2 rounded-2xl border border-[var(--app-primary)]/30 bg-[var(--app-primary-soft)] px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--app-primary)] hover:opacity-90"
       >
         <HardDrive size={16} />
         Ir a respaldos y restauración

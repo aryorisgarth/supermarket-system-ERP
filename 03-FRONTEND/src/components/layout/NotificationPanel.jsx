@@ -98,7 +98,7 @@ const NotificationPanel = () => {
       >
         <Bell size={17} />
         {activeCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white ring-2 ring-[var(--app-surface)]">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-[var(--app-surface)]">
             {activeCount > 9 ? '9+' : activeCount}
           </span>
         )}
@@ -108,7 +108,7 @@ const NotificationPanel = () => {
         <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl animate-fade-in">
           <div className="flex items-center justify-between border-b border-[var(--app-border)] px-4 py-3">
             <div>
-              <p className="text-sm font-black text-[var(--app-text)]">Notificaciones</p>
+              <p className="text-sm font-bold text-[var(--app-text)]">Notificaciones</p>
               <p className="text-[10px] font-semibold text-[var(--app-text-muted)]">
                 {activeCount === 0 ? 'Sin alertas activas' : `${activeCount} alerta(s) activa(s)`}
               </p>
@@ -143,7 +143,7 @@ const NotificationPanel = () => {
                 >
                   <AlertTriangle size={16} className={`mt-0.5 shrink-0 ${severityIconClass[alert.severity] || severityIconClass.INFO}`} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-black text-[var(--app-text)]">{alert.title}</p>
+                    <p className="truncate text-xs font-bold text-[var(--app-text)]">{alert.title}</p>
                     <p className="mt-0.5 line-clamp-2 text-[10px] font-medium text-[var(--app-text-soft)]">{alert.message}</p>
                     <p className="mt-1 text-[9px] font-semibold text-[var(--app-text-muted)]">{formatWhen(alert.createdAt)}</p>
                   </div>

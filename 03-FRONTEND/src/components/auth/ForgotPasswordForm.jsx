@@ -14,12 +14,12 @@ const ForgotPasswordForm = ({
 				<button
 					type="button"
 					onClick={onToggleLogin}
-					className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#0F4C81] hover:text-[#0B3961] transition cursor-pointer mb-4"
+					className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#0F4C81] hover:text-[#0B3961] transition cursor-pointer mb-4"
 				>
 					<ArrowLeft size={14} />
 					Volver al Login
 				</button>
-				<h2 className="text-3xl font-black tracking-tight text-[var(--app-text)]">Recuperar Contraseña</h2>
+				<h2 className="text-3xl font-bold tracking-tight text-[var(--app-text)]">Recuperar Contraseña</h2>
 				<p className="mt-2 text-sm text-[var(--app-text-soft)] leading-relaxed">
 					Ingresa tu dirección de correo electrónico institucional para enviarte un enlace de restablecimiento seguro.
 				</p>
@@ -27,7 +27,7 @@ const ForgotPasswordForm = ({
 
 			<form onSubmit={onSubmit} className="space-y-5">
 				<div className="space-y-2">
-					<label htmlFor="reset-email" className="block text-xs font-black uppercase tracking-wider text-[var(--app-text-soft)]">
+					<label htmlFor="reset-email" className="block text-xs font-bold uppercase tracking-wider text-[var(--app-text-soft)]">
 						Correo Electrónico
 					</label>
 					<div className="relative flex items-center">
@@ -56,7 +56,7 @@ const ForgotPasswordForm = ({
 				<button
 					type="submit"
 					disabled={loading}
-					className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#0F4C81] text-sm font-black uppercase tracking-wider text-white shadow-lg shadow-[#0F4C81]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#0B3961] disabled:opacity-50 cursor-pointer"
+					className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#0F4C81] text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-[#0F4C81]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#0B3961] disabled:opacity-50 cursor-pointer"
 				>
 					{loading ? (
 						<span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />

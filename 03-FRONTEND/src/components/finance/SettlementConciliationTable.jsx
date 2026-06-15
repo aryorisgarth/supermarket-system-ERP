@@ -32,8 +32,8 @@ const SettlementConciliationTable = ({
   }, [transactions, statusFilter, accountFilter, search]);
 
   return (
-    <Card className="shadow-enterprise-lg overflow-hidden">
-      <div className="p-6 border-b border-[var(--app-border)]">
+    <Card className="shadow-enterprise-lg overflow-hidden" padded={false}>
+      <div className="p-6 border-b border-[var(--app-border)] bg-slate-50/55 dark:bg-slate-900/10">
         <CardHeader
           icon={CreditCard}
           title="Conciliación de Liquidaciones"
@@ -44,22 +44,22 @@ const SettlementConciliationTable = ({
             </Button>
           }
         />
-        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[1fr_180px_220px]">
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-[1fr_180px_220px]">
           <div className="relative">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-text-muted)]" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar venta, referencia o cuenta..."
-              className="ui-input w-full pl-9"
+              className="ui-input w-full pl-9 h-10 min-h-[2.5rem] bg-white text-black dark:bg-slate-950 dark:text-white"
             />
           </div>
-          <select className="ui-input ui-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="ALL">Todos</option>
+          <select className="ui-input ui-select h-10 min-h-[2.5rem] bg-white text-black dark:bg-slate-950 dark:text-white" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="ALL">Todos los estados</option>
             <option value="PENDING">Pendientes</option>
             <option value="SETTLED">Liquidados</option>
           </select>
-          <select className="ui-input ui-select" value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)}>
+          <select className="ui-input ui-select h-10 min-h-[2.5rem] bg-white text-black dark:bg-slate-950 dark:text-white" value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)}>
             <option value="ALL">Todas las cuentas</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
@@ -87,7 +87,7 @@ const SettlementConciliationTable = ({
             {filteredTransactions.map((tx) => (
               <tr key={tx.id} className="hover:bg-[var(--app-bg-subtle)]/50 transition-colors">
                 <td className="pl-6 py-4">
-                  <p className="font-black text-[var(--app-text)] text-sm">#{tx.saleId}</p>
+                  <p className="font-bold text-[var(--app-text)] text-sm">#{tx.saleId}</p>
                   <p className="text-[10px] text-[var(--app-text-muted)] font-bold uppercase tracking-tight">
                     {tx.externalReference}
                   </p>
@@ -108,7 +108,7 @@ const SettlementConciliationTable = ({
                 <td className="text-right font-medium text-[var(--app-danger)] tabular-nums">
                   -{money(tx.commissionAmount, tx.currency)}
                 </td>
-                <td className="text-right font-black text-emerald-600 dark:text-emerald-400 tabular-nums text-sm">
+                <td className="text-right font-bold text-emerald-600 dark:text-emerald-400 tabular-nums text-sm">
                   {money(tx.netAmount, tx.currency)}
                 </td>
                 <td className="text-center">
@@ -128,7 +128,7 @@ const SettlementConciliationTable = ({
                       {settlingId === tx.id ? '...' : 'Liquidar'}
                     </Button>
                   ) : (
-                    <span className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
                       Conciliado
                     </span>
                   )}
@@ -139,7 +139,7 @@ const SettlementConciliationTable = ({
               <tr>
                 <td
                   colSpan="8"
-                  className="py-20 text-center text-[var(--app-text-muted)] font-black uppercase text-xs tracking-widest italic"
+                  className="py-20 text-center text-[var(--app-text-muted)] font-bold uppercase text-xs tracking-widest italic"
                 >
                   No hay transacciones para los filtros seleccionados.
                 </td>

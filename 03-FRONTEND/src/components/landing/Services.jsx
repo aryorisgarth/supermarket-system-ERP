@@ -6,7 +6,7 @@ const Services = () => {
           <span className="text-xs font-bold uppercase tracking-widest text-[#0F4C81] bg-[#0F4C81]/10 px-3 py-1.5 rounded-full">
             SERVICIOS
           </span>
-          <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl uppercase">
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl uppercase">
             Servicios diseñados para tu comodidad
           </h2>
           <p className="mt-4 text-base text-slate-500">

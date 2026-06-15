@@ -151,7 +151,7 @@ const Categories = () => {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
             <Tag className="text-primary shrink-0" size={26} />
             Gestión de Categorías
           </h1>
@@ -204,7 +204,7 @@ const Categories = () => {
                   <Tag size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-wider">
+                  <h3 className="text-sm font-bold uppercase tracking-wider">
                     {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
                   </h3>
                   <p className="text-white/80 text-[10px] font-medium">

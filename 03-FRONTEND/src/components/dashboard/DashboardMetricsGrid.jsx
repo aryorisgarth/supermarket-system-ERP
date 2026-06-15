@@ -12,20 +12,20 @@ const StatCard = ({ title, value, icon: Icon, tone = 'blue', trend, note }) => {
 
   const isLong = typeof value === 'string' && value.length > 9;
   const valueClass = isLong
-    ? 'text-lg sm:text-xl font-black tracking-tight text-[var(--app-text)]'
-    : 'text-xl sm:text-2xl font-black tracking-tighter text-[var(--app-text)]';
+    ? 'text-lg sm:text-xl font-bold tracking-tight text-[var(--app-text)]'
+    : 'text-xl sm:text-2xl font-bold tracking-tighter text-[var(--app-text)]';
 
   return (
     <Card className="relative overflow-hidden group">
       <div className="flex items-start justify-between">
         <div className="min-w-0 space-y-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--app-text-muted)]">{title}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--app-text-muted)]">{title}</p>
           <h3 className={`${valueClass} truncate`}>{value}</h3>
           
           {(trend !== undefined || note) && (
             <div className="flex items-center gap-2 mt-2">
               {trend !== undefined && (
-                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-black ${trend >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
+                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${trend >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
                   {trend >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                   {Math.abs(trend).toFixed(1)}%
                 </span>

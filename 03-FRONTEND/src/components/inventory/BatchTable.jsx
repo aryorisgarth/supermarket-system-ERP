@@ -29,14 +29,14 @@ const BatchTable = ({
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)] text-[11px] uppercase tracking-wider">
-                <th className="text-left font-black px-4 py-3">Producto</th>
-                <th className="text-left font-black px-4 py-3">Lote</th>
-                <th className="text-center font-black px-4 py-3">Ingreso</th>
-                <th className="text-center font-black px-4 py-3">Vence</th>
-                <th className="text-center font-black px-4 py-3">Días</th>
-                <th className="text-right font-black px-4 py-3">Existencia</th>
-                <th className="text-center font-black px-4 py-3">Estado</th>
-                <th className="text-center font-black px-4 py-3">Acciones</th>
+                <th className="text-left font-bold px-4 py-3">Producto</th>
+                <th className="text-left font-bold px-4 py-3">Lote</th>
+                <th className="text-center font-bold px-4 py-3">Ingreso</th>
+                <th className="text-center font-bold px-4 py-3">Vence</th>
+                <th className="text-center font-bold px-4 py-3">Días</th>
+                <th className="text-right font-bold px-4 py-3">Existencia</th>
+                <th className="text-center font-bold px-4 py-3">Estado</th>
+                <th className="text-center font-bold px-4 py-3">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -53,7 +53,7 @@ const BatchTable = ({
                   <td className="px-4 py-3 text-center text-[var(--app-text-soft)]">{formatDate(batch.entryDate)}</td>
                   <td className="px-4 py-3 text-center font-bold text-[var(--app-text)]">{formatDate(batch.expirationDate)}</td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`font-black ${state.days < 0 ? 'text-red-600' : state.days <= 7 ? 'text-orange-600' : state.days <= 15 ? 'text-amber-600' : 'text-[var(--app-text-soft)]'}`}>
+                    <span className={`font-bold ${state.days < 0 ? 'text-red-600' : state.days <= 7 ? 'text-orange-600' : state.days <= 15 ? 'text-amber-600' : 'text-[var(--app-text-soft)]'}`}>
                       {state.days < 0 ? `vencido ${Math.abs(state.days)}d` : `${state.days}d`}
                     </span>
                   </td>
@@ -62,7 +62,7 @@ const BatchTable = ({
                     <span className="text-[11px] text-[var(--app-text-muted)] font-medium"> / {formatQty(batch.initialQuantity)}</span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black border ${toneClasses[state.tone]}`}>
+                    <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold border ${toneClasses[state.tone]}`}>
                       {state.label}
                     </span>
                   </td>

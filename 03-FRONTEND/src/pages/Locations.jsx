@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, MapPin, Layers, Search } from 'lucide-react';
+import { Plus, MapPin, Layers, Search, BookOpen } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 import LocationService from '../services/LocationService';
@@ -8,6 +8,7 @@ import LocationsVisualMap from '../components/locations/LocationsVisualMap';
 import LocationDetailsDrawer from '../components/locations/LocationDetailsDrawer';
 import LocationsTable from '../components/locations/LocationsTable';
 import LocationFormModal from '../components/locations/LocationFormModal';
+import InventoryGuideModal from '../components/warehouse/InventoryGuideModal';
 
 const Locations = () => {
   const [locations, setLocations] = useState([]);
@@ -16,11 +17,12 @@ const Locations = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
-  // Navigation tabs: 'MAP' (visual map) or 'LIST' (classic table)
+  
   const [activeTab, setActiveTab] = useState('MAP');
 
-  // Details drawer for selected location on visual map
+  
   const [selectedMapLoc, setSelectedMapLoc] = useState(null);
   const [mapLocProducts, setMapLocProducts] = useState([]);
   const [loadingMapProducts, setLoadingMapProducts] = useState(false);
@@ -31,6 +33,84 @@ const Locations = () => {
   const [level, setLevel] = useState('');
   const [locationCode, setLocationCode] = useState('');
   const [isPisoVenta, setIsPisoVenta] = useState(false);
+
+  // Auto-generación inteligente del código de ubicación en tiempo real al crear
+  useEffect(() => {
+    if (editingLocation) return;
+
+    const parseField = (text, defaultPrefix) => {
+      let clean = text.trim().toUpperCase();
+      if (!clean) return '';
+
+      // Reemplazos de palabras comunes a códigos estándar
+      clean = clean.replace('BODEGA', 'BOD');
+      clean = clean.replace('ALMACEN', 'ALM');
+      clean = clean.replace('NEVERA', 'NEV');
+      clean = clean.replace('ESTANTE', 'EST');
+      clean = clean.replace('MESA', 'MES');
+      clean = clean.replace('CONGELADOR', 'CON');
+      clean = clean.replace('EXHIBIDOR', 'EXH');
+
+      // Abreviaciones de categorías o zonas comunes
+      clean = clean.replace('BEBIDAS', 'BEB');
+      clean = clean.replace('FRUTAS', 'FRU');
+      clean = clean.replace('VERDURAS', 'VER');
+      clean = clean.replace('DESPENSA', 'DES');
+      clean = clean.replace('LACTEOS', 'LAC');
+      clean = clean.replace('CARNES', 'CAR');
+      clean = clean.replace('LIMPIEZA', 'LIM');
+      clean = clean.replace('PANADERIA', 'PAN');
+      clean = clean.replace('COCA-COLA', 'COCA');
+      clean = clean.replace('COCACOLA', 'COCA');
+
+      // Formato para Pasillo X -> PASX y Nivel Y -> NY
+      clean = clean.replace(/PASILLO\s*(\d+)/g, 'PAS$1');
+      clean = clean.replace(/NIVEL\s*(\d+)/g, 'N$1');
+
+      // Si el campo es solo un número, le agregamos el prefijo por defecto
+      if (/^\d+$/.test(clean) && defaultPrefix) {
+        return `${defaultPrefix}${clean}`;
+      }
+
+      // Limpiar caracteres no deseados y unir con guión bajo
+      return clean
+        .replace(/[\s()-]+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    };
+
+    const w = warehouse.trim().toUpperCase();
+    let prefix = '';
+    if (w.includes('PISO') && w.includes('VENTA')) {
+      prefix = 'PV';
+    } else {
+      prefix = parseField(warehouse, '');
+    }
+
+    const parts = [];
+    if (prefix) parts.push(prefix);
+
+    const parsedAisle = parseField(aisle, 'PAS');
+    if (parsedAisle) parts.push(parsedAisle);
+
+    const parsedShelf = parseField(shelf, 'EST');
+    if (parsedShelf) parts.push(parsedShelf);
+
+    const parsedLevel = parseField(level, 'N');
+    if (parsedLevel) parts.push(parsedLevel);
+
+    setLocationCode(parts.join('-'));
+  }, [warehouse, aisle, shelf, level, editingLocation]);
+
+  // Validar si el código generado o ingresado ya existe en la base de datos
+  const isDuplicateCode = useMemo(() => {
+    if (!locationCode.trim()) return false;
+    return locations.some(
+      (loc) =>
+        loc.locationCode?.trim().toUpperCase() === locationCode.trim().toUpperCase() &&
+        loc.id !== editingLocation?.id
+    );
+  }, [locationCode, locations, editingLocation]);
 
   const fetchLocations = useCallback(async () => {
     setLoading(true);
@@ -54,7 +134,7 @@ const Locations = () => {
     fetchLocations();
   }, [fetchLocations]);
 
-  // Fetch products inside a clicked location
+  
   const handleSelectMapLocation = async (loc) => {
     setSelectedMapLoc(loc);
     setLoadingMapProducts(true);
@@ -69,14 +149,22 @@ const Locations = () => {
     }
   };
 
-  const handleOpenCreate = () => {
+  const handleOpenCreate = (prefills = {}) => {
     setEditingLocation(null);
-    setWarehouse('');
-    setAisle('');
-    setShelf('');
-    setLevel('');
-    setLocationCode('');
-    setIsPisoVenta(false);
+    setWarehouse(prefills.warehouse || '');
+    setAisle(prefills.aisle || '');
+    setShelf(prefills.shelf || '');
+    setLevel(prefills.level || '');
+    if (prefills.warehouse && prefills.aisle && prefills.shelf && prefills.level) {
+      const wPrefix = prefills.warehouse.substring(0, 3).toUpperCase();
+      const aCode = prefills.aisle.toUpperCase();
+      const sCode = String(prefills.shelf).padStart(2, '0');
+      const lCode = String(prefills.level).padStart(2, '0');
+      setLocationCode(`${wPrefix}-${aCode}-${sCode}-${lCode}`);
+    } else {
+      setLocationCode(prefills.locationCode || '');
+    }
+    setIsPisoVenta(prefills.isPisoVenta || false);
     setShowModal(true);
   };
 
@@ -98,6 +186,15 @@ const Locations = () => {
         icon: 'warning',
         title: 'Requerido',
         text: 'Almacén y Código de ubicación son obligatorios.',
+        confirmButtonColor: '#ef4444',
+      });
+      return;
+    }
+    if (isDuplicateCode) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Código Duplicado',
+        text: 'Este código de ubicación ya está registrado. Por favor cambia el pasillo, estante o nivel para generar uno diferente.',
         confirmButtonColor: '#ef4444',
       });
       return;
@@ -188,42 +285,15 @@ const Locations = () => {
     );
   }, [locations, searchTerm]);
 
-  // Group warehouse locations (isPisoVenta = false) by Aisle for visual racks mapping
-  const warehouseRacks = useMemo(() => {
-    const whLocs = locations.filter((loc) => !loc.isPisoVenta);
-    const groups = {};
-    whLocs.forEach((loc) => {
-      const aisleName = loc.aisle || 'General';
-      if (!groups[aisleName]) groups[aisleName] = [];
-      groups[aisleName].push(loc);
-    });
+  
 
-    // Sort locations within each aisle by Level desc and Shelf asc
-    Object.keys(groups).forEach((aisleName) => {
-      groups[aisleName].sort((a, b) => {
-        const levelA = parseInt(a.level) || 0;
-        const levelB = parseInt(b.level) || 0;
-        if (levelB !== levelA) return levelB - levelA; // Nivel de arriba a abajo
-
-        const shelfA = parseInt(a.shelf) || 0;
-        const shelfB = parseInt(b.shelf) || 0;
-        return shelfA - shelfB; // Estante de izquierda a derecha
-      });
-    });
-    return groups;
-  }, [locations]);
-
-  // Store floor locations (isPisoVenta = true)
-  const storeShelves = useMemo(() => {
-    return locations.filter((loc) => loc.isPisoVenta);
-  }, [locations]);
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+      {}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-[var(--app-text)] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--app-text)] tracking-tight flex items-center gap-2">
             <MapPin className="text-[var(--app-primary)] shrink-0" size={26} />
             Gestión de Ubicaciones
           </h1>
@@ -231,24 +301,32 @@ const Locations = () => {
             Define y gestiona las bodegas, estantes y zonas del inventario.
           </p>
         </div>
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 bg-gradient-to-r from-[var(--app-primary)] to-blue-700 hover:to-[var(--app-primary)] text-white px-5 py-3 rounded-xl transition-all shadow-md font-bold hover:scale-[1.02] cursor-pointer text-sm"
-        >
-          <Plus size={18} /> Nueva Ubicación
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowGuideModal(true)}
+            className="flex items-center gap-2 border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800 text-[var(--app-primary)] px-4 py-3 rounded-xl transition-all shadow-sm font-bold hover:scale-[1.02] cursor-pointer text-sm"
+          >
+            <BookOpen size={18} /> Guía de Ubicaciones
+          </button>
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 bg-gradient-to-r from-[var(--app-primary)] to-blue-700 hover:to-[var(--app-primary)] text-white px-5 py-3 rounded-xl transition-all shadow-md font-bold hover:scale-[1.02] cursor-pointer text-sm"
+          >
+            <Plus size={18} /> Nueva Ubicación
+          </button>
+        </div>
       </div>
 
-      {/* Tabs Selection */}
+      {}
       <div className="flex bg-[var(--app-bg-subtle)] p-1 rounded-xl border border-[var(--app-border)] w-fit">
         <button
           onClick={() => {
             setActiveTab('MAP');
             setSelectedMapLoc(null);
           }}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
             activeTab === 'MAP'
-              ? 'bg-[var(--app-surface)] text-[var(--app-primary)] shadow-sm border border-[var(--app-border)]'
+              ? 'bg-gradient-to-r from-[var(--app-primary)] to-blue-700 text-white shadow-md'
               : 'text-[var(--app-text-muted)] hover:text-[var(--app-text)]'
           }`}
         >
@@ -260,9 +338,9 @@ const Locations = () => {
             setActiveTab('LIST');
             setSelectedMapLoc(null);
           }}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
             activeTab === 'LIST'
-              ? 'bg-[var(--app-surface)] text-[var(--app-primary)] shadow-sm border border-[var(--app-border)]'
+              ? 'bg-gradient-to-r from-[var(--app-primary)] to-blue-700 text-white shadow-md'
               : 'text-[var(--app-text-muted)] hover:text-[var(--app-text)]'
           }`}
         >
@@ -271,7 +349,7 @@ const Locations = () => {
         </button>
       </div>
 
-      {/* Main visual map / table split */}
+      {}
       {activeTab === 'MAP' ? (
         <div
           className={`grid grid-cols-1 gap-6 transition-all duration-300 ${
@@ -279,10 +357,10 @@ const Locations = () => {
           }`}
         >
           <LocationsVisualMap
-            warehouseRacks={warehouseRacks}
-            storeShelves={storeShelves}
+            locations={locations}
             selectedMapLoc={selectedMapLoc}
             onSelectLocation={handleSelectMapLocation}
+            onAddLocation={handleOpenCreate}
           />
 
           {selectedMapLoc && (
@@ -297,7 +375,7 @@ const Locations = () => {
           )}
         </div>
       ) : (
-        /* Classic List View */
+        
         <LocationsTable
           locations={filtered}
           loading={loading}
@@ -308,7 +386,7 @@ const Locations = () => {
         />
       )}
 
-      {/* Save / Edit Modal */}
+      {}
       {showModal && (
         <LocationFormModal
           editingLocation={editingLocation}
@@ -324,11 +402,18 @@ const Locations = () => {
           setLevel={setLevel}
           isPisoVenta={isPisoVenta}
           setIsPisoVenta={setIsPisoVenta}
+          isDuplicateCode={isDuplicateCode}
           saving={saving}
           onClose={() => setShowModal(false)}
           onSubmit={handleSubmit}
         />
       )}
+
+      <InventoryGuideModal
+        isOpen={showGuideModal}
+        onClose={() => setShowGuideModal(false)}
+        initialStep={2}
+      />
     </div>
   );
 };

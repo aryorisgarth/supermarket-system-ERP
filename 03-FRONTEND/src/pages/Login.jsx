@@ -135,7 +135,7 @@ const Login = () => {
 				<button
 					type="button"
 					onClick={() => navigate('/')}
-					className="absolute left-6 top-6 inline-flex items-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-2 text-xs font-black uppercase tracking-wider text-[var(--app-text-soft)] shadow-sm transition hover:border-[#0F4C81] hover:text-[#0F4C81] hover:shadow"
+					className="absolute left-6 top-6 inline-flex items-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[var(--app-text-soft)] shadow-sm transition hover:border-[#0F4C81] hover:text-[#0F4C81] hover:shadow"
 				>
 					<ArrowLeft size={14} />
 					Volver a Landing
@@ -146,10 +146,10 @@ const Login = () => {
 						<Store size={20} />
 					</span>
 					<div>
-						<p className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
+						<p className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
 							SuperNova POS
 						</p>
-						<h1 className="text-md font-black text-[var(--app-text)]">
+						<h1 className="text-md font-bold text-[var(--app-text)]">
 							{isForgotPasswordMode ? 'Recuperación' : 'Iniciar Sesión'}
 						</h1>
 					</div>
@@ -194,7 +194,7 @@ const Login = () => {
 						onSelectAccount={fillDemo}
 					/>
 
-					<p className="mt-8 text-center text-[10px] font-black uppercase tracking-[0.25em] text-[var(--app-text-muted)]">
+					<p className="mt-8 text-center text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--app-text-muted)]">
 						SuperNova POS Suite v1.0
 					</p>
 				</motion.div>

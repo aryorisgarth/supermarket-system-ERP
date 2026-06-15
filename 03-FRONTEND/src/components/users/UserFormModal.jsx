@@ -94,7 +94,7 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
       <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-md w-full overflow-hidden">
         <div className="bg-gradient-to-r from-primary to-primary-dark p-6 text-white flex justify-between items-center">
           <div>
-            <h3 className="text-lg font-black uppercase tracking-tight">{isEditMode ? 'Modificar Empleado' : 'Nuevo Personal'}</h3>
+            <h3 className="text-lg font-bold uppercase tracking-tight">{isEditMode ? 'Modificar Empleado' : 'Nuevo Personal'}</h3>
             <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mt-1">Configuración de acceso SuperNova</p>
           </div>
           <button onClick={onClose} className="hover:bg-white/20 p-2 rounded-xl transition-all cursor-pointer">
@@ -104,7 +104,7 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-[var(--app-surface)]">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Nombres</label>
+            <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-widest">Nombres</label>
             <input
               type="text"
               required
@@ -116,7 +116,7 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Apellidos</label>
+            <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-widest">Apellidos</label>
             <input
               type="text"
               required
@@ -128,7 +128,7 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Correo Electrónico</label>
+            <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-widest">Correo Electrónico</label>
             <input
               type="email"
               required
@@ -142,8 +142,8 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
           {isEditMode ? (
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Contraseña</label>
-                <span className="text-[9px] font-black text-slate-500 bg-slate-500/10 px-2 py-0.5 rounded-full border border-slate-500/20">OPCIONAL</span>
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-widest">Contraseña</label>
+                <span className="text-[9px] font-bold text-slate-500 bg-slate-500/10 px-2 py-0.5 rounded-full border border-slate-500/20">OPCIONAL</span>
               </div>
               <div className="relative">
                 <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--app-text-muted)] opacity-50" />
@@ -160,7 +160,7 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl flex items-start gap-3">
               <Lock size={18} className="text-primary shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <h4 className="text-[11px] font-black text-primary uppercase tracking-wider">Contraseña Automatizada</h4>
+                <h4 className="text-[11px] font-bold text-primary uppercase tracking-wider">Contraseña Automatizada</h4>
                 <p className="text-[10px] text-[var(--app-text-soft)] font-medium leading-relaxed">
                   Por seguridad, el sistema generará una contraseña temporal compleja y la enviará por correo al empleado de manera inmediata.
                 </p>
@@ -169,9 +169,9 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
           )}
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">Rol de Sistema</label>
+            <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-widest">Rol de Sistema</label>
             <select
-              className="w-full px-4 py-3 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-black text-xs text-[var(--app-text)] cursor-pointer"
+              className="w-full px-4 py-3 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold text-xs text-[var(--app-text)] cursor-pointer"
               value={roleName}
               onChange={(e) => setRoleName(e.target.value)}
             >
@@ -201,13 +201,13 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3.5 border border-[var(--app-border)] text-[var(--app-text-soft)] font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-[var(--app-bg-subtle)] transition-all"
+              className="flex-1 py-3.5 border border-[var(--app-border)] text-[var(--app-text-soft)] font-bold text-[10px] uppercase tracking-widest rounded-2xl hover:bg-[var(--app-bg-subtle)] transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 py-3.5 bg-primary text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 py-3.5 bg-primary text-white font-bold text-[10px] uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <CheckCircle2 size={16} strokeWidth={2.5} /> {isEditMode ? 'Actualizar' : 'Registrar'}
             </button>

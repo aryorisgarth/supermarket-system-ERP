@@ -24,7 +24,7 @@ const SettingsSidebar = ({ search, setSearch, visibleTabs, activeTab, setActiveT
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all font-black text-xs uppercase tracking-wider cursor-pointer ${
+              className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all font-bold text-xs uppercase tracking-wider cursor-pointer ${
                 isActive
                   ? 'bg-[var(--app-primary)] text-white border-transparent shadow-lg shadow-primary/20'
                   : 'bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-text-soft)] hover:border-[var(--app-primary)] hover:text-[var(--app-primary)]'

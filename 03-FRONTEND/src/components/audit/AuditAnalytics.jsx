@@ -91,24 +91,24 @@ const AuditAnalytics = ({
           <CardHeader icon={Activity} title="Análisis de Actividad de Auditoría" description="Análisis ejecutivo basado en el lote cargado." />
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/60 p-4">
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Accesos Denegados</p>
-              <p className="mt-2 text-2xl font-black text-[var(--app-danger)]">{operationalSummary.deniedEvents}</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Accesos Denegados</p>
+              <p className="mt-2 text-2xl font-bold text-[var(--app-danger)]">{operationalSummary.deniedEvents}</p>
               <p className="text-xs font-bold text-[var(--app-text-soft)] mt-1">Intentos de intrusión / permisos fallidos.</p>
             </div>
             <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/60 p-4">
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Caja y Efectivo</p>
-              <p className="mt-2 text-2xl font-black text-[var(--app-warning)]">{operationalSummary.cashEvents}</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Caja y Efectivo</p>
+              <p className="mt-2 text-2xl font-bold text-[var(--app-warning)]">{operationalSummary.cashEvents}</p>
               <p className="text-xs font-bold text-[var(--app-text-soft)] mt-1">Eventos en cierres y retiros manuales.</p>
             </div>
             <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/60 p-4">
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Kardex e Inventario</p>
-              <p className="mt-2 text-2xl font-black text-[var(--app-primary)]">{operationalSummary.inventoryEvents}</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Kardex e Inventario</p>
+              <p className="mt-2 text-2xl font-bold text-[var(--app-primary)]">{operationalSummary.inventoryEvents}</p>
               <p className="text-xs font-bold text-[var(--app-text-soft)] mt-1">Modificaciones directas al stock.</p>
             </div>
           </div>
 
           <div className="mt-5 rounded-2xl border border-blue-500/20 bg-[var(--app-primary-soft)]/50 p-4">
-            <h4 className="text-xs font-black uppercase tracking-wider text-[var(--app-primary)]">Recomendaciones de Seguridad</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--app-primary)]">Recomendaciones de Seguridad</h4>
             <p className="mt-2 text-xs leading-5 text-[var(--app-text-soft)]">
               - Mantenga bajo constante supervisión los eventos de <b>Riesgo Crítico</b> (ej. Venta Anulada o Eliminaciones directas de registros).<br />
               - Si detecta un volumen anómalo de <b>Accesos Denegados</b> en un corto lapso, verifique la IP origen de forma inmediata.<br />
@@ -134,7 +134,7 @@ const AuditAnalytics = ({
                       <AlertTriangle size={16} />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-xs font-black text-[var(--app-text)] truncate">
+                      <p className="text-xs font-bold text-[var(--app-text)] truncate">
                         {getActionLabel(log.action)}
                       </p>
                       <p className="text-[10px] text-[var(--app-text-muted)] font-mono">
@@ -150,7 +150,7 @@ const AuditAnalytics = ({
             {recentSecurityAlerts.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center text-[var(--app-text-muted)] border border-dashed border-[var(--app-border)] rounded-2xl">
                 <Check size={28} className="text-[var(--app-success)] mb-1" />
-                <p className="text-xs font-black uppercase">Todo en orden</p>
+                <p className="text-xs font-bold uppercase">Todo en orden</p>
                 <p className="text-[10px] mt-0.5">No se reportan eventos críticos en este lote de auditoría.</p>
               </div>
             )}

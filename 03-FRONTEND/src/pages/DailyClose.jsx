@@ -320,7 +320,7 @@ const DailyClose = () => {
       {loading ? (
         <div className="flex h-72 flex-col items-center justify-center gap-3 text-[var(--app-text-muted)]">
           <Loader2 className="animate-spin text-[var(--app-primary)]" size={42} />
-          <p className="text-xs font-black uppercase tracking-widest">Consolidando cierre diario...</p>
+          <p className="text-xs font-bold uppercase tracking-widest">Consolidando cierre diario...</p>
         </div>
       ) : (
         <>

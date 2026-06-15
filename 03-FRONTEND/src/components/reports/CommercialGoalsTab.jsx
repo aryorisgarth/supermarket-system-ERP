@@ -27,7 +27,7 @@ const CommercialGoalsTab = ({
       
       {showGoalForm && (
         <div className="bg-white/95 border border-amber-200 rounded-3xl p-6 shadow-xl max-w-xl animate-fade-in">
-          <h3 className="font-black text-slate-800 flex items-center gap-2 mb-4">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4">
             <Sparkles className="text-amber-500" size={20} />
             Registrar Nueva Meta Comercial
           </h3>
@@ -160,10 +160,10 @@ const CommercialGoalsTab = ({
                   
                   <div className="flex justify-between items-start gap-3">
                     <div>
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border tracking-wider ${bgSoft}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border tracking-wider ${bgSoft}`}>
                         {typeLabel}
                       </span>
-                      <h4 className="font-black text-slate-800 text-base mt-2 group-hover:text-primary transition-colors leading-tight">
+                      <h4 className="font-bold text-slate-800 text-base mt-2 group-hover:text-primary transition-colors leading-tight">
                         {g.name}
                       </h4>
                     </div>

@@ -27,14 +27,14 @@ const TransactionAuditTable = ({ sales, money }) => {
           <tbody className="divide-y divide-[var(--app-border)]">
             {sales.length === 0 ? (
               <tr>
-                <td colSpan="6" className="py-20 text-center text-[var(--app-text-muted)] font-black uppercase text-xs tracking-widest italic">
+                <td colSpan="6" className="py-20 text-center text-[var(--app-text-muted)] font-bold uppercase text-xs tracking-widest italic">
                   No hay registros para este rango de fechas.
                 </td>
               </tr>
             ) : (
               sales.map((sale) => (
                 <tr key={sale.id} className="group hover:bg-[var(--app-bg-subtle)]/50 transition-colors">
-                  <td className="pl-6 py-4 font-black text-[var(--app-text)] group-hover:text-[var(--app-primary)] transition-colors tracking-tight">
+                  <td className="pl-6 py-4 font-bold text-[var(--app-text)] group-hover:text-[var(--app-primary)] transition-colors tracking-tight">
                     {sale.invoiceNumber}
                   </td>
                   <td>
@@ -54,9 +54,9 @@ const TransactionAuditTable = ({ sales, money }) => {
                     </div>
                   </td>
                   <td className="text-xs font-bold text-[var(--app-text-soft)] uppercase">{sale.userFullName || 'Sistema'}</td>
-                  <td className="text-right font-black text-[var(--app-primary)] tabular-nums">{money(sale.totalAmount)}</td>
+                  <td className="text-right font-bold text-[var(--app-primary)] tabular-nums">{money(sale.totalAmount)}</td>
                   <td className="pr-6 text-center">
-                    <span className={`inline-flex px-3 py-1 rounded-lg text-[10px] font-black uppercase border tracking-widest ${
+                    <span className={`inline-flex px-3 py-1 rounded-lg text-[10px] font-bold uppercase border tracking-widest ${
                       sale.status === 'COMPLETED' || sale.status === 'PAID'
                         ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
                         : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'

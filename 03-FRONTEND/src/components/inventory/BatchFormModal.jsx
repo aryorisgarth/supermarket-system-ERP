@@ -104,7 +104,7 @@ const BatchFormModal = ({ isOpen, onClose, editing, products, onSuccess }) => {
               <CalendarClock size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider">
+              <h3 className="text-sm font-bold uppercase tracking-wider">
                 {editing ? 'Editar Lote' : 'Nuevo Lote'}
               </h3>
               <p className="text-white/80 text-[10px] font-medium">

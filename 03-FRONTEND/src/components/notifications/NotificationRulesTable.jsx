@@ -59,7 +59,7 @@ const NotificationRulesTable = ({
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3 text-[var(--app-text-muted)] animate-fade-in">
         <Loader2 className="animate-spin text-[var(--app-primary)]" size={40} />
-        <p className="text-xs font-black uppercase tracking-widest">Cargando reglas...</p>
+        <p className="text-xs font-bold uppercase tracking-widest">Cargando reglas...</p>
       </div>
     );
   }
@@ -68,7 +68,7 @@ const NotificationRulesTable = ({
     return (
       <div className="p-16 text-center animate-fade-in">
         <CheckCircle2 size={44} className="mx-auto text-[var(--app-success)] animate-pulse" />
-        <p className="mt-4 text-sm font-black uppercase tracking-widest text-[var(--app-text-muted)]">
+        <p className="mt-4 text-sm font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
           No hay reglas de notificación configuradas
         </p>
         <p className="mt-2 text-xs text-[var(--app-text-soft)]">
@@ -83,22 +83,22 @@ const NotificationRulesTable = ({
       <table className="w-full border-collapse text-left text-sm">
         <thead>
           <tr className="bg-[var(--app-bg-subtle)] border-b border-[var(--app-border)]">
-            <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">
+            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
               Tipo de Alerta
             </th>
-            <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">
+            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
               Severidad Mínima
             </th>
-            <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">
+            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
               Canal de Envío
             </th>
-            <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">
+            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
               Rol Destinatario
             </th>
-            <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">
+            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
               Estado
             </th>
-            <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)] text-right">
+            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)] text-right">
               Acciones
             </th>
           </tr>

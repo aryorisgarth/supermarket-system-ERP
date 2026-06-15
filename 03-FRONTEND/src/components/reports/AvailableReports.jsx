@@ -19,8 +19,8 @@ const AvailableReports = ({ reportCatalog, onPrintReport }) => {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-black text-sm text-[var(--app-text)]">{name}</h4>
-                  <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-[var(--app-primary)] border border-[var(--app-border)]">
+                  <h4 className="font-bold text-sm text-[var(--app-text)]">{name}</h4>
+                  <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[var(--app-primary)] border border-[var(--app-border)]">
                     {count}
                   </span>
                 </div>
@@ -28,7 +28,7 @@ const AvailableReports = ({ reportCatalog, onPrintReport }) => {
                 <button
                   type="button"
                   onClick={() => onPrintReport(key)}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-[var(--app-text-soft)] transition hover:border-[var(--app-primary)] hover:text-[var(--app-primary)] cursor-pointer"
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-soft)] transition hover:border-[var(--app-primary)] hover:text-[var(--app-primary)] cursor-pointer"
                 >
                   <Printer size={12} /> Imprimir
                 </button>

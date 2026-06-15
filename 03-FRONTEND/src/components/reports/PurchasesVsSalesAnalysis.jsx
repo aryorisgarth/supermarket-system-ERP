@@ -21,16 +21,16 @@ const PurchasesVsSalesAnalysis = ({
       />
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl bg-[var(--app-bg-subtle)] p-4">
-          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Ventas</p>
-          <p className="mt-2 text-xl font-black text-[var(--app-primary)]">{money(purchasesVsSales?.totalSales)}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Ventas</p>
+          <p className="mt-2 text-xl font-bold text-[var(--app-primary)]">{money(purchasesVsSales?.totalSales)}</p>
         </div>
         <div className="rounded-2xl bg-[var(--app-bg-subtle)] p-4">
-          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Compras</p>
-          <p className="mt-2 text-xl font-black text-[var(--app-text)]">{money(purchasesVsSales?.totalPurchases)}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Compras</p>
+          <p className="mt-2 text-xl font-bold text-[var(--app-text)]">{money(purchasesVsSales?.totalPurchases)}</p>
         </div>
         <div className="rounded-2xl bg-[var(--app-bg-subtle)] p-4">
-          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Diferencia</p>
-          <p className={`mt-2 text-xl font-black ${num(purchasesVsSales?.netDifference) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Diferencia</p>
+          <p className={`mt-2 text-xl font-bold ${num(purchasesVsSales?.netDifference) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
             {money(purchasesVsSales?.netDifference)}
           </p>
         </div>
@@ -44,23 +44,23 @@ const PurchasesVsSalesAnalysis = ({
 
       <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <h4 className="mb-3 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">Top cajeros</h4>
+          <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Top cajeros</h4>
           <div className="space-y-2">
             {salesByUser.slice(0, 5).map((item, index) => (
               <div key={item.userFullName || index} className="flex justify-between rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-3 py-2 text-sm">
                 <span className="font-bold text-[var(--app-text-soft)]">{item.userFullName || 'Usuario'}</span>
-                <span className="font-black">{money(item.totalSales)}</span>
+                <span className="font-bold">{money(item.totalSales)}</span>
               </div>
             ))}
           </div>
         </div>
         <div>
-          <h4 className="mb-3 text-xs font-black uppercase tracking-wider text-[var(--app-text-muted)]">Clientes destacados</h4>
+          <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Clientes destacados</h4>
           <div className="space-y-2">
             {customerRanking.slice(0, 5).map((item, index) => (
               <div key={item.identifier || index} className="flex justify-between rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-3 py-2 text-sm">
                 <span className="font-bold text-[var(--app-text-soft)]">{item.customerFullName || 'Cliente'}</span>
-                <span className="font-black">{money(item.totalSpent)}</span>
+                <span className="font-bold">{money(item.totalSpent)}</span>
               </div>
             ))}
           </div>

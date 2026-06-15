@@ -21,8 +21,12 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import BarcodeScanInput from '../../components/warehouse/BarcodeScanInput';
 import PurchaseReceiptLineFields from '../../components/warehouse/PurchaseReceiptLineFields';
+import ReceiveProgressCard from '../../components/warehouse/ReceiveProgressCard';
+import ReceiveScanLogCard from '../../components/warehouse/ReceiveScanLogCard';
+import ReceivePedagogicalSummary from '../../components/warehouse/ReceivePedagogicalSummary';
 import PurchaseOrderService from '../../services/PurchaseOrderService';
 import LocationService from '../../services/LocationService';
+import AuthService from '../../services/AuthService';
 import useBarcodeScan from '../../hooks/useBarcodeScan';
 import { getApiErrorMessage } from '../../utils/apiError';
 import {
@@ -61,6 +65,18 @@ const WarehouseReceiveOrder = () => {
         PurchaseOrderService.getById(orderId),
         LocationService.getAll(),
       ]);
+      
+      const currentUser = AuthService.getCurrentUser();
+      if (orderData.receivedBy && orderData.receivedBy.id !== currentUser?.id) {
+        Swal.fire('Acceso Denegado', `Esta orden está siendo procesada por ${orderData.receivedBy.fullName || orderData.receivedBy.name || orderData.receivedBy.email}`, 'warning');
+        navigate(backPath);
+        return;
+      } else if (!orderData.receivedBy) {
+        Swal.fire('Aviso', 'Debes tomar esta tarea en la lista de recepciones antes de iniciar el conteo.', 'info');
+        navigate(backPath);
+        return;
+      }
+
       setOrder(orderData);
       setLocations(locationsData || []);
       setLines(buildReceiptLinesFromOrder(orderData, { pendingOnly: true }));
@@ -99,7 +115,7 @@ const WarehouseReceiveOrder = () => {
       updateReceiptLine(current, line.itemId, 'quantityReceived', Number(line.quantityReceived || 0) + factor)
     );
 
-    // Live scan console feedback
+    
     const timestamp = new Date().toLocaleTimeString();
     setScanLog((prev) => [
       { id: Date.now(), productName: product.name, barcode: product.barcode, qty: factor, time: timestamp },
@@ -120,7 +136,7 @@ const WarehouseReceiveOrder = () => {
 
   const receiptTotal = useMemo(() => calcReceiptTotal(lines), [lines]);
 
-  // Calcular progreso general de la recepción
+  
   const progressStats = useMemo(() => {
     if (lines.length === 0) return { percent: 100, receivedItems: 0, totalItems: 0 };
     const totalPending = lines.reduce((sum, l) => sum + Number(l.pending || 0), 0);
@@ -188,16 +204,19 @@ const WarehouseReceiveOrder = () => {
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_350px]">
-        {/* Lado Izquierdo: Listado de líneas */}
+        {}
         <div className="space-y-4">
+          {/* Resumen Pedagógico Detallado */}
+          <ReceivePedagogicalSummary lines={lines} />
+
           <form onSubmit={submitReceipt} className="space-y-4">
             {lines.map((line) => {
-              // Calcular porcentaje completado por ítem
+              
               const itemPercent = line.pending > 0 
                 ? Math.min(Math.round((Number(line.quantityReceived || 0) / Number(line.pending)) * 100), 100)
                 : 100;
               
-              // Determinar color de barra de progreso
+              
               let progressColor = 'bg-red-500';
               if (itemPercent > 75) progressColor = 'bg-emerald-500';
               else if (itemPercent > 25) progressColor = 'bg-amber-500';
@@ -209,14 +228,14 @@ const WarehouseReceiveOrder = () => {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-black text-[var(--app-text)]">{line.productName}</p>
+                      <p className="text-sm font-bold text-[var(--app-text)]">{line.productName}</p>
                       <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)] mt-0.5">
                         Código {line.barcode || '—'} · Pendiente {line.pending} · Recibido antes {line.alreadyReceived}
                       </p>
                     </div>
                     <button
                       type="button"
-                      className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg transition-all ${
+                      className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-lg transition-all ${
                         activeLineId === line.itemId
                           ? 'bg-[var(--app-primary)] text-white'
                           : 'text-[var(--app-primary)] hover:bg-[var(--app-primary-soft)]/20'
@@ -230,9 +249,9 @@ const WarehouseReceiveOrder = () => {
                     </button>
                   </div>
 
-                  {/* Barra de progreso visual por ítem */}
+                  {}
                   <div className="mt-3 space-y-1">
-                    <div className="flex justify-between items-center text-[9px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">
+                    <div className="flex justify-between items-center text-[9px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">
                       <span>Progreso de recepción</span>
                       <span>{itemPercent}% ({line.quantityReceived || 0} / {line.pending})</span>
                     </div>
@@ -252,7 +271,7 @@ const WarehouseReceiveOrder = () => {
 
             <Card>
               <label className="block space-y-1">
-                <span className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Notas generales de recepción</span>
+                <span className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Notas generales de recepción</span>
                 <textarea
                   className="ui-input w-full min-h-[80px]"
                   value={receiptNotes}
@@ -262,8 +281,8 @@ const WarehouseReceiveOrder = () => {
               </label>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--app-border)] pt-4">
                 <div>
-                  <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Valor recibido</p>
-                  <p className="text-xl font-black text-[var(--app-text)]">{money(receiptTotal)}</p>
+                  <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Valor recibido</p>
+                  <p className="text-xl font-bold text-[var(--app-text)]">{money(receiptTotal)}</p>
                 </div>
                 <Button type="submit" icon={Save} loading={saving}>
                   Confirmar recepción
@@ -273,9 +292,9 @@ const WarehouseReceiveOrder = () => {
           </form>
         </div>
 
-        {/* Lado Derecho: Panel lateral de escaneo */}
+        {}
         <div className="space-y-4 lg:sticky lg:top-4 h-fit">
-          {/* Tarjeta del Escáner */}
+          {}
           <Card className="border-[var(--app-primary)]/20 bg-[var(--app-primary-soft)]/5">
             <CardHeader
               icon={ScanLine}
@@ -288,78 +307,21 @@ const WarehouseReceiveOrder = () => {
                 value={scanValue}
                 onChange={(event) => setScanValue(event.target.value)}
                 onKeyDown={handleScanKeyDown}
-                disabled={scanning || saving}
               />
             </div>
           </Card>
 
-          {/* Progreso consolidado */}
-          <Card className="border-[var(--app-border)]">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="text-[var(--app-primary)]" size={16} />
-              <h4 className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Resumen General</h4>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between items-end">
-                <span className="text-xs font-bold text-[var(--app-text-soft)]">Total Recibido</span>
-                <span className="text-sm font-black text-[var(--app-text)]">{progressStats.receivedItems} u / {progressStats.totalItems} u</span>
-              </div>
-              <div className="w-full h-3 bg-[var(--app-bg-subtle)] rounded-full overflow-hidden border border-[var(--app-border)]">
-                <div 
-                  className="h-full bg-gradient-to-r from-[var(--app-primary)] to-blue-500 transition-all duration-500" 
-                  style={{ width: `${progressStats.percent}%` }} 
-                />
-              </div>
-              <div className="text-[9px] font-bold text-[var(--app-text-muted)] text-right">
-                {progressStats.percent}% del total completado
-              </div>
-            </div>
-          </Card>
+          <ReceiveProgressCard progressStats={progressStats} />
 
-          {/* Live Scan Console (Historial) */}
-          <Card className="border-[var(--app-border)]">
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-2">
-                <Activity className="text-indigo-500 animate-pulse" size={16} />
-                <h4 className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Historial en Vivo</h4>
-              </div>
-              <Sparkles size={13} className="text-indigo-500" />
-            </div>
-
-            {scanLog.length === 0 ? (
-              <div className="py-6 text-center text-[10px] text-[var(--app-text-muted)] font-bold border-2 border-dashed border-[var(--app-border)] rounded-2xl">
-                Esperando escaneos...
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                {scanLog.map((log) => (
-                  <div 
-                    key={log.id} 
-                    className="flex items-start gap-2.5 p-2.5 bg-[var(--app-bg-subtle)]/60 border border-[var(--app-border)] rounded-xl text-[10px] animate-fade-in"
-                  >
-                    <Barcode size={14} className="text-indigo-500 shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-black text-[var(--app-text)] truncate">{log.productName}</p>
-                      <div className="flex justify-between text-[9px] text-[var(--app-text-muted)] mt-0.5">
-                        <span className="font-mono">{log.barcode}</span>
-                        <span className="font-black text-indigo-600">+{log.qty} u</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 text-[8px] text-[var(--app-text-muted)] font-bold bg-[var(--app-surface)] px-1 py-0.5 rounded border border-[var(--app-border)] shrink-0">
-                      <Clock size={8} /> {log.time}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
+          {/* Historial en Vivo */}
+          <ReceiveScanLogCard scanLog={scanLog} />
         </div>
       </div>
 
       {lines.length === 0 && (
         <Card className="py-10 text-center">
           <CheckCircle2 size={32} className="mx-auto text-[var(--app-success)]" />
-          <p className="mt-3 font-black text-[var(--app-text)]">Esta orden ya fue recibida completamente.</p>
+          <p className="mt-3 font-bold text-[var(--app-text)]">Esta orden ya fue recibida completamente.</p>
           <Link to={backPath} className="mt-4 inline-block">
             <Button type="button" variant="secondary" icon={PackageCheck}>Volver a recepciones</Button>
           </Link>

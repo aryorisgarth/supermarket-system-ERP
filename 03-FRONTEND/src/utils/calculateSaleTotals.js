@@ -21,8 +21,9 @@ export const calculateSaleTotals = (cart, defaultTaxRate = 15) => {
     grossSubtotal += unitPrice * quantity;
     discountTotal += discount;
 
-    const lineNet = roundMoney(unitPrice * quantity - discount);
-    const lineTax = roundMoney((lineNet * itemTaxRate) / 100);
+    const lineTotal = roundMoney(unitPrice * quantity - discount);
+    const lineNet = roundMoney(lineTotal / (1 + itemTaxRate / 100));
+    const lineTax = roundMoney(lineTotal - lineNet);
 
     netSubtotal = roundMoney(netSubtotal + lineNet);
     tax = roundMoney(tax + lineTax);

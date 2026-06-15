@@ -5,7 +5,7 @@ const PromotionsHeader = ({ onCreate }) => {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 className="text-2xl font-black text-[var(--app-text)] tracking-tight flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-[var(--app-text)] tracking-tight flex items-center gap-2">
           <Tag className="text-[var(--app-primary)] shrink-0 animate-pulse" size={26} /> Promociones y Ofertas
         </h1>
         <p className="text-[var(--app-text-soft)] text-sm font-medium">

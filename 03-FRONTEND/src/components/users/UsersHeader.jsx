@@ -5,7 +5,7 @@ const UsersHeader = ({ activeTab, onCreateClick }) => {
   return (
     <div className="flex justify-between items-center">
       <div>
-        <h2 className="text-2xl font-black text-[var(--app-text)] tracking-tight">
+        <h2 className="text-2xl font-bold text-[var(--app-text)] tracking-tight">
           {activeTab === 'employees' ? 'Gestión de Personal' : 'Seguridad y Permisos'}
         </h2>
         <p className="text-[var(--app-text-muted)] text-sm font-medium">

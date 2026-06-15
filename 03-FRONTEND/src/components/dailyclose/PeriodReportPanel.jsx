@@ -28,7 +28,7 @@ const PeriodReportPanel = ({ report, closedWithDiff, formatMoney }) => {
               </span>
               <span className="text-sm font-bold text-[var(--app-text-soft)]">{label}</span>
             </div>
-            <span className="font-black tabular-nums text-[var(--app-text)]">
+            <span className="font-bold tabular-nums text-[var(--app-text)]">
               {typeof value === 'number' && label.includes('Turnos') ? value : formatMoney(value)}
             </span>
           </div>

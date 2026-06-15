@@ -1,303 +1,15 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import {
-  BarChart3,
-  BellRing,
-  Building2,
-  CalendarClock,
-  ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Database,
-  FileText,
-  History,
-  LayoutDashboard,
-  Package,
-  ClipboardList,
-  Receipt,
-  Landmark,
   Search,
-  Settings as SettingsIcon,
-  ShoppingCart,
-  Store,
-  Tag,
-  UserCircle,
-  Users,
-  Wallet,
-  ClipboardCheck,
-  PackageCheck,
   X,
-  MapPin,
-  Bookmark,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthService from '../services/AuthService';
+import { sections } from '../config/sidebarRoutes';
 
-const sections = [
-  {
-    title: 'Inicio',
-    items: [
-      {
-        icon: LayoutDashboard,
-        label: 'Mi turno',
-        path: '/cajero',
-        roles: ['CAJERO'],
-        badge: { text: 'TURNO', variant: 'live' },
-      },
-      {
-        icon: ShoppingCart,
-        label: 'Facturacion POS',
-        path: '/facturacion',
-        roles: ['CAJERO'],
-        permissions: ['SALE_CREATE'],
-        badge: { text: 'COBRAR', variant: 'live' },
-      },
-      {
-        icon: LayoutDashboard,
-        label: 'Panel consulta',
-        path: '/',
-        roles: ['CONSULTOR'],
-      },
-      {
-        icon: LayoutDashboard,
-        label: 'Panel supervision',
-        path: '/',
-        roles: ['SUPERVISOR'],
-        badge: { text: 'LIVE', variant: 'live' },
-      },
-      {
-        icon: LayoutDashboard,
-        label: 'Dashboard',
-        path: '/',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
-        badge: { text: 'LIVE', variant: 'live' },
-      },
-    ],
-  },
-  {
-    title: 'Operaciones',
-    items: [
-      {
-        icon: ShoppingCart,
-        label: 'Facturacion POS',
-        path: '/facturacion',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['SALE_CREATE'],
-        badge: { text: 'POS', variant: 'live' },
-      },
-      {
-        icon: Receipt,
-        label: 'Control de ventas',
-        path: '/control-ventas',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
-        permissions: ['SALE_CANCEL'],
-      },
-      {
-        icon: FileText,
-        label: 'Facturas Electronicas',
-        path: '/facturas-electronicas',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['EINVOICE_VIEW'],
-        badge: { text: 'DGI', variant: 'new' },
-      },
-      {
-        icon: Wallet,
-        label: 'Control de cajas',
-        path: '/control-cajas',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['CASH_OPEN', 'CASH_MOVE', 'CASH_CLOSE'],
-        badge: { text: 'NEW', variant: 'new' },
-      },
-      {
-        icon: ClipboardCheck,
-        label: 'Cierre del dia',
-        path: '/cierre-dia',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['CASH_CLOSE'],
-        badge: { text: 'ACTA', variant: 'new' },
-      },
-      {
-        icon: Landmark,
-        label: 'Finanzas',
-        path: '/finanzas',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
-        permissions: ['FINANCE_VIEW', 'FINANCE_MANAGE'],
-      },
-    ],
-  },
-  {
-    title: 'Inventario',
-    items: [
-      {
-        icon: Package,
-        label: 'Productos',
-        path: '/inventario',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['INVENTORY_ADJUST'],
-      },
-      {
-        icon: CalendarClock,
-        label: 'Lotes y vencimientos',
-        path: '/lotes',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['INVENTORY_ADJUST'],
-        badge: { text: 'PEPS', variant: 'new' },
-      },
-      {
-        icon: Tag,
-        label: 'Promociones',
-        path: '/promociones',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['PROMO_MANAGE'],
-        badge: { text: 'NUEVO', variant: 'new' },
-      },
-      {
-        icon: ClipboardList,
-        label: 'Compras',
-        path: '/compras',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['PURCHASE_MANAGE', 'PURCHASE_RECEIVE'],
-        badge: { text: 'NEW', variant: 'new' },
-      },
-      {
-        icon: Tag,
-        label: 'Categorias',
-        path: '/categorias',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['INVENTORY_ADJUST'],
-      },
-      {
-        icon: Bookmark,
-        label: 'Marcas',
-        path: '/marcas',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['INVENTORY_ADJUST'],
-      },
-      {
-        icon: MapPin,
-        label: 'Ubicaciones',
-        path: '/ubicaciones',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['INVENTORY_ADJUST'],
-      },
-      {
-        icon: Building2,
-        label: 'Proveedores',
-        path: '/proveedores',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['PURCHASE_MANAGE', 'PURCHASE_RECEIVE'],
-      },
-    ],
-  },
-  {
-    title: 'Bodega',
-    items: [
-      {
-        icon: PackageCheck,
-        label: 'Inicio bodega',
-        path: '/bodega',
-        roles: ['BODEGUERO'],
-        badge: { text: 'HOME', variant: 'live' },
-      },
-      {
-        icon: ClipboardList,
-        label: 'Recepcion',
-        path: '/bodega/recepcion',
-        roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['PURCHASE_RECEIVE'],
-        badge: { text: 'SCAN', variant: 'new' },
-      },
-      {
-        icon: CalendarClock,
-        label: 'Lotes y vencimientos',
-        path: '/lotes',
-        roles: ['BODEGUERO'],
-        permissions: ['BATCH_MANAGE', 'INVENTORY_ADJUST'],
-      },
-      {
-        icon: Package,
-        label: 'Consulta productos',
-        path: '/bodega/productos',
-        roles: ['BODEGUERO'],
-        permissions: ['INVENTORY_VIEW'],
-      },
-      {
-        icon: ClipboardCheck,
-        label: 'Conteo ciclico',
-        path: '/bodega/conteo',
-        roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['INVENTORY_COUNT', 'INVENTORY_ADJUST'],
-        badge: { text: 'NEW', variant: 'new' },
-      },
-    ],
-  },
-  {
-    title: 'Analitica',
-    items: [
-      {
-        icon: BarChart3,
-        label: 'Reportes',
-        path: '/reportes',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CONSULTOR'],
-        permissions: ['REPORT_VIEW'],
-      },
-      {
-        icon: BellRing,
-        label: 'Alertas',
-        path: '/alertas',
-        roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
-        permissions: ['REPORT_VIEW'],
-        badge: { text: 'IA', variant: 'new' },
-      },
-      {
-        icon: History,
-        label: 'Auditoria',
-        path: '/auditoria',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
-        permissions: ['AUDIT_VIEW'],
-      },
-    ],
-  },
-  {
-    title: 'Sistema',
-    items: [
-      {
-        icon: UserCircle,
-        label: 'Mi perfil',
-        path: '/mi-perfil',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CAJERO', 'CONSULTOR', 'BODEGUERO'],
-      },
-      {
-        icon: Users,
-        label: 'Usuarios y roles',
-        path: '/usuarios',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
-        permissions: ['USER_MANAGE'],
-      },
-      {
-        icon: SettingsIcon,
-        label: 'Configuracion',
-        path: '/configuracion',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
-        permissions: ['USER_MANAGE'],
-      },
-      {
-        icon: BellRing,
-        label: 'Configuración Alertas',
-        path: '/configuracion-alertas',
-        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
-        permissions: ['USER_MANAGE'],
-      },
-      {
-        icon: Database,
-        label: 'Mantenimiento',
-        path: '/mantenimiento',
-        roles: ['ADMIN_INGENIERO'],
-        permissions: ['MAINTENANCE_MANAGE'],
-      },
-    ],
-  },
-];
 
 const badgeStyles = {
   live: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/25',
@@ -310,7 +22,7 @@ const Badge = ({ badge }) => {
   const isLive = badge.variant === 'live';
   return (
     <span
-      className={`ml-auto shrink-0 flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider ${badgeStyles[badge.variant] || badgeStyles.count}`}
+      className={`ml-auto shrink-0 flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${badgeStyles[badge.variant] || badgeStyles.count}`}
     >
       {isLive && (
         <span className="relative flex h-1 w-1">
@@ -341,7 +53,7 @@ const SidebarItem = ({ icon: Icon, label, path, active, onNavigate, badge, colla
     title={collapsed ? label : undefined}
     className={`group relative flex items-center rounded-[var(--radius-lg)] px-3 py-2.5 text-sm font-bold transition-all duration-200 ${
       active
-        ? 'bg-[var(--app-primary)] text-white shadow-md shadow-primary/10 dark:shadow-blue-500/10'
+        ? 'bg-gradient-to-r from-[var(--app-primary)] to-blue-700 text-white shadow-md shadow-primary/15 dark:shadow-blue-500/15'
         : 'text-[var(--app-text-soft)] hover:bg-[var(--app-bg-subtle)] hover:text-[var(--app-text)]'
     } ${collapsed ? 'justify-center px-0' : 'justify-between'}`}
   >
@@ -521,11 +233,9 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
           <motion.div
             whileHover={{ scale: 1.06, rotate: 5 }}
             transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--app-primary)] text-white shadow-md shadow-primary/20 p-[2px] overflow-hidden bg-white"
+            className={`flex ${collapsed ? 'h-10 w-10' : 'h-14 w-14'} shrink-0 items-center justify-center overflow-hidden transition-all duration-300`}
           >
-            <div className="w-full h-full rounded-[10px] bg-white flex items-center justify-center overflow-hidden">
-              <img src={logo || "/supernova_logo.png"} alt="Logo" className="w-full h-full object-contain p-1" />
-            </div>
+            <img src={logo || "/supernova_logo.png"} alt="Logo" className="w-full h-full object-contain" />
           </motion.div>
 
           {!collapsed && (
@@ -536,12 +246,12 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
               className="min-w-0 flex-1 overflow-hidden"
             >
               <h1
-                className="truncate text-base font-black tracking-tight text-[var(--app-primary)] dark:text-blue-400"
+                className="truncate text-base font-black tracking-tight bg-gradient-to-r from-[var(--app-primary)] to-blue-600 dark:from-blue-400 dark:to-sky-400 bg-clip-text text-transparent"
                 title={storeName}
               >
                 {storeName}
               </h1>
-              <p className="text-[9px] font-black uppercase tracking-[0.1em] text-[var(--app-text-muted)] opacity-60">
+              <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--app-text-muted)] opacity-60">
                 Enterprise POS
               </p>
             </motion.div>
@@ -609,7 +319,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
                   >
                     <item.icon size={14} className="shrink-0 text-[var(--app-text-muted)]" />
                     <span className="flex-1 truncate">{item.label}</span>
-                    <span className="text-[9px] font-black uppercase tracking-wider text-[var(--app-text-muted)] opacity-50">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] opacity-50">
                       {item.sectionTitle}
                     </span>
                   </Link>
@@ -633,7 +343,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
               {!collapsed ? (
                 <button
                   onClick={() => toggleSection(section.title)}
-                  className="flex w-full items-center justify-between px-3 py-2 text-[9px] font-black uppercase tracking-[0.15em] text-[var(--app-text-muted)] hover:text-[var(--app-text)] transition-colors duration-200 outline-none group"
+                  className="flex w-full items-center justify-between px-3 py-2 text-[9px] font-bold uppercase tracking-[0.15em] text-[var(--app-text-muted)] hover:text-[var(--app-text)] transition-colors duration-200 outline-none group"
                 >
                   <span>{section.title}</span>
                   <motion.span
@@ -685,17 +395,17 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
             collapsed ? 'flex-col gap-2 px-0 py-3 justify-center w-full' : 'gap-3 px-4 py-3'
           }`}
         >
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--app-primary)] text-white text-xs font-black shadow-sm uppercase">
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--app-primary)] text-white text-xs font-bold shadow-sm uppercase">
             {userInitials}
             <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5 rounded-full border-2 border-[var(--app-surface)] bg-emerald-500" />
           </div>
 
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[11px] font-black text-[var(--app-text)] leading-none mb-1">
+              <p className="truncate text-[11px] font-bold text-[var(--app-text)] leading-none mb-1">
                 {user?.fullName || user?.username}
               </p>
-              <span className="inline-block px-2 py-0.5 rounded-md bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[8px] font-black uppercase tracking-wider">
+              <span className="inline-block px-2 py-0.5 rounded-md bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[8px] font-bold uppercase tracking-wider">
                 {roleName?.replace('_', ' ')}
               </span>
             </div>
@@ -705,7 +415,6 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
             <button
               onClick={async () => {
                 await AuthService.logout();
-                window.location.href = '/login';
               }}
               title="Cerrar sesión"
               className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-muted)] hover:border-[var(--app-danger)] hover:bg-[var(--app-danger-soft)] hover:text-[var(--app-danger)] transition-all duration-200 shrink-0"

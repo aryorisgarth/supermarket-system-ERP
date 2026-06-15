@@ -1,5 +1,6 @@
 import React from 'react';
 import { Building2, Sparkles } from 'lucide-react';
+import { compressImage } from '../../utils/settingsStorage';
 
 const fieldClass = 'w-full px-4 py-3 rounded-2xl bg-[var(--app-bg-subtle)] border border-[var(--app-border)] focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm font-medium text-[var(--app-text)]';
 const labelClass = 'text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]';
@@ -8,7 +9,7 @@ const BusinessTab = ({ form, setField, logo, setLogo }) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="border-b border-[var(--app-border)] pb-4">
-        <h3 className="text-lg font-black text-[var(--app-text)] flex items-center gap-2">
+        <h3 className="text-lg font-bold text-[var(--app-text)] flex items-center gap-2">
           <Building2 className="text-[var(--app-primary)]" size={20} />
           Datos empresariales
         </h3>
@@ -24,26 +25,25 @@ const BusinessTab = ({ form, setField, logo, setLogo }) => {
           )}
         </div>
         <div className="flex-1 space-y-2 text-center md:text-left">
-          <h4 className="text-sm font-black text-[var(--app-text)]">Logotipo</h4>
+          <h4 className="text-sm font-bold text-[var(--app-text)]">Logotipo</h4>
           <p className="text-xs text-[var(--app-text-muted)]">PNG o JPG recomendado 512×512. Visible en sidebar, POS y tickets.</p>
           <div className="flex flex-wrap gap-2 justify-center md:justify-start mt-2">
-            <label className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-[var(--app-primary)] px-4 py-2 text-xs font-black uppercase text-white">
+            <label className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-[var(--app-primary)] px-4 py-2 text-xs font-bold uppercase text-white">
               Seleccionar imagen
               <input
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => {
+                onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  const reader = new FileReader();
-                  reader.onloadend = () => setLogo(reader.result);
-                  reader.readAsDataURL(file);
+                  const compressed = await compressImage(file);
+                  setLogo(compressed);
                 }}
               />
             </label>
             {logo && (
-              <button type="button" onClick={() => setLogo(null)} className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-black uppercase text-red-600 cursor-pointer">
+              <button type="button" onClick={() => setLogo(null)} className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold uppercase text-red-600 cursor-pointer">
                 Eliminar
               </button>
             )}

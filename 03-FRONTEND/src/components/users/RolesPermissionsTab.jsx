@@ -19,7 +19,7 @@ const RolesPermissionsTab = ({
             <ShieldCheck size={22} />
           </span>
           <div>
-            <h3 className="text-sm font-black text-[var(--app-text)] uppercase tracking-wide">Puestos / Roles</h3>
+            <h3 className="text-sm font-bold text-[var(--app-text)] uppercase tracking-wide">Puestos / Roles</h3>
             <p className="text-xs font-semibold text-[var(--app-text-muted)]">Elige el rol para editar sus permisos globales.</p>
           </div>
         </div>
@@ -36,7 +36,7 @@ const RolesPermissionsTab = ({
                   : 'border-[var(--app-border)] bg-[var(--app-bg-subtle)] text-[var(--app-text-soft)] hover:border-[var(--app-primary)]/40'
               }`}
             >
-              <span className="block text-xs font-black uppercase tracking-widest">{role.name?.replaceAll('_', ' ')}</span>
+              <span className="block text-xs font-bold uppercase tracking-widest">{role.name?.replaceAll('_', ' ')}</span>
               <span className="mt-1 block text-[10px] font-bold opacity-75">{role.permissions?.length || 0} permisos asignados</span>
             </button>
           ))}
@@ -46,14 +46,14 @@ const RolesPermissionsTab = ({
       <div className="min-w-0">
         <div className="mb-4 flex items-center justify-between gap-3 border-b border-[var(--app-border)] pb-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">Configurando privilegios de</p>
-            <h4 className="text-lg font-black text-[var(--app-text)]">{selectedRole?.name?.replaceAll('_', ' ') || 'Seleccione un rol'}</h4>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">Configurando privilegios de</p>
+            <h4 className="text-lg font-bold text-[var(--app-text)]">{selectedRole?.name?.replaceAll('_', ' ') || 'Seleccione un rol'}</h4>
           </div>
           <button
             type="button"
             onClick={saveRolePermissions}
             disabled={!selectedRole || savingRole}
-            className="inline-flex items-center gap-2 rounded-2xl bg-[var(--app-primary)] px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[var(--app-primary)] px-5 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           >
             {savingRole ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
             Guardar permisos
@@ -80,7 +80,7 @@ const RolesPermissionsTab = ({
                   className="mt-1 h-4 w-4 rounded text-[var(--app-primary)] cursor-pointer"
                 />
                 <span className="min-w-0">
-                  <span className="block text-xs font-black uppercase tracking-wide text-[var(--app-text)]">{permission.code}</span>
+                  <span className="block text-xs font-bold uppercase tracking-wide text-[var(--app-text)]">{permission.code}</span>
                   <span className="mt-1 block text-xs font-semibold text-[var(--app-text-muted)]">{permission.description || 'Sin descripción'}</span>
                 </span>
               </label>

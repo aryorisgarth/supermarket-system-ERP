@@ -82,7 +82,7 @@ const SessionsHistoryTable = ({
           <tbody className="divide-y divide-[var(--app-border)]">
             {history.map((session) => (
               <tr key={session.id} className="hover:bg-[var(--app-bg-subtle)]/50">
-                <td className="pl-6 py-4 font-black">#{session.id}</td>
+                <td className="pl-6 py-4 font-bold">#{session.id}</td>
                 <td className="font-bold text-[var(--app-text-soft)]">{session.cashierName}</td>
                 <td className="text-sm text-[var(--app-text-muted)]">{formatDateTime(session.openedAt)}</td>
                 <td className="text-sm text-[var(--app-text-muted)]">{formatDateTime(session.closedAt)}</td>
@@ -106,7 +106,7 @@ const SessionsHistoryTable = ({
             ))}
             {history.length === 0 && (
               <tr>
-                <td colSpan="8" className="py-16 text-center text-xs font-black uppercase tracking-widest text-[var(--app-text-muted)] italic">
+                <td colSpan="8" className="py-16 text-center text-xs font-bold uppercase tracking-widest text-[var(--app-text-muted)] italic">
                   No hay turnos en el rango seleccionado
                 </td>
               </tr>

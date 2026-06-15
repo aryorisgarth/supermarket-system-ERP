@@ -11,11 +11,11 @@ const PaymentAccountCard = ({ account, onEdit, onDelete }) => {
     <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-raised)] p-5 group hover:border-[var(--app-primary)]/40 transition-all duration-300">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h3 className="font-black text-[var(--app-text)] text-lg truncate group-hover:text-[var(--app-primary)] transition-colors">
+          <h3 className="font-bold text-[var(--app-text)] text-lg truncate group-hover:text-[var(--app-primary)] transition-colors">
             {account.name}
           </h3>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs font-black text-[var(--app-text-soft)] uppercase">{account.bankName}</span>
+            <span className="text-xs font-bold text-[var(--app-text-soft)] uppercase">{account.bankName}</span>
             <span className="text-[10px] font-bold text-[var(--app-text-muted)] font-mono bg-[var(--app-bg-subtle)] px-1.5 py-0.5 rounded border border-[var(--app-border)]">
               {account.accountNumberMasked}
             </span>
@@ -27,7 +27,7 @@ const PaymentAccountCard = ({ account, onEdit, onDelete }) => {
         </div>
       </div>
       
-      <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] font-black uppercase tracking-tight text-[var(--app-text-soft)]">
+      <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] font-bold uppercase tracking-tight text-[var(--app-text-soft)]">
         <div className="flex justify-between border-b border-[var(--app-border)] pb-1 col-span-2">
           <span className="text-[var(--app-text-muted)]">Titular</span>
           <span className="truncate ml-2">{account.accountHolder}</span>

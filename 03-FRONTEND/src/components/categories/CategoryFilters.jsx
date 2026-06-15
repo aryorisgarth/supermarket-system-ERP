@@ -26,7 +26,7 @@ const CategoryFilters = ({
           {hasActiveFilters && (
             <button 
               onClick={onClearFilters}
-              className="text-xs font-black uppercase tracking-wider text-[var(--app-text-soft)] hover:text-primary bg-[var(--app-bg-subtle)] hover:bg-primary/10 px-5 py-2.5 rounded-lg transition-all w-full sm:w-auto cursor-pointer border border-[var(--app-border)] hover:border-primary"
+              className="text-xs font-bold uppercase tracking-wider text-[var(--app-text-soft)] hover:text-primary bg-[var(--app-bg-subtle)] hover:bg-primary/10 px-5 py-2.5 rounded-lg transition-all w-full sm:w-auto cursor-pointer border border-[var(--app-border)] hover:border-primary"
             >
               Limpiar
             </button>

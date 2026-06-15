@@ -11,7 +11,7 @@ const Header = ({ activeNav, scrollToSection, cartCount }) => {
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0F4C81] text-white">
             <ShoppingCart size={20} />
           </span>
-          <span className="text-lg font-black tracking-tight text-[#0F4C81]">
+          <span className="text-lg font-bold tracking-tight text-[#0F4C81]">
             Supernova
           </span>
         </div>
@@ -50,7 +50,7 @@ const Header = ({ activeNav, scrollToSection, cartCount }) => {
           <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#6B7280] transition hover:bg-slate-200" title="Carrito de Compras">
             <ShoppingCart size={18} />
             {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-white ring-2 ring-white animate-bounce">
+              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white ring-2 ring-white animate-bounce">
                 {cartCount}
               </span>
             )}

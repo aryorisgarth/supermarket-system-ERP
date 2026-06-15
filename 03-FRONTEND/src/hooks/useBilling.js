@@ -19,6 +19,17 @@ export const useBilling = () => {
 
   const cartData = useBillingCart();
 
+  const [paymentAccounts, setPaymentAccounts] = useState([]);
+
+  const loadPaymentAccounts = useCallback(async () => {
+    try {
+      const accounts = await BillingService.getPaymentAccounts();
+      setPaymentAccounts(accounts?.filter(a => a.isActive) || []);
+    } catch (error) {
+      console.warn('Cuentas de pago no disponibles:', error);
+    }
+  }, []);
+
   const loadBillingConfig = useCallback(async () => {
     try {
       const config = await BillingService.getConfig();
@@ -90,9 +101,10 @@ export const useBilling = () => {
 
   useEffect(() => {
     loadBillingConfig();
+    loadPaymentAccounts();
     searchData.loadProducts();
     searchData.loadCategories();
-  }, [loadBillingConfig, searchData.loadProducts, searchData.loadCategories]);
+  }, [loadBillingConfig, loadPaymentAccounts, searchData.loadProducts, searchData.loadCategories]);
 
   const handleKeyDown = async (e) => {
     if (e.key === 'Enter') {
@@ -233,6 +245,9 @@ export const useBilling = () => {
     receiptData: checkoutData.receiptData,
     showPrintButton: checkoutData.showPrintButton,
     showQuickAccess,
+    transferBank: checkoutData.transferBank,
+    transferRef: checkoutData.transferRef,
+    paymentAccounts,
     
     subtotal: cartData.subtotal,
     discountTotal: cartData.discountTotal,
@@ -250,6 +265,8 @@ export const useBilling = () => {
     setCouponCode: checkoutData.setCouponCode,
     setIsMultiPayment: checkoutData.setIsMultiPayment,
     setShowQuickAccess,
+    setTransferBank: checkoutData.setTransferBank,
+    setTransferRef: checkoutData.setTransferRef,
     setShowReceipt: checkoutData.setShowReceipt,
     setShowCategoryProductsModal: searchData.setShowCategoryProductsModal,
     

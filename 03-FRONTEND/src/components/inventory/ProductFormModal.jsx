@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { X, Package, Barcode, Tag, Building2, DollarSign, Percent, Loader2, Save, Copy, Wand2, Bookmark } from 'lucide-react';
+import { X, Package, Barcode, Tag, Building2, DollarSign, Percent, Loader2, Save, Bookmark } from 'lucide-react';
 import {
-  buildHierarchySummary,
   defaultPurchasePacksForForm,
-  getPackTemplate,
-  PACK_DEFINITIONS,
-  PACK_TEMPLATE_OPTIONS,
   purchasePacksFromTemplate,
   resolvePackTemplateKey,
-  sortPurchasePacks,
 } from '../../utils/purchaseUnits';
 import ProductService from '../../services/ProductService';
 import { getApiErrorMessage } from '../../utils/apiError';
 import Swal from 'sweetalert2';
 import ProductLocationsSection from './ProductLocationsSection';
+import ProductPurchasePacksSection from './ProductPurchasePacksSection';
 
 const ProductFormModal = ({
   isOpen,
@@ -38,7 +34,9 @@ const ProductFormModal = ({
     taxCategoryId: '',
     brandId: '',
     minStockExhibicion: '5',
-    isActive: true
+    isActive: true,
+    requiresBatch: false,
+    requiresExpiration: false
   });
   const [purchasePacks, setPurchasePacks] = useState(defaultPurchasePacksForForm());
   const [packTemplateKey, setPackTemplateKey] = useState('unitOnly');
@@ -67,7 +65,9 @@ const ProductFormModal = ({
         taxCategoryId: product.taxCategoryId || product.taxCategory?.id || taxCategories[0]?.id || '',
         isActive: product.isActive !== false,
         brandId: product.brand?.id || '',
-        minStockExhibicion: product.minStockExhibicion || '5'
+        minStockExhibicion: product.minStockExhibicion || '5',
+        requiresBatch: !!product.requiresBatch,
+        requiresExpiration: !!product.requiresExpiration
       });
       const categoryName = product.category?.name || resolveCategoryName(product.category?.id);
       const templateKey = resolvePackTemplateKey(categoryName, product.name);
@@ -113,7 +113,9 @@ const ProductFormModal = ({
         taxCategoryId: taxCategories[0]?.id || '',
         brandId: '',
         minStockExhibicion: '5',
-        isActive: true
+        isActive: true,
+        requiresBatch: false,
+        requiresExpiration: false
       });
       setPurchasePacks(defaultPurchasePacksForForm(categoryName, ''));
     }
@@ -126,10 +128,6 @@ const ProductFormModal = ({
     setPackTemplateKey(templateKey);
     setPurchasePacks(defaultPurchasePacksForForm(categoryName, formData.name));
   }, [formData.categoryId, formData.name, product, isOpen]);
-
-  const activeTemplate = getPackTemplate(packTemplateKey);
-  const hierarchySummary = buildHierarchySummary(purchasePacks);
-  const sortedPacks = sortPurchasePacks(purchasePacks);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -154,6 +152,8 @@ const ProductFormModal = ({
       taxCategoryId: parseInt(formData.taxCategoryId),
       brandId: formData.brandId ? parseInt(formData.brandId) : null,
       minStockExhibicion: parseFloat(formData.minStockExhibicion),
+      requiresBatch: Boolean(formData.requiresBatch),
+      requiresExpiration: Boolean(formData.requiresExpiration),
       purchasePacks: purchasePacks
         .filter((pack) => pack.label?.trim() && Number(pack.factor) > 0)
         .map((pack, index) => ({
@@ -216,7 +216,7 @@ const ProductFormModal = ({
               <Package size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider">
+              <h3 className="text-sm font-bold uppercase tracking-wider">
                 {product ? 'Modificar Ficha de Producto' : 'Crear Producto en Catálogo'}
               </h3>
               <p className="text-white/80 text-[10px] font-medium mt-0.5">
@@ -238,7 +238,7 @@ const ProductFormModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <Barcode size={13} /> Código de Barras
                 </label>
                 <input
@@ -254,7 +254,7 @@ const ProductFormModal = ({
 
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Nombre Comercial</label>
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Nombre Comercial</label>
                 <input
                   type="text"
                   name="name"
@@ -269,7 +269,7 @@ const ProductFormModal = ({
 
             
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Detalles / Descripción</label>
+              <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Detalles / Descripción</label>
               <input
                 type="text"
                 name="description"
@@ -283,7 +283,7 @@ const ProductFormModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <Tag size={13} /> Categoría
                 </label>
                 <select
@@ -304,7 +304,7 @@ const ProductFormModal = ({
 
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <Building2 size={13} /> Proveedor
                 </label>
                 <select
@@ -326,7 +326,7 @@ const ProductFormModal = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <Bookmark size={13} /> Marca
                 </label>
                 <select
@@ -343,7 +343,7 @@ const ProductFormModal = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Mínimo en Exhibición</label>
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Mínimo en Exhibición</label>
                 <input
                   type="number"
                   name="minStockExhibicion"
@@ -359,7 +359,7 @@ const ProductFormModal = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <DollarSign size={13} /> Costo / unidad venta
                 </label>
                 <input
@@ -377,7 +377,7 @@ const ProductFormModal = ({
 
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <DollarSign size={13} /> Precio Venta
                 </label>
                 <input
@@ -395,7 +395,7 @@ const ProductFormModal = ({
 
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
                   <Percent size={13} /> Tipo Impuesto
                 </label>
                 <select
@@ -415,7 +415,7 @@ const ProductFormModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Stock Inicial</label>
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Stock Inicial</label>
                 <input
                   type="number"
                   name="currentStock"
@@ -430,7 +430,7 @@ const ProductFormModal = ({
 
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider">Umbral Mínimo</label>
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Umbral Mínimo</label>
                 <input
                   type="number"
                   name="minimumStock"
@@ -443,139 +443,14 @@ const ProductFormModal = ({
               </div>
             </div>
 
-            <div className="space-y-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Presentaciones de compra</p>
-                  <p className="text-[10px] font-medium text-[var(--app-text-muted)] max-w-xl">
-                    Cada empaque indica cuántas <strong>unidades base (UN)</strong> trae. Orden típico: UN → M-CAJ/PAQ → CAJILLA → CAJA → REJILLA/SACO (de menor a mayor).
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <select
-                    value={packTemplateKey}
-                    onChange={(e) => applyPackTemplate(e.target.value)}
-                    className="ui-input text-[10px] font-bold min-w-[160px]"
-                  >
-                    {PACK_TEMPLATE_OPTIONS.map((option) => (
-                      <option key={option.id} value={option.id}>{option.name}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => setPurchasePacks((rows) => [...rows, { label: '', factor: '1', barcode: '', isDefault: false, sortOrder: rows.length }])}
-                    className="text-[10px] font-black uppercase text-[var(--app-primary)]"
-                  >
-                    + Empaque
-                  </button>
-                </div>
-              </div>
-              {activeTemplate.hint && (
-                <p className="text-[10px] leading-relaxed rounded-xl border border-amber-200/60 bg-amber-50/80 dark:bg-amber-950/20 dark:border-amber-800/40 px-3 py-2 text-amber-900 dark:text-amber-100">
-                  {activeTemplate.hint}
-                </p>
-              )}
-              {hierarchySummary && (
-                <p className="text-[10px] font-mono rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2 text-[var(--app-text-soft)]">
-                  {hierarchySummary}
-                </p>
-              )}
-              <div className="space-y-3">
-                {sortedPacks.map((pack) => {
-                  const index = purchasePacks.indexOf(pack);
-                  const autoBarcode = formData.barcode && pack.label
-                    ? `${formData.barcode}-${pack.label.replace(/\s+/g, '')}`
-                    : '';
-                  return (
-                    <div key={index} className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3 space-y-2">
-                      
-                      <div className="grid grid-cols-[1fr_90px_70px_auto] gap-2 items-start">
-                        <div className="space-y-0.5">
-                          <input
-                            type="text"
-                            value={pack.label}
-                            onChange={(e) => setPurchasePacks((rows) => rows.map((row, i) => (i === index ? { ...row, label: e.target.value } : row)))}
-                            placeholder="CAJILLA, CAJA, REJILLA, M-CAJ"
-                            title={PACK_DEFINITIONS[pack.label?.toUpperCase()] || 'Etiqueta del empaque'}
-                            className="ui-input text-xs font-bold w-full"
-                          />
-                          {PACK_DEFINITIONS[pack.label?.toUpperCase()] && (
-                            <p className="text-[9px] text-[var(--app-text-muted)]">{PACK_DEFINITIONS[pack.label?.toUpperCase()]}</p>
-                          )}
-                        </div>
-                        <input
-                          type="number"
-                          min="0.0001"
-                          step="0.0001"
-                          value={pack.factor}
-                          onChange={(e) => setPurchasePacks((rows) => rows.map((row, i) => (i === index ? { ...row, factor: e.target.value } : row)))}
-                          placeholder="Factor"
-                          className="ui-input text-xs font-bold"
-                        />
-                        <label className="flex items-center gap-1 text-[10px] font-bold text-[var(--app-text-soft)]">
-                          <input
-                            type="radio"
-                            name="defaultPurchasePack"
-                            checked={Boolean(pack.isDefault)}
-                            onChange={() => setPurchasePacks((rows) => rows.map((row, i) => ({ ...row, isDefault: i === index })))}
-                          />
-                          Default
-                        </label>
-                        <button
-                          type="button"
-                          disabled={purchasePacks.length <= 1}
-                          onClick={() => setPurchasePacks((rows) => rows.filter((_, i) => i !== index))}
-                          className="text-[10px] font-black uppercase text-red-500 disabled:opacity-30"
-                        >
-                          Quitar
-                        </button>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 relative">
-                          <Barcode size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--app-text-muted)]" />
-                          <input
-                            type="text"
-                            value={pack.barcode || ''}
-                            onChange={(e) => setPurchasePacks((rows) => rows.map((row, i) => (i === index ? { ...row, barcode: e.target.value } : row)))}
-                            placeholder={autoBarcode || 'Código de barras de la presentación...'}
-                            className="ui-input text-xs font-mono pl-7 w-full"
-                          />
-                        </div>
-                        
-                        {autoBarcode && !pack.barcode && (
-                          <button
-                            type="button"
-                            title={`Auto-generar: ${autoBarcode}`}
-                            onClick={() => setPurchasePacks((rows) => rows.map((row, i) => (i === index ? { ...row, barcode: autoBarcode } : row)))}
-                            className="flex items-center gap-1 text-[10px] font-black uppercase text-[var(--app-primary)] border border-[var(--app-primary)]/30 rounded-lg px-2 py-1.5 hover:bg-[var(--app-primary-soft)]/20 transition-colors whitespace-nowrap"
-                          >
-                            <Wand2 size={11} /> Auto
-                          </button>
-                        )}
-                        
-                        {pack.barcode && (
-                          <button
-                            type="button"
-                            title="Copiar barcode"
-                            onClick={() => { navigator.clipboard.writeText(pack.barcode); }}
-                            className="flex items-center gap-1 text-[10px] font-black uppercase text-emerald-600 border border-emerald-600/30 rounded-lg px-2 py-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors whitespace-nowrap"
-                          >
-                            <Copy size={11} /> Copiar
-                          </button>
-                        )}
-                      </div>
-                      
-                      {pack.barcode && (
-                        <p className="text-[9px] text-[var(--app-text-muted)] font-mono bg-[var(--app-bg-subtle)] rounded-lg px-2 py-1">
-                          📦 Escanear en bodega/conteo: <span className="font-black text-[var(--app-text)]">{pack.barcode}</span>
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <ProductPurchasePacksSection
+              barcode={formData.barcode}
+              productName={formData.name}
+              purchasePacks={purchasePacks}
+              setPurchasePacks={setPurchasePacks}
+              packTemplateKey={packTemplateKey}
+              applyPackTemplate={applyPackTemplate}
+            />
 
             
             {product && (
@@ -585,18 +460,48 @@ const ProductFormModal = ({
               />
             )}
 
-            <div className="flex items-center gap-3 pt-2">
-              <input
-                type="checkbox"
-                name="isActive"
-                id="isActiveProduct"
-                className="h-4.5 w-4.5 rounded text-primary border-[var(--app-border-strong)] focus:ring-primary/20 cursor-pointer"
-                checked={formData.isActive}
-                onChange={handleChange}
-              />
-              <label htmlFor="isActiveProduct" className="text-xs font-bold text-[var(--app-text-soft)] cursor-pointer select-none">
-                Habilitar producto para comercialización y facturación en caja
-              </label>
+            <div className="space-y-3 pt-3 border-t border-[var(--app-border)]">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  name="isActive"
+                  id="isActiveProduct"
+                  className="h-4.5 w-4.5 rounded text-primary border-[var(--app-border-strong)] focus:ring-primary/20 cursor-pointer"
+                  checked={formData.isActive}
+                  onChange={handleChange}
+                />
+                <label htmlFor="isActiveProduct" className="text-xs font-bold text-[var(--app-text-soft)] cursor-pointer select-none">
+                  Habilitar producto para comercialización y facturación en caja
+                </label>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  name="requiresBatch"
+                  id="requiresBatchProduct"
+                  className="h-4.5 w-4.5 rounded text-primary border-[var(--app-border-strong)] focus:ring-primary/20 cursor-pointer"
+                  checked={formData.requiresBatch}
+                  onChange={handleChange}
+                />
+                <label htmlFor="requiresBatchProduct" className="text-xs font-bold text-[var(--app-text-soft)] cursor-pointer select-none">
+                  Controlar por Lote (descontará de lotes activos al vender)
+                </label>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  name="requiresExpiration"
+                  id="requiresExpirationProduct"
+                  className="h-4.5 w-4.5 rounded text-primary border-[var(--app-border-strong)] focus:ring-primary/20 cursor-pointer"
+                  checked={formData.requiresExpiration}
+                  onChange={handleChange}
+                />
+                <label htmlFor="requiresExpirationProduct" className="text-xs font-bold text-[var(--app-text-soft)] cursor-pointer select-none">
+                  Controlar por Fecha de Vencimiento (requiere fecha al recibir en bodega)
+                </label>
+              </div>
             </div>
           </div>
 

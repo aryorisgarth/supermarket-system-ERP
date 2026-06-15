@@ -35,6 +35,16 @@ const InventoryCountService = {
     const response = await api.post(`/inventory-counts/${id}/cancel`);
     return response.data;
   },
+
+  claim: async (id) => {
+    const response = await api.post(`/inventory-counts/${id}/claim`);
+    return response.data;
+  },
+
+  assign: async (id, userId) => {
+    const response = await api.post(`/inventory-counts/${id}/assign`, { userId });
+    return response.data;
+  },
 };
 
 export default InventoryCountService;

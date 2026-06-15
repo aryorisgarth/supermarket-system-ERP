@@ -67,7 +67,7 @@ const AuditLogs = () => {
     <div className="flex flex-wrap items-center gap-2">
       
       <div className="flex items-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 shadow-sm">
-        <span className="text-[10px] font-black uppercase text-[var(--app-text-muted)] tracking-wider">
+        <span className="text-[10px] font-bold uppercase text-[var(--app-text-muted)] tracking-wider">
           {autoRefreshInterval > 0 ? `Refresco en: ${countdown}s` : 'Auto-Refresco'}
         </span>
         <div className="flex gap-1">
@@ -132,7 +132,7 @@ const AuditLogs = () => {
         <button
           type="button"
           onClick={() => setActiveTab('table')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-6 py-3 border-b-2 text-xs font-bold uppercase tracking-widest transition-all cursor-pointer ${
             activeTab === 'table'
               ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]'
               : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'
@@ -143,7 +143,7 @@ const AuditLogs = () => {
         <button
           type="button"
           onClick={() => setActiveTab('analytics')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-6 py-3 border-b-2 text-xs font-bold uppercase tracking-widest transition-all cursor-pointer ${
             activeTab === 'analytics'
               ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]'
               : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'

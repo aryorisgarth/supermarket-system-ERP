@@ -1,7 +1,9 @@
 export const SETTINGS_KEY = 'supernova_settings';
 export const LOGO_KEY = 'supernova_logo';
+export const TICKET_LOGO_KEY = 'supernova_ticket_logo';
 export const SETTINGS_UPDATED_EVENT = 'supernova_settings_updated';
 export const LOGO_UPDATED_EVENT = 'supernova_logo_updated';
+export const TICKET_LOGO_UPDATED_EVENT = 'supernova_ticket_logo_updated';
 
 export const DEFAULT_SETTINGS = {
   companyName: 'SuperNova Market',
@@ -65,7 +67,11 @@ export function loadLogo() {
   return localStorage.getItem(LOGO_KEY) || null;
 }
 
-export function saveSettings(settings, logo) {
+export function loadTicketLogo() {
+  return localStorage.getItem(TICKET_LOGO_KEY) || null;
+}
+
+export function saveSettings(settings, logo, ticketLogo) {
   const payload = {
     ...settings,
     taxRate: Number(settings.taxRate) || 0,
@@ -78,22 +84,26 @@ export function saveSettings(settings, logo) {
 
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload));
   localStorage.setItem(LOGO_KEY, logo || '');
+  localStorage.setItem(TICKET_LOGO_KEY, ticketLogo || '');
   window.dispatchEvent(new Event(SETTINGS_UPDATED_EVENT));
   window.dispatchEvent(new Event(LOGO_UPDATED_EVENT));
+  window.dispatchEvent(new Event(TICKET_LOGO_UPDATED_EVENT));
   return payload;
 }
 
 export function resetSettings() {
   localStorage.removeItem(SETTINGS_KEY);
   localStorage.removeItem(LOGO_KEY);
+  localStorage.removeItem(TICKET_LOGO_KEY);
   window.dispatchEvent(new Event(SETTINGS_UPDATED_EVENT));
   window.dispatchEvent(new Event(LOGO_UPDATED_EVENT));
+  window.dispatchEvent(new Event(TICKET_LOGO_UPDATED_EVENT));
   return { ...DEFAULT_SETTINGS };
 }
 
-export function exportSettingsFile(settings, logo) {
+export function exportSettingsFile(settings, logo, ticketLogo) {
   const blob = new Blob(
-    [JSON.stringify({ version: 1, settings, logo }, null, 2)],
+    [JSON.stringify({ version: 1, settings, logo, ticketLogo }, null, 2)],
     { type: 'application/json' }
   );
   const url = URL.createObjectURL(blob);
@@ -110,7 +120,8 @@ export function parseImportedSettings(raw) {
   const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
   const settings = { ...DEFAULT_SETTINGS, ...(data.settings || data) };
   const logo = data.logo ?? null;
-  return { settings, logo };
+  const ticketLogo = data.ticketLogo ?? null;
+  return { settings, logo, ticketLogo };
 }
 
 export const BACKUP_FREQUENCY_LABELS = {
@@ -125,3 +136,35 @@ export const PASS_STRENGTH_LABELS = {
   MEDIUM: 'Media',
   HIGH: 'Alta',
 };
+
+export function compressImage(file, maxDimension = 800) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}

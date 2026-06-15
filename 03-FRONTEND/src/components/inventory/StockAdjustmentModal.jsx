@@ -92,7 +92,7 @@ const StockAdjustmentModal = ({ isOpen, onClose, product, onSuccess }) => {
               <RefreshCw size={18} className="animate-spin animate-duration-1500" />
             </div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider">Ajuste de Bodega</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider">Ajuste de Bodega</h3>
               <p className="text-white/80 text-[10px] font-medium truncate max-w-[200px] mt-0.5">{product.name}</p>
             </div>
           </div>
@@ -108,24 +108,24 @@ const StockAdjustmentModal = ({ isOpen, onClose, product, onSuccess }) => {
         <form onSubmit={handleSubmit} className="p-5 space-y-4 bg-[var(--app-surface)]">
           <div className="bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] p-3 rounded-xl text-xs font-bold text-[var(--app-text-muted)] flex justify-between items-center shadow-inner">
             <span>Stock Actual en Bodega:</span>
-            <span className="text-[var(--app-primary)] font-black text-sm">{product.currentStock} unidades</span>
+            <span className="text-[var(--app-primary)] font-bold text-sm">{product.currentStock} unidades</span>
           </div>
 
           
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider block">Tipo de Movimiento</label>
+            <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider block">Tipo de Movimiento</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setAdjustType('ADD')}
-                className={`py-3 rounded-xl font-bold transition-all text-xs border flex items-center justify-center gap-1 cursor-pointer ${adjustType === 'ADD' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-sm font-black' : 'bg-[var(--app-surface)] text-[var(--app-text-soft)] border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]'}`}
+                className={`py-3 rounded-xl font-bold transition-all text-xs border flex items-center justify-center gap-1 cursor-pointer ${adjustType === 'ADD' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-sm font-bold' : 'bg-[var(--app-surface)] text-[var(--app-text-soft)] border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]'}`}
               >
                 <Plus size={14} /> Entrada / Compra
               </button>
               <button
                 type="button"
                 onClick={() => setAdjustType('SUB')}
-                className={`py-3 rounded-xl font-bold transition-all text-xs border flex items-center justify-center gap-1 cursor-pointer ${adjustType === 'SUB' ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-sm font-black' : 'bg-[var(--app-surface)] text-[var(--app-text-soft)] border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]'}`}
+                className={`py-3 rounded-xl font-bold transition-all text-xs border flex items-center justify-center gap-1 cursor-pointer ${adjustType === 'SUB' ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-sm font-bold' : 'bg-[var(--app-surface)] text-[var(--app-text-soft)] border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]'}`}
               >
                 <SlidersHorizontal size={14} className="rotate-90" /> Salida / Merma
               </button>
@@ -134,21 +134,21 @@ const StockAdjustmentModal = ({ isOpen, onClose, product, onSuccess }) => {
 
           
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider block">Cantidad a Ajustar</label>
+            <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider block">Cantidad a Ajustar</label>
             <input
               type="number"
               required
               min="0.01"
               step="0.01"
               placeholder="0.00"
-              className="w-full px-3 py-2.5 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-black text-[var(--app-text)] text-lg shadow-sm"
+              className="w-full px-3 py-2.5 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-lg shadow-sm"
               value={adjustQty}
               onChange={(e) => setAdjustQty(e.target.value)}
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-[var(--app-text-muted)] uppercase tracking-wider block">Motivo / Referencia</label>
+            <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider block">Motivo / Referencia</label>
             <textarea
               required
               rows="3"

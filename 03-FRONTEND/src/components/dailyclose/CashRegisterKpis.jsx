@@ -15,7 +15,7 @@ const StatCard = ({ title, value, icon: Icon, tone = 'blue', hint }) => {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="ui-eyebrow mb-2 text-[var(--app-text-muted)]">{title}</p>
-          <h3 className="truncate text-2xl font-black text-[var(--app-text)] tabular-nums">{value}</h3>
+          <h3 className="truncate text-2xl font-bold text-[var(--app-text)] tabular-nums">{value}</h3>
           {hint && <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-[var(--app-text-muted)]">{hint}</p>}
         </div>
         <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${toneClass}`}>

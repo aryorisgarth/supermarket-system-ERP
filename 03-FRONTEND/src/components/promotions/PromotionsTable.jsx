@@ -7,7 +7,7 @@ const PromotionsTable = ({ promos, onEdit, onToggle, onDelete, formatMoney, form
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-[var(--app-bg-subtle)]/50 border-b border-[var(--app-border)] text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
+            <tr className="bg-[var(--app-bg-subtle)]/50 border-b border-[var(--app-border)] text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
               <th className="py-4 px-6">Nombre</th>
               <th className="py-4 px-6">Tipo de Descuento</th>
               <th className="py-4 px-6">Aplica a</th>
@@ -24,11 +24,11 @@ const PromotionsTable = ({ promos, onEdit, onToggle, onDelete, formatMoney, form
               return (
                 <tr key={p.id} className="hover:bg-[var(--app-primary-soft)]/5 transition-colors">
                   <td className="py-4 px-6">
-                    <div className="font-black text-sm text-[var(--app-text)]">{p.name}</div>
+                    <div className="font-bold text-sm text-[var(--app-text)]">{p.name}</div>
                     {p.description && <div className="text-[10px] text-[var(--app-text-muted)] mt-0.5 line-clamp-1 max-w-[200px]" title={p.description}>{p.description}</div>}
                   </td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border ${meta.color}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold border ${meta.color}`}>
                       <Icon size={12} /> {meta.label}
                       {p.type === 'PERCENTAGE' && ` ${Number(p.value)}%`}
                       {p.type === 'FIXED' && ` ${formatMoney(p.value)}`}
@@ -54,18 +54,18 @@ const PromotionsTable = ({ promos, onEdit, onToggle, onDelete, formatMoney, form
                   </td>
                   <td className="py-4 px-6 text-center">
                     {p.expiryDaysTrigger != null ? (
-                      <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-500/10 border border-amber-500/25 px-2.5 py-0.5 rounded-full text-[10px] font-black">
+                      <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-500/10 border border-amber-500/25 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
                         <CalendarClock size={11} /> Vence en ≤ {p.expiryDaysTrigger} días
                       </span>
                     ) : (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black">Venta General (Siempre)</span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Venta General (Siempre)</span>
                     )}
                   </td>
                   <td className="py-4 px-6 text-center tabular-nums text-[11px] text-[var(--app-text-soft)]">
                     {formatDate(p.startDate)} al {formatDate(p.endDate)}
                   </td>
                   <td className="py-4 px-6 text-center">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${p.isActive ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25' : 'bg-slate-500/10 text-slate-500 border-slate-500/25'}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border ${p.isActive ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25' : 'bg-slate-500/10 text-slate-500 border-slate-500/25'}`}>
                       {p.isActive ? 'Activa' : 'Inactiva'}
                     </span>
                   </td>

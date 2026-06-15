@@ -12,7 +12,7 @@ const CategoryTable = ({
       <div className="overflow-x-auto pos-scroll">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="text-[var(--app-text-muted)] text-[10px] font-black uppercase tracking-[0.15em] border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/50">
+            <tr className="text-[var(--app-text-muted)] text-[10px] font-bold uppercase tracking-[0.15em] border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/50">
               <th className="p-4 pl-6">Categoría</th>
               <th className="p-4">Descripción</th>
               <th className="p-4 pr-6 text-center">Acciones</th>
@@ -46,7 +46,7 @@ const CategoryTable = ({
                       <Tag size={18} strokeWidth={2.5} />
                     </div>
                     <div className="overflow-hidden">
-                      <p className="font-black text-[var(--app-text)] truncate max-w-[200px] group-hover:text-[var(--app-primary)] transition-colors text-sm" title={category.name}>{category.name}</p>
+                      <p className="font-bold text-[var(--app-text)] truncate max-w-[200px] group-hover:text-[var(--app-primary)] transition-colors text-sm" title={category.name}>{category.name}</p>
                       <p className="text-[10px] font-bold text-[var(--app-text-muted)]">ID: {category.id}</p>
                     </div>
                   </div>

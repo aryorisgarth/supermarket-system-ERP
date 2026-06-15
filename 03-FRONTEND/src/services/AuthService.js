@@ -116,6 +116,8 @@ const AuthService = {
   loginWithKeycloakRedirect: () => doLogin(),
 
   logout: async () => {
+    const idToken = localStorage.getItem('kc_idToken');
+
     localStorage.removeItem('token');
     localStorage.removeItem(USER_STORAGE_KEY);
     localStorage.removeItem('kc_token');
@@ -123,8 +125,25 @@ const AuthService = {
     localStorage.removeItem('kc_idToken');
 
     if (isKeycloakAuthenticated()) {
-      await doLogout();
+      try {
+        await doLogout();
+        return;
+      } catch (err) {
+        console.warn('Error al llamar a doLogout de Keycloak, usando logout manual:', err);
+      }
     }
+
+    const baseUrl = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080';
+    const realm = import.meta.env.VITE_KEYCLOAK_REALM || 'supermarket';
+    const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'supermarket-app';
+    const redirectUri = encodeURIComponent(window.location.origin + '/login');
+
+    let logoutUrl = `${baseUrl}/realms/${realm}/protocol/openid-connect/logout?client_id=${clientId}&post_logout_redirect_uri=${redirectUri}`;
+    if (idToken) {
+      logoutUrl += `&id_token_hint=${idToken}`;
+    }
+
+    window.location.href = logoutUrl;
   },
 
   getCurrentUser: () => {

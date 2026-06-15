@@ -8,7 +8,7 @@ const HardwareTab = ({ form, setField }) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="border-b border-[var(--app-border)] pb-4">
-        <h3 className="text-lg font-black text-[var(--app-text)] flex items-center gap-2">
+        <h3 className="text-lg font-bold text-[var(--app-text)] flex items-center gap-2">
           <Printer className="text-[var(--app-primary)]" size={20} />
           Hardware POS
         </h3>

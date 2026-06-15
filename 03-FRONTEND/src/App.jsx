@@ -41,6 +41,7 @@ import {
   LazyNotificationRules,
   LazyBrands,
   LazyLocations,
+  LazyCustomers,
 } from './routes/lazyPages';
 
 const LazyPage = ({ Page }) => (
@@ -53,7 +54,7 @@ const AuthLoading = () => (
   <div className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] text-[var(--app-text-muted)]">
     <div className="text-center">
       <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-[var(--app-border)] border-t-[var(--app-primary)]" />
-      <p className="text-xs font-black uppercase tracking-widest">Validando sesión...</p>
+      <p className="text-xs font-bold uppercase tracking-widest">Validando sesión...</p>
     </div>
   </div>
 );
@@ -228,7 +229,7 @@ function App() {
             } />
 
             <Route path="/ubicaciones" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'BODEGUERO']} allowedPermissions={['INVENTORY_ADJUST', 'WAREHOUSE_LOCATION']}>
                 <LazyPage Page={LazyLocations} />
               </ProtectedRoute>
             } />
@@ -236,6 +237,12 @@ function App() {
             <Route path="/facturacion" element={
               <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CAJERO']} allowedPermissions={['SALE_CREATE']}>
                 <LazyPage Page={LazyBilling} />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/clientes" element={
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']}>
+                <LazyPage Page={LazyCustomers} />
               </ProtectedRoute>
             } />
             

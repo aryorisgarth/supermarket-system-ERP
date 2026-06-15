@@ -140,7 +140,7 @@ const PromotionFormModal = ({ isOpen, onClose, editing, categories, suppliers, o
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/10 rounded-xl"><Tag size={18} /></div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider">{editing ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider">{editing ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
               <p className="text-white/80 text-[10px] font-bold">Configuración de descuento automático</p>
             </div>
           </div>
@@ -268,7 +268,7 @@ const PromotionFormModal = ({ isOpen, onClose, editing, categories, suppliers, o
                       key={days}
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, expiryDaysTrigger: String(days) }))}
-                      className={`rounded-lg border px-2.5 py-1 text-[10px] font-black transition-colors ${Number(form.expiryDaysTrigger) === days ? 'border-amber-500 bg-amber-500/15 text-amber-800' : 'border-[var(--app-border)] text-[var(--app-text-muted)] hover:bg-[var(--app-bg-subtle)]'}`}
+                      className={`rounded-lg border px-2.5 py-1 text-[10px] font-bold transition-colors ${Number(form.expiryDaysTrigger) === days ? 'border-amber-500 bg-amber-500/15 text-amber-800' : 'border-[var(--app-border)] text-[var(--app-text-muted)] hover:bg-[var(--app-bg-subtle)]'}`}
                     >
                       {label}
                     </button>
@@ -289,7 +289,7 @@ const PromotionFormModal = ({ isOpen, onClose, editing, categories, suppliers, o
                     setForm(f => ({ ...f, scope: v, productId: '', categoryId: '' }));
                     if (v === 'category') setSelectedProduct(null);
                   }} 
-                  className={`flex-1 py-2 rounded-xl text-xs font-black border transition-all cursor-pointer ${
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                     form.scope === v 
                       ? 'bg-[var(--app-primary)] text-white border-[var(--app-primary)] shadow-sm' 
                       : 'border-[var(--app-border)] text-[var(--app-text-soft)] hover:bg-[var(--app-bg-subtle)]'

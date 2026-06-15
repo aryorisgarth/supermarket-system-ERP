@@ -1,15 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Plus, Package, AlertTriangle, Tag } from 'lucide-react';
-import Swal from 'sweetalert2';
-
+import { Package, AlertTriangle, Tag } from 'lucide-react';
 import ProductService from '../services/ProductService';
 import MetadataService from '../services/MetadataService';
 import BrandService from '../services/BrandService';
 import DashboardService from '../services/DashboardService';
-
 import { normalizeProductList } from '../utils/normalizeProduct';
 import { getApiErrorMessage } from '../utils/apiError';
-
+import { getStockBadge } from '../utils/getStockBadge';
 import InventoryFilters from '../components/inventory/InventoryFilters';
 import InventoryTable from '../components/inventory/InventoryTable';
 import StockAdjustmentModal from '../components/inventory/StockAdjustmentModal';
@@ -17,14 +14,15 @@ import KardexModal from '../components/inventory/KardexModal';
 import ProductFormModal from '../components/inventory/ProductFormModal';
 import InventoryCatalogView from '../components/inventory/InventoryCatalogView';
 import InventoryMetricsGrid from '../components/inventory/InventoryMetricsGrid';
-
+import InventoryGuideModal from '../components/warehouse/InventoryGuideModal';
+import InventoryHeaderActions from '../components/inventory/InventoryHeaderActions';
 import PageHeader from '../components/ui/PageHeader';
-import Button from '../components/ui/Button';
 import BackendPagination from '../components/ui/BackendPagination';
 import useBackendList from '../hooks/useBackendList';
 
 const Inventory = () => {
   const [activeTab, setActiveTab] = useState('ALL');
+  const [showGuideModal, setShowGuideModal] = useState(false);
   const [catFilter, setCatFilter] = useState('');
   const [supFilter, setSupFilter] = useState('');
   const [inventoryStatus, setInventoryStatus] = useState(null);
@@ -71,10 +69,8 @@ const Inventory = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [adjustProduct, setAdjustProduct] = useState(null);
-
   const [showKardexModal, setShowKardexModal] = useState(false);
   const [kardexProduct, setKardexProduct] = useState(null);
 
@@ -87,21 +83,11 @@ const Inventory = () => {
       DashboardService.getInventoryStatus(),
     ]);
 
-    if (categoriesResult.status === 'fulfilled') {
-      setCategories(categoriesResult.value || []);
-    }
-    if (suppliersResult.status === 'fulfilled') {
-      setSuppliers(suppliersResult.value || []);
-    }
-    if (taxResult.status === 'fulfilled') {
-      setTaxCategories(taxResult.value || []);
-    }
-    if (brandsResult.status === 'fulfilled') {
-      setBrands(brandsResult.value || []);
-    }
-    if (statusResult.status === 'fulfilled') {
-      setInventoryStatus(statusResult.value);
-    }
+    if (categoriesResult.status === 'fulfilled') setCategories(categoriesResult.value || []);
+    if (suppliersResult.status === 'fulfilled') setSuppliers(suppliersResult.value || []);
+    if (taxResult.status === 'fulfilled') setTaxCategories(taxResult.value || []);
+    if (brandsResult.status === 'fulfilled') setBrands(brandsResult.value || []);
+    if (statusResult.status === 'fulfilled') setInventoryStatus(statusResult.value);
   };
 
   useEffect(() => {
@@ -123,7 +109,7 @@ const Inventory = () => {
       setEditingProduct(full);
       setShowModal(true);
     } catch (error) {
-      Swal.fire('Error', getApiErrorMessage(error, 'No se pudo cargar el producto para editar.'), 'error');
+      alert(getApiErrorMessage(error, 'No se pudo cargar el producto para editar.'));
     }
   };
 
@@ -143,64 +129,18 @@ const Inventory = () => {
       setProducts((current) =>
         current.map((p) => (p.id === product.id ? { ...p, isActive: !p.isActive } : p))
       );
-
-      const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-      });
-
-      Toast.fire({
-        icon: 'success',
-        title: `Estado de "${product.name}" actualizado.`,
-      });
     } catch (error) {
-      console.error('Toggle status error:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo alternar el estado del producto.',
-        confirmButtonColor: '#ef4444',
-      });
+      alert('No se pudo alternar el estado del producto.');
     }
   };
 
   const handleDeleteProduct = async (id, productName) => {
-    const result = await Swal.fire({
-      title: '¿Eliminar Producto?',
-      text: `¿Estás seguro de que deseas eliminar "${productName}" del catálogo? Esta acción no se puede deshacer.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sí, Eliminar',
-      cancelButtonText: 'Cancelar',
-    });
-
-    if (result.isConfirmed) {
+    if (window.confirm(`¿Estás seguro de que deseas eliminar "${productName}" del catálogo?`)) {
       try {
         await ProductService.delete(id);
-        Swal.fire({
-          icon: 'success',
-          title: 'Producto Eliminado',
-          text: 'El producto ha sido removido del catálogo.',
-          timer: 1500,
-          showConfirmButton: false,
-        });
         fetchProducts();
       } catch (error) {
-        console.error('Delete error:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'No se pudo eliminar',
-          text: getApiErrorMessage(
-            error,
-            'No se pudo eliminar el producto. Puede estar vinculado a lotes, ventas u otros registros.'
-          ),
-          confirmButtonColor: '#ef4444',
-        });
+        alert(getApiErrorMessage(error, 'No se pudo eliminar el producto.'));
       }
     }
   };
@@ -212,26 +152,6 @@ const Inventory = () => {
     setActiveTab('ALL');
   };
 
-  const getStockBadge = (stock, minStock = 5) => {
-    if (stock <= 0)
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-650 text-[11px] font-bold border border-red-150 shadow-sm">
-          Agotado (0)
-        </span>
-      );
-    if (stock < minStock)
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-650 text-[11px] font-bold border border-amber-150 shadow-sm">
-          Crítico ({stock})
-        </span>
-      );
-    return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-650 text-[11px] font-bold border border-emerald-150 shadow-sm">
-        Disponible ({stock})
-      </span>
-    );
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
@@ -239,9 +159,10 @@ const Inventory = () => {
         title="Control de inventario"
         description="Consola de almacen para productos, existencias minimas, precios, proveedores y disponibilidad para venta."
         actions={
-          <Button type="button" icon={Plus} onClick={handleOpenCreate}>
-            Nuevo producto
-          </Button>
+          <InventoryHeaderActions
+            onOpenCreate={handleOpenCreate}
+            onOpenGuide={() => setShowGuideModal(true)}
+          />
         }
       />
 
@@ -258,7 +179,7 @@ const Inventory = () => {
             setCatFilter('');
             setSupFilter('');
           }}
-          className={`flex items-center gap-2 pb-3 px-6 font-black text-xs uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 pb-3 px-6 font-bold text-xs uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
             activeTab === 'ALL'
               ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]/30'
               : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'
@@ -273,7 +194,7 @@ const Inventory = () => {
             setCatFilter('');
             setSupFilter('');
           }}
-          className={`flex items-center gap-2 pb-3 px-6 font-black text-xs uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 pb-3 px-6 font-bold text-xs uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
             activeTab === 'CATALOG'
               ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]/30'
               : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'
@@ -288,7 +209,7 @@ const Inventory = () => {
             setCatFilter('');
             setSupFilter('');
           }}
-          className={`flex items-center gap-2 pb-3 px-6 font-black text-xs uppercase tracking-widest border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`flex items-center gap-2 pb-3 px-6 font-bold text-xs uppercase tracking-widest border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
             activeTab === 'LOW_STOCK'
               ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]/30'
               : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'
@@ -370,6 +291,11 @@ const Inventory = () => {
         brands={brands}
         onClose={() => setShowModal(false)}
         onSuccess={fetchProducts}
+      />
+
+      <InventoryGuideModal
+        isOpen={showGuideModal}
+        onClose={() => setShowGuideModal(false)}
       />
     </div>
   );

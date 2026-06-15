@@ -1,7 +1,8 @@
 import React from 'react';
-import { X, Loader2, AlertTriangle, Wallet } from 'lucide-react';
+import { X, Loader2, AlertTriangle, Wallet, FileText } from 'lucide-react';
 import Card, { CardHeader } from '../ui/Card';
 import Badge from '../ui/Badge';
+import { generateCashRegisterClosurePDF } from '../../utils/pdfGenerator';
 
 const SessionDetailModal = ({
   isOpen,
@@ -20,17 +21,28 @@ const SessionDetailModal = ({
         <div className="sticky top-0 flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface)] px-6 py-4">
           <div>
             <p className="ui-eyebrow text-[var(--app-text-muted)]">Detalle de turno</p>
-            <h3 className="text-xl font-black text-[var(--app-text)]">
+            <h3 className="text-xl font-bold text-[var(--app-text)]">
               Turno #{summary?.session?.id || '...'}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-2 text-[var(--app-text-muted)] hover:bg-[var(--app-bg-subtle)] cursor-pointer"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            {summary && (
+              <button
+                type="button"
+                onClick={() => generateCashRegisterClosurePDF(summary)}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 text-xs font-bold uppercase text-slate-800 transition-colors cursor-pointer"
+              >
+                <FileText size={14} /> Exportar PDF
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg p-2 text-[var(--app-text-muted)] hover:bg-[var(--app-bg-subtle)] cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -41,16 +53,16 @@ const SessionDetailModal = ({
           <div className="space-y-6 p-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="rounded-xl border border-[var(--app-border)] p-4">
-                <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Cajero</p>
-                <p className="mt-1 font-black">{summary.session.cashierName}</p>
+                <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Cajero</p>
+                <p className="mt-1 font-bold">{summary.session.cashierName}</p>
               </div>
               <div className="rounded-xl border border-[var(--app-border)] p-4">
-                <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Estado</p>
-                <p className="mt-1 font-black">{statusLabel[summary.session.status]}</p>
+                <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Estado</p>
+                <p className="mt-1 font-bold">{statusLabel[summary.session.status]}</p>
               </div>
               <div className="rounded-xl border border-[var(--app-border)] p-4">
-                <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Fondo inicial</p>
-                <p className="mt-1 font-black tabular-nums">{formatMoney(summary.session.openingBalance)}</p>
+                <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Fondo inicial</p>
+                <p className="mt-1 font-bold tabular-nums">{formatMoney(summary.session.openingBalance)}</p>
               </div>
             </div>
 
@@ -66,8 +78,8 @@ const SessionDetailModal = ({
                 ['Efectivo esperado', summary.expectedCash],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-xl bg-[var(--app-bg-subtle)] p-3">
-                  <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">{label}</p>
-                  <p className="mt-1 font-black tabular-nums">{formatMoney(value)}</p>
+                  <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">{label}</p>
+                  <p className="mt-1 font-bold tabular-nums">{formatMoney(value)}</p>
                 </div>
               ))}
             </div>
@@ -77,21 +89,21 @@ const SessionDetailModal = ({
                 <CardHeader icon={AlertTriangle} title="Cuadre de cierre" description="Comparación entre lo esperado y lo contado." />
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <div className="rounded-xl border border-[var(--app-border)] p-4">
-                    <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Dif. efectivo</p>
-                    <p className="mt-1 font-black tabular-nums">{formatMoney(summary.session.difference)}</p>
+                    <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Dif. efectivo</p>
+                    <p className="mt-1 font-bold tabular-nums">{formatMoney(summary.session.difference)}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--app-border)] p-4">
-                    <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Dif. tarjeta</p>
-                    <p className="mt-1 font-black tabular-nums">{formatMoney(summary.session.cardDifference)}</p>
+                    <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Dif. tarjeta</p>
+                    <p className="mt-1 font-bold tabular-nums">{formatMoney(summary.session.cardDifference)}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--app-border)] p-4">
-                    <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Dif. transferencia</p>
-                    <p className="mt-1 font-black tabular-nums">{formatMoney(summary.session.transferDifference)}</p>
+                    <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Dif. transferencia</p>
+                    <p className="mt-1 font-bold tabular-nums">{formatMoney(summary.session.transferDifference)}</p>
                   </div>
                 </div>
                 {summary.session.notes && (
                   <p className="mt-4 rounded-xl bg-[var(--app-bg-subtle)] p-3 text-sm text-[var(--app-text-soft)]">
-                    <span className="font-black">Notas:</span> {summary.session.notes}
+                    <span className="font-bold">Notas:</span> {summary.session.notes}
                   </p>
                 )}
               </Card>
@@ -119,7 +131,7 @@ const SessionDetailModal = ({
                           </Badge>
                         </td>
                         <td className="font-medium text-[var(--app-text-soft)]">{movement.reason}</td>
-                        <td className="text-right font-black tabular-nums">{formatMoney(movement.amount)}</td>
+                        <td className="text-right font-bold tabular-nums">{formatMoney(movement.amount)}</td>
                       </tr>
                     ))}
                     {(summary.movements || []).length === 0 && (

@@ -9,8 +9,8 @@ const PromotionsKpis = ({ totalItems, activeCount, expiryCount, bogoCount }) => 
           <Tag size={20} />
         </div>
         <div>
-          <span className="block text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Total Promos</span>
-          <span className="text-xl font-black tabular-nums">{totalItems}</span>
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Total Promos</span>
+          <span className="text-xl font-bold tabular-nums">{totalItems}</span>
         </div>
       </div>
 
@@ -19,8 +19,8 @@ const PromotionsKpis = ({ totalItems, activeCount, expiryCount, bogoCount }) => 
           <CheckCircle2 size={20} />
         </div>
         <div>
-          <span className="block text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Activas Pág.</span>
-          <span className="text-xl font-black tabular-nums">{activeCount}</span>
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Activas Pág.</span>
+          <span className="text-xl font-bold tabular-nums">{activeCount}</span>
         </div>
       </div>
 
@@ -29,8 +29,8 @@ const PromotionsKpis = ({ totalItems, activeCount, expiryCount, bogoCount }) => 
           <CalendarClock size={20} />
         </div>
         <div>
-          <span className="block text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Por Caducidad</span>
-          <span className="text-xl font-black tabular-nums">{expiryCount}</span>
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Por Caducidad</span>
+          <span className="text-xl font-bold tabular-nums">{expiryCount}</span>
         </div>
       </div>
 
@@ -39,8 +39,8 @@ const PromotionsKpis = ({ totalItems, activeCount, expiryCount, bogoCount }) => 
           <ShoppingBag size={20} />
         </div>
         <div>
-          <span className="block text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">Combos 2x1</span>
-          <span className="text-xl font-black tabular-nums">{bogoCount}</span>
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Combos 2x1</span>
+          <span className="text-xl font-bold tabular-nums">{bogoCount}</span>
         </div>
       </div>
     </div>

@@ -50,6 +50,8 @@ export const useBillingCheckout = ({
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [showPrintButton, setShowPrintButton] = useState(false);
+  const [transferBank, setTransferBank] = useState('BAC');
+  const [transferRef, setTransferRef] = useState('');
 
   const handleValidateCoupon = async () => {
     if (!couponCode.trim() || total <= 0) return;
@@ -151,27 +153,38 @@ export const useBillingCheckout = ({
           invoiceNumber: sale.invoiceNumber,
           date: new Date().toISOString(),
           customerName,
-          customerTaxId: 'CF',
+          customerTaxId: selectedCustomer ? (selectedCustomer.documentId || 'CF') : 'CF',
           items: [...cart],
           subtotal,
           discountTotal,
           tax,
           total,
-          paymentMethod: isMultiPayment ? 'PAGO MIXTO' : ({
-            CASH: 'EFECTIVO',
-            CARD: 'TARJETA',
-            TRANSFER: 'TRANSFERENCIA',
-          }[paymentMethod] || paymentMethod),
+          paymentMethod: isMultiPayment
+            ? `PAGO MIXTO (${payments.map(p => p.method === 'TRANSFER' && p.bank ? `TRANSF. ${p.bank}` : p.method === 'CASH' ? 'EFECTIVO' : p.method === 'CARD' ? 'TARJETA' : p.method).join(' + ')})`
+            : paymentMethod === 'TRANSFER'
+              ? `TRANSFERENCIA (${transferBank} - Ref: ${transferRef})`
+              : ({
+                  CASH: 'EFECTIVO',
+                  CARD: 'TARJETA',
+                  TRANSFER: 'TRANSFERENCIA',
+                }[paymentMethod] || paymentMethod),
           amountReceived: totalPaid,
-          change
+          change,
+          pointsEarned: sale.pointsEarned || 0,
+          pointsRedeemed: sale.pointsRedeemed || 0,
+          customerPoints: sale.customerPoints || 0,
+          hasCustomer: !!selectedCustomer
         });
 
+        setShowReceipt(true);
         setCart([]);
         setSelectedCustomer(null);
         setAmountReceived(0);
         setPayments([]);
         setIsMultiPayment(false);
         setCouponCode('');
+        setTransferBank('BAC');
+        setTransferRef('');
         clearEntry();
         setShowPrintButton(true);
         loadProducts();
@@ -220,7 +233,11 @@ export const useBillingCheckout = ({
           total: sale.totalAmount,
           paymentMethod: sale.payments?.length > 1 ? 'PAGO MIXTO' : (sale.payments[0]?.paymentMethod === 'CASH' ? 'EFECTIVO' : 'TARJETA'),
           amountReceived: sale.payments?.reduce((s, p) => s + p.amount, 0),
-          change: sale.changeAmount
+          change: sale.changeAmount,
+          pointsEarned: sale.pointsEarned || 0,
+          pointsRedeemed: sale.pointsRedeemed || 0,
+          customerPoints: sale.customer ? (sale.customer.points || 0) : 0,
+          hasCustomer: !!sale.customer
         });
         setShowReceipt(true);
       } catch (e) {
@@ -270,6 +287,8 @@ export const useBillingCheckout = ({
     setPayments([]);
     setIsMultiPayment(false);
     setCouponCode('');
+    setTransferBank('BAC');
+    setTransferRef('');
   };
 
   return {
@@ -297,6 +316,10 @@ export const useBillingCheckout = ({
     handleReprintTicket,
     handleEditSale,
     handleCancelSale,
-    cancelCheckoutState
+    cancelCheckoutState,
+    transferBank,
+    setTransferBank,
+    transferRef,
+    setTransferRef
   };
 };

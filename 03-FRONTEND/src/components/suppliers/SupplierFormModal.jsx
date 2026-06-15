@@ -27,7 +27,7 @@ const SupplierFormModal = ({
               <Building2 size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider">
+              <h3 className="text-sm font-bold uppercase tracking-wider">
                 {editingSupplier ? 'Editar Proveedor' : 'Nuevo Proveedor'}
               </h3>
               <p className="text-white/80 text-[10px] font-medium">

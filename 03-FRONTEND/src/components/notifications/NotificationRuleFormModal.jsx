@@ -20,7 +20,7 @@ const NotificationRuleFormModal = ({
               <BellRing size={18} />
             </span>
             <div>
-              <h3 className="text-base font-black text-[var(--app-text)]">Nueva Regla de Alerta</h3>
+              <h3 className="text-base font-bold text-[var(--app-text)]">Nueva Regla de Alerta</h3>
               <p className="text-xs text-[var(--app-text-muted)] font-medium">Asigna alertas a un rol específico.</p>
             </div>
           </div>

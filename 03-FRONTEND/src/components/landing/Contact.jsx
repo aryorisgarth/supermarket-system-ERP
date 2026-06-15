@@ -8,7 +8,7 @@ const Contact = ({ handleContactSubmit, formSending }) => {
             <span className="text-xs font-bold uppercase tracking-widest text-[#0F4C81] bg-[#0F4C81]/10 px-3 py-1.5 rounded-full">
               CONTÁCTANOS
             </span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl uppercase">
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl uppercase">
               ¿Tienes dudas? Escríbenos directamente
             </h2>
             <p className="mt-6 text-base text-slate-600 leading-relaxed">
@@ -22,7 +22,7 @@ const Contact = ({ handleContactSubmit, formSending }) => {
                 </span>
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Teléfono de atención</p>
-                  <p className="text-sm font-black text-slate-800">+505 2278-8000</p>
+                  <p className="text-sm font-bold text-slate-800">+505 2278-8000</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -31,7 +31,7 @@ const Contact = ({ handleContactSubmit, formSending }) => {
                 </span>
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Correo electrónico</p>
-                  <p className="text-sm font-black text-slate-800">soporte@supernova.com.ni</p>
+                  <p className="text-sm font-bold text-slate-800">soporte@supernova.com.ni</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -40,7 +40,7 @@ const Contact = ({ handleContactSubmit, formSending }) => {
                 </span>
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Dirección Física</p>
-                  <p className="text-sm font-black text-slate-800">Frente a Metrocentro, Managua, Nicaragua</p>
+                  <p className="text-sm font-bold text-slate-800">Frente a Metrocentro, Managua, Nicaragua</p>
                 </div>
               </div>
             </div>
@@ -89,7 +89,7 @@ const Contact = ({ handleContactSubmit, formSending }) => {
               <button
                 type="submit"
                 disabled={formSending}
-                className="w-full rounded-xl bg-[#0F4C81] py-4 text-xs font-black uppercase tracking-wider text-white shadow-lg transition-all duration-200 hover:bg-[#0c3c66] hover:shadow-xl hover:-translate-y-0.5 transform disabled:opacity-50"
+                className="w-full rounded-xl bg-[#0F4C81] py-4 text-xs font-bold uppercase tracking-wider text-white shadow-lg transition-all duration-200 hover:bg-[#0c3c66] hover:shadow-xl hover:-translate-y-0.5 transform disabled:opacity-50"
               >
                 {formSending ? 'Enviando...' : 'Enviar Mensaje'}
               </button>

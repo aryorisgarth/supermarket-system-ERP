@@ -28,12 +28,12 @@ const AuditLogsTable = ({
     <div className="space-y-6 animate-fade-in">
       
       <div className="flex flex-wrap gap-2 items-center">
-        <span className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)] mr-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] mr-2">
           Filtros Rápidos:
         </span>
         <button
           onClick={() => handleQuickFilter('ALL')}
-          className={`rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider border transition-all ${
+          className={`rounded-xl px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all ${
             quickFilter === 'ALL'
               ? 'bg-[var(--app-primary)] text-white border-[var(--app-primary)]'
               : 'bg-[var(--app-surface)] text-[var(--app-text-soft)] border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]'
@@ -43,7 +43,7 @@ const AuditLogsTable = ({
         </button>
         <button
           onClick={() => handleQuickFilter('HIGH_RISK')}
-          className={`rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider border transition-all flex items-center gap-1 ${
+          className={`rounded-xl px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all flex items-center gap-1 ${
             quickFilter === 'HIGH_RISK'
               ? 'bg-red-600 text-white border-red-600'
               : 'bg-[var(--app-surface)] text-red-600 border-[var(--app-border)] hover:bg-red-50 dark:hover:bg-red-950/20'
@@ -53,7 +53,7 @@ const AuditLogsTable = ({
         </button>
         <button
           onClick={() => handleQuickFilter('DENIED')}
-          className={`rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider border transition-all flex items-center gap-1 ${
+          className={`rounded-xl px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all flex items-center gap-1 ${
             quickFilter === 'DENIED'
               ? 'bg-rose-700 text-white border-rose-700'
               : 'bg-[var(--app-surface)] text-[var(--app-text-soft)] border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]'
@@ -63,7 +63,7 @@ const AuditLogsTable = ({
         </button>
         <button
           onClick={() => handleQuickFilter('CASH')}
-          className={`rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider border transition-all ${
+          className={`rounded-xl px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all ${
             quickFilter === 'CASH'
               ? 'bg-amber-600 text-white border-amber-600'
               : 'bg-[var(--app-surface)] text-[var(--app-text-soft)] border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]'
@@ -73,7 +73,7 @@ const AuditLogsTable = ({
         </button>
         <button
           onClick={() => handleQuickFilter('INVENTORY')}
-          className={`rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider border transition-all ${
+          className={`rounded-xl px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all ${
             quickFilter === 'INVENTORY'
               ? 'bg-blue-600 text-white border-blue-600'
               : 'bg-[var(--app-surface)] text-[var(--app-text-soft)] border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]'
@@ -83,7 +83,7 @@ const AuditLogsTable = ({
         </button>
         <button
           onClick={() => handleQuickFilter('TODAY')}
-          className={`rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider border transition-all ${
+          className={`rounded-xl px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all ${
             quickFilter === 'TODAY'
               ? 'bg-emerald-600 text-white border-emerald-600'
               : 'bg-[var(--app-surface)] text-[var(--app-text-soft)] border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]'
@@ -106,7 +106,7 @@ const AuditLogsTable = ({
         {loading ? (
           <div className="flex h-72 flex-col items-center justify-center gap-3 text-[var(--app-text-muted)]">
             <Loader2 className="animate-spin text-[var(--app-primary)]" size={40} />
-            <p className="text-xs font-black uppercase tracking-widest">Cargando bitácora de auditoría...</p>
+            <p className="text-xs font-bold uppercase tracking-widest">Cargando bitácora de auditoría...</p>
           </div>
         ) : displayedLogs.length === 0 ? (
           <div className="p-16 text-center text-sm font-bold text-[var(--app-text-muted)]">
@@ -138,7 +138,7 @@ const AuditLogsTable = ({
                           {formatDateTime(log.logDate)}
                         </div>
                       </td>
-                      <td className="font-black text-[var(--app-text)]">{log.userFullName || 'Sistema'}</td>
+                      <td className="font-bold text-[var(--app-text)]">{log.userFullName || 'Sistema'}</td>
                       <td>
                         <Badge tone={getActionTone(log.action)}>{getActionLabel(log.action)}</Badge>
                         <p className="mt-1 font-mono text-[10px] font-bold text-[var(--app-text-muted)]">{log.action || 'N/A'}</p>
@@ -149,14 +149,14 @@ const AuditLogsTable = ({
                         </Badge>
                       </td>
                       <td>
-                        <span className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-2 py-1 text-xs font-black">
+                        <span className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-2 py-1 text-xs font-bold">
                           {getModuleLabel(log.affectedTable)}
                         </span>
                         <p className="mt-1 font-mono text-[10px] font-bold text-[var(--app-text-muted)]">
                           {log.affectedTable || '-'}
                         </p>
                       </td>
-                      <td className="font-mono text-xs font-black text-[var(--app-text-muted)]">#{log.recordId || '-'}</td>
+                      <td className="font-mono text-xs font-bold text-[var(--app-text-muted)]">#{log.recordId || '-'}</td>
                       <td className="font-mono text-xs font-bold text-[var(--app-text-soft)]">{log.ipAddress || '127.0.0.1'}</td>
                       <td className="pr-6 text-center">
                         <Button size="sm" variant="secondary" icon={Eye} onClick={() => handleOpenDetail(log)}>

@@ -50,7 +50,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/10 rounded-lg"><FileText size={18} /></div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider">Factura Electrónica</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider">Factura Electrónica</h3>
               <p className="text-white/70 text-[10px] font-medium">Documento tributario simulado — DGI Nicaragua</p>
             </div>
           </div>
@@ -77,10 +77,10 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
             <div className="md:col-span-2 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <ShieldCheck size={16} className="text-emerald-500" />
-                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Autorizada</span>
+                <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Autorizada</span>
               </div>
               <p className="text-[10px] text-[var(--app-text-muted)] font-semibold uppercase tracking-wider">N° Autorización</p>
-              <p className="font-black text-[var(--app-text)] tracking-wider">{invoice.authorizationNumber}</p>
+              <p className="font-bold text-[var(--app-text)] tracking-wider">{invoice.authorizationNumber}</p>
               <p className="text-[10px] text-[var(--app-text-muted)] font-semibold uppercase tracking-wider mt-2">CUF</p>
               <p className="font-mono text-xs font-bold text-primary">{invoice.cuf}</p>
               <p className="text-[10px] text-[var(--app-text-muted)] font-semibold uppercase tracking-wider mt-2">Código de Control</p>
@@ -95,16 +95,16 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-[var(--app-bg-subtle)]/50 rounded-xl p-4 space-y-1">
-              <div className="flex items-center gap-1.5 mb-2 text-[var(--app-text-muted)]"><Building2 size={13} /><span className="text-[10px] font-black uppercase tracking-wider">Emisor</span></div>
-              <p className="font-black text-sm">{invoice.emitter?.name}</p>
+              <div className="flex items-center gap-1.5 mb-2 text-[var(--app-text-muted)]"><Building2 size={13} /><span className="text-[10px] font-bold uppercase tracking-wider">Emisor</span></div>
+              <p className="font-bold text-sm">{invoice.emitter?.name}</p>
               <p className="text-xs text-[var(--app-text-soft)]">RUC: {invoice.emitter?.ruc}</p>
               <p className="text-xs text-[var(--app-text-soft)]">{invoice.emitter?.address}</p>
               <p className="text-xs text-[var(--app-text-soft)]">Tel: {invoice.emitter?.phone}</p>
               <p className="text-xs text-[var(--app-text-soft)]">{invoice.emitter?.economicActivity}</p>
             </div>
             <div className="bg-[var(--app-bg-subtle)]/50 rounded-xl p-4 space-y-1">
-              <div className="flex items-center gap-1.5 mb-2 text-[var(--app-text-muted)]"><User size={13} /><span className="text-[10px] font-black uppercase tracking-wider">Receptor</span></div>
-              <p className="font-black text-sm">{invoice.receiver?.name}</p>
+              <div className="flex items-center gap-1.5 mb-2 text-[var(--app-text-muted)]"><User size={13} /><span className="text-[10px] font-bold uppercase tracking-wider">Receptor</span></div>
+              <p className="font-bold text-sm">{invoice.receiver?.name}</p>
               <p className="text-xs text-[var(--app-text-soft)]">ID: {invoice.receiver?.identification}</p>
               <p className="text-xs text-[var(--app-text-soft)]">{invoice.receiver?.address}</p>
               <p className="text-xs text-[var(--app-text-soft)]">Tel: {invoice.receiver?.phone}</p>
@@ -115,7 +115,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
           <div className="grid grid-cols-3 gap-3 text-center">
             {[['N° Factura', invoice.invoiceNumber], ['Fecha Emisión', fmt(invoice.issuedAt)], ['Tipo', 'FACTURA']].map(([l, v]) => (
               <div key={l} className="bg-[var(--app-bg-subtle)]/50 rounded-xl p-3">
-                <p className="text-[9px] font-black uppercase tracking-wider text-[var(--app-text-muted)] mb-1">{l}</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] mb-1">{l}</p>
                 <p className="font-bold text-xs">{v}</p>
               </div>
             ))}
@@ -126,14 +126,14 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)] text-[10px] uppercase tracking-wider">
-                  <th className="text-left px-3 py-2 font-black">#</th>
-                  <th className="text-left px-3 py-2 font-black">Descripción</th>
-                  <th className="text-center px-3 py-2 font-black">Cant.</th>
-                  <th className="text-right px-3 py-2 font-black">P. Unit.</th>
-                  <th className="text-right px-3 py-2 font-black">Dto.</th>
-                  <th className="text-right px-3 py-2 font-black">IVA%</th>
-                  <th className="text-right px-3 py-2 font-black">IVA</th>
-                  <th className="text-right px-3 py-2 font-black">Total</th>
+                  <th className="text-left px-3 py-2 font-bold">#</th>
+                  <th className="text-left px-3 py-2 font-bold">Descripción</th>
+                  <th className="text-center px-3 py-2 font-bold">Cant.</th>
+                  <th className="text-right px-3 py-2 font-bold">P. Unit.</th>
+                  <th className="text-right px-3 py-2 font-bold">Dto.</th>
+                  <th className="text-right px-3 py-2 font-bold">IVA%</th>
+                  <th className="text-right px-3 py-2 font-bold">IVA</th>
+                  <th className="text-right px-3 py-2 font-bold">Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -149,7 +149,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
                     <td className="px-3 py-2 text-right text-rose-600">{l.discount > 0 ? `-${formatMoney(l.discount)}` : '—'}</td>
                     <td className="px-3 py-2 text-right">{Number(l.taxRate)}%</td>
                     <td className="px-3 py-2 text-right">{formatMoney(l.taxAmount)}</td>
-                    <td className="px-3 py-2 text-right font-black">{formatMoney(l.lineTotal)}</td>
+                    <td className="px-3 py-2 text-right font-bold">{formatMoney(l.lineTotal)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -170,8 +170,8 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
                 </div>
               ))}
               <div className="border-t border-[var(--app-border)] pt-2 flex justify-between">
-                <span className="font-black text-sm">TOTAL</span>
-                <span className="font-black text-lg text-primary">{formatMoney(invoice.totalAmount)}</span>
+                <span className="font-bold text-sm">TOTAL</span>
+                <span className="font-bold text-lg text-primary">{formatMoney(invoice.totalAmount)}</span>
               </div>
             </div>
           </div>
@@ -179,7 +179,7 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
           
           {invoice.payments?.length > 0 && (
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)] mb-2">Forma de Pago</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] mb-2">Forma de Pago</p>
               <div className="flex flex-wrap gap-2">
                 {invoice.payments.map((p, i) => (
                   <span key={i} className="bg-[var(--app-bg-subtle)] border border-[var(--app-border)] text-[var(--app-text)] text-xs px-3 py-1 rounded-full font-semibold">

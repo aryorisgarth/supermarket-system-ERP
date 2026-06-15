@@ -42,7 +42,7 @@ const InventoryFilters = ({
           <div className="relative flex-1 min-w-[160px] lg:w-48">
             <Tag size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--app-primary)] opacity-60 pointer-events-none" />
             <select
-              className="ui-input ui-select !pl-10 text-xs font-black uppercase tracking-tight"
+              className="ui-input ui-select !pl-10 text-xs font-bold uppercase tracking-tight"
               value={catFilter}
               onChange={onCatFilterChange}
             >
@@ -57,7 +57,7 @@ const InventoryFilters = ({
           <div className="relative flex-1 min-w-[160px] lg:w-56">
             <Building2 size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--app-primary)] opacity-60 pointer-events-none" />
             <select
-              className="ui-input ui-select !pl-10 text-xs font-black uppercase tracking-tight"
+              className="ui-input ui-select !pl-10 text-xs font-bold uppercase tracking-tight"
               value={supFilter}
               onChange={onSupFilterChange}
             >
@@ -83,7 +83,7 @@ const InventoryFilters = ({
           
           <div className="hidden xl:flex items-center gap-2 ml-2 px-3 py-2 rounded-xl bg-[var(--app-bg-subtle)] border border-[var(--app-border)] text-[var(--app-text-muted)]">
             <SlidersHorizontal size={14} />
-            <span className="text-[10px] font-black uppercase tracking-widest">Filtros Activos</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Filtros Activos</span>
           </div>
         </div>
       </div>

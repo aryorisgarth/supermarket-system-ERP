@@ -35,6 +35,16 @@ const PurchaseOrderService = {
   cancel: async (id) => {
     const response = await api.post(`/purchase-orders/${id}/cancel`);
     return response.data;
+  },
+
+  claim: async (id) => {
+    const response = await api.post(`/purchase-orders/${id}/claim`);
+    return response.data;
+  },
+
+  assign: async (id, userId) => {
+    const response = await api.post(`/purchase-orders/${id}/assign`, { userId });
+    return response.data;
   }
 };
 

@@ -15,7 +15,7 @@ const LoginForm = ({
 	return (
 		<div className="space-y-6">
 			<div className="hidden lg:block">
-				<h2 className="text-3xl font-black tracking-tight text-[var(--app-text)]">Acceso al Sistema</h2>
+				<h2 className="text-3xl font-bold tracking-tight text-[var(--app-text)]">Acceso al Sistema</h2>
 				<p className="mt-2 text-sm text-[var(--app-text-soft)] leading-relaxed">
 					Ingresa tus credenciales autorizadas por el administrador.
 				</p>
@@ -23,7 +23,7 @@ const LoginForm = ({
 
 			<form onSubmit={onSubmit} className="space-y-5">
 				<div className="space-y-2">
-					<label htmlFor="login-email" className="block text-xs font-black uppercase tracking-wider text-[var(--app-text-soft)]">
+					<label htmlFor="login-email" className="block text-xs font-bold uppercase tracking-wider text-[var(--app-text-soft)]">
 						Correo Electrónico
 					</label>
 					<div className="relative flex items-center">
@@ -43,13 +43,13 @@ const LoginForm = ({
 
 				<div className="space-y-2">
 					<div className="flex justify-between items-center">
-						<label htmlFor="login-password" className="block text-xs font-black uppercase tracking-wider text-[var(--app-text-soft)]">
+						<label htmlFor="login-password" className="block text-xs font-bold uppercase tracking-wider text-[var(--app-text-soft)]">
 							Contraseña
 						</label>
 						<button
 							type="button"
 							onClick={onToggleForgotPassword}
-							className="text-[11px] font-black uppercase tracking-wider text-[#0F4C81] hover:text-[#0B3961] transition cursor-pointer"
+							className="text-[11px] font-bold uppercase tracking-wider text-[#0F4C81] hover:text-[#0B3961] transition cursor-pointer"
 						>
 							¿Olvidaste tu contraseña?
 						</button>
@@ -89,7 +89,7 @@ const LoginForm = ({
 				<button
 					type="submit"
 					disabled={loading}
-					className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#0F4C81] text-sm font-black uppercase tracking-wider text-white shadow-lg shadow-[#0F4C81]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#0B3961] disabled:opacity-50 cursor-pointer"
+					className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#0F4C81] text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-[#0F4C81]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#0B3961] disabled:opacity-50 cursor-pointer"
 				>
 					{loading ? (
 						<span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />

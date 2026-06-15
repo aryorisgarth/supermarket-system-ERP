@@ -8,7 +8,7 @@ const LocalizationTab = ({ form, setField, applyCountry }) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="border-b border-[var(--app-border)] pb-4">
-        <h3 className="text-lg font-black text-[var(--app-text)] flex items-center gap-2">
+        <h3 className="text-lg font-bold text-[var(--app-text)] flex items-center gap-2">
           <Globe className="text-[var(--app-primary)]" size={20} />
           Localización y moneda
         </h3>
@@ -39,7 +39,7 @@ const LocalizationTab = ({ form, setField, applyCountry }) => {
       <label className="flex items-start gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 cursor-pointer">
         <input type="checkbox" checked={form.enableMultiCurrency} onChange={(e) => setField('enableMultiCurrency', e.target.checked)} className="mt-1 h-4 w-4" />
         <span>
-          <span className="block text-xs font-black uppercase text-[var(--app-text)]">Cobro bimonetario en POS</span>
+          <span className="block text-xs font-bold uppercase text-[var(--app-text)]">Cobro bimonetario en POS</span>
           <span className="block text-[11px] text-[var(--app-text-muted)] mt-1">Muestra equivalente en USD en caja y ticket (1 USD = {form.exchangeRate} {form.currencySymbol}).</span>
         </span>
       </label>

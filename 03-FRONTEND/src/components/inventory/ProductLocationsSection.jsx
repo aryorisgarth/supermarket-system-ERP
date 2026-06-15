@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MapPin, RefreshCw, Send, Loader2, Edit } from 'lucide-react';
+import { MapPin, RefreshCw, Send, Loader2, Edit, Trash2 } from 'lucide-react';
 import LocationService from '../../services/LocationService';
 import Swal from 'sweetalert2';
 
@@ -95,11 +95,55 @@ const ProductLocationsSection = ({ product, onStockChanged }) => {
     }
   };
 
+  const handleRemoveLocation = async (locationId, locationCode, stock) => {
+    const numStock = parseFloat(stock || 0);
+    if (numStock !== 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Ubicación con existencias',
+        text: `No se puede eliminar la ubicación ${locationCode} porque tiene stock activo de ${stock} unidades. Primero debe traspasar o ajustar el stock a 0.`,
+        confirmButtonColor: '#ef4444'
+      });
+      return;
+    }
+
+    const res = await Swal.fire({
+      title: '¿Quitar ubicación?',
+      text: `Se eliminará la asociación del producto con la ubicación ${locationCode}.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (res.isConfirmed) {
+      try {
+        await LocationService.removeProductLocation(product.id, locationId);
+        await loadData();
+        if (onStockChanged) onStockChanged();
+        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true }).fire({
+          icon: 'success',
+          title: 'Ubicación eliminada con éxito'
+        });
+      } catch (error) {
+        console.error(error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.message || 'No se pudo eliminar la ubicación.',
+          confirmButtonColor: '#ef4444'
+        });
+      }
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40 p-4 space-y-3">
       <div className="flex justify-between items-center">
         <div>
-          <h4 className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)] flex items-center gap-1">
+          <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] flex items-center gap-1">
             <MapPin size={12} /> Stock por Ubicación Física
           </h4>
           <p className="text-[9px] font-medium text-[var(--app-text-muted)]">Control de existencias distribuidas en góndolas o almacenes.</p>
@@ -115,7 +159,7 @@ const ProductLocationsSection = ({ product, onStockChanged }) => {
           <button
             type="button"
             onClick={() => setShowTransferForm(!showTransferForm)}
-            className="text-[10px] font-black uppercase text-[var(--app-primary)] flex items-center gap-1 px-2.5 py-1.5 border border-[var(--app-primary)]/20 hover:bg-[var(--app-primary-soft)]/20 rounded-xl transition-all"
+            className="text-[10px] font-bold uppercase text-[var(--app-primary)] flex items-center gap-1 px-2.5 py-1.5 border border-[var(--app-primary)]/20 hover:bg-[var(--app-primary-soft)]/20 rounded-xl transition-all"
           >
             <Send size={10} /> Traspasar
           </button>
@@ -223,15 +267,26 @@ const ProductLocationsSection = ({ product, onStockChanged }) => {
                   <td className="px-3 py-2 text-[9px] text-[var(--app-text-muted)]">
                     {ls.warehouse}{ls.aisle ? ` / P. ${ls.aisle}` : ''}{ls.shelf ? ` / E. ${ls.shelf}` : ''}{ls.level ? ` / N. ${ls.level}` : ''}
                   </td>
-                  <td className="px-3 py-2 font-black">{ls.stock}</td>
+                  <td className="px-3 py-2 font-bold">{ls.stock}</td>
                   <td className="px-3 py-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateDirectStock(ls)}
-                      className="p-1 hover:bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded text-[var(--app-text-soft)] hover:text-[var(--app-primary)]"
-                    >
-                      <Edit size={10} />
-                    </button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateDirectStock(ls)}
+                        className="p-1 hover:bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded text-[var(--app-text-soft)] hover:text-[var(--app-primary)]"
+                        title="Ajustar stock"
+                      >
+                        <Edit size={10} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLocation(ls.locationId, ls.locationCode, ls.stock)}
+                        className="p-1 hover:bg-red-50 hover:text-red-650 dark:hover:bg-red-950/40 dark:hover:text-red-400 border border-[var(--app-border)] hover:border-red-200 dark:hover:border-red-900/50 rounded text-[var(--app-text-soft)] cursor-pointer"
+                        title="Quitar ubicación"
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

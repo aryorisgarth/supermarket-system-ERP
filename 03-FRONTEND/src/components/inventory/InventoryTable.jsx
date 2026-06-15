@@ -73,12 +73,12 @@ const InventoryTable = ({
                         <Package size={18} strokeWidth={2.5} />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-black text-[var(--app-text)] line-clamp-2 max-w-[320px] whitespace-normal leading-snug group-hover:text-[var(--app-primary)] transition-colors text-sm" title={product.name}>
+                        <p className="font-bold text-[var(--app-text)] line-clamp-2 max-w-[320px] whitespace-normal leading-snug group-hover:text-[var(--app-primary)] transition-colors text-sm" title={product.name}>
                           {product.name}
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                           <Barcode size={10} className="text-[var(--app-text-muted)]" />
-                          <span className="text-[10px] text-[var(--app-text-muted)] font-black font-mono tracking-tighter uppercase tabular-nums bg-[var(--app-bg-subtle)] px-1.5 py-0.5 rounded-md border border-[var(--app-border)]">
+                          <span className="text-[10px] text-[var(--app-text-muted)] font-bold font-mono tracking-tighter uppercase tabular-nums bg-[var(--app-bg-subtle)] px-1.5 py-0.5 rounded-md border border-[var(--app-border)]">
                             {product.barcode}
                           </span>
                           {product.brand && (
@@ -92,7 +92,7 @@ const InventoryTable = ({
                   </td>
 
                   <td>
-                    <span className="inline-flex px-2.5 py-1 rounded-lg bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[10px] font-black uppercase tracking-wider border border-[var(--app-primary)]/10">
+                    <span className="inline-flex px-2.5 py-1 rounded-lg bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[10px] font-bold uppercase tracking-wider border border-[var(--app-primary)]/10">
                       {product.category?.name || 'General'}
                     </span>
                   </td>
@@ -101,7 +101,7 @@ const InventoryTable = ({
                     {formatMoney(product.purchasePrice)}
                   </td>
 
-                  <td className="text-right font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
+                  <td className="text-right font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
                     {formatMoney(product.salePrice)}
                   </td>
 
@@ -180,8 +180,8 @@ const InventoryTable = ({
                         <ProductLocationsSection 
                           product={product} 
                           onStockChanged={() => {
-                            // En este ERP local, al actualizar el stock inline,
-                            // podemos llamar a reload o forzar la actualización visual.
+                            
+                            
                           }} 
                         />
                       </div>

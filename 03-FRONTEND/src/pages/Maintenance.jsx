@@ -126,7 +126,7 @@ const Maintenance = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-black text-[var(--app-text)] tracking-tight flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-[var(--app-text)] tracking-tight flex items-center gap-2">
           <Database className="text-[var(--app-primary)] animate-pulse" size={28} strokeWidth={2.5} />
           Mantenimiento del Sistema
         </h2>
@@ -140,15 +140,15 @@ const Maintenance = () => {
             <Database size={24} strokeWidth={2.5} />
           </div>
           <div>
-            <h4 className="font-black text-[var(--app-text)] text-sm">Política de Respaldos Activa (Nube)</h4>
+            <h4 className="font-bold text-[var(--app-text)] text-sm">Política de Respaldos Activa (Nube)</h4>
             <p className="text-[10px] text-[var(--app-text-soft)] font-bold uppercase tracking-widest mt-1 opacity-80">
-              Frecuencia: <span className="text-[var(--app-primary)] font-black">{backupPolicy.frequency}</span> | 
-              Hora: <span className="text-[var(--app-primary)] font-black">{backupPolicy.time}</span> | 
-              Destino: <span className="text-[var(--app-primary)] font-black">{backupPolicy.dest?.replace('_', ' ')}</span>
+              Frecuencia: <span className="text-[var(--app-primary)] font-bold">{backupPolicy.frequency}</span> | 
+              Hora: <span className="text-[var(--app-primary)] font-bold">{backupPolicy.time}</span> | 
+              Destino: <span className="text-[var(--app-primary)] font-bold">{backupPolicy.dest?.replace('_', ' ')}</span>
             </p>
           </div>
         </div>
-        <span className="bg-[var(--app-success-soft)] text-emerald-500 border border-emerald-500/20 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider animate-pulse w-fit">
+        <span className="bg-[var(--app-success-soft)] text-emerald-500 border border-emerald-500/20 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider animate-pulse w-fit">
           Automatizado
         </span>
       </div>
@@ -160,7 +160,7 @@ const Maintenance = () => {
             <Download size={32} strokeWidth={2.5} />
           </div>
           <div>
-            <h3 className="text-xl font-black text-[var(--app-text)]">Generar Respaldo Local</h3>
+            <h3 className="text-xl font-bold text-[var(--app-text)]">Generar Respaldo Local</h3>
             <p className="text-[var(--app-text-soft)] text-sm mt-3 leading-relaxed font-medium">
               Descarga una copia completa de seguridad que incluye la estructura de tablas y todos los datos registrados hasta el momento (ventas, stock de productos, cuentas de usuario, auditoría).
             </p>
@@ -168,7 +168,7 @@ const Maintenance = () => {
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="w-full flex items-center justify-center gap-2 bg-[var(--app-primary)] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 bg-[var(--app-primary)] text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
           >
             {downloading ? (
               <Loader2 size={20} className="animate-spin" />
@@ -185,7 +185,7 @@ const Maintenance = () => {
             <ShieldAlert size={32} strokeWidth={2.5} />
           </div>
           <div>
-            <h3 className="text-xl font-black text-[var(--app-text)]">Restaurar Base de Datos</h3>
+            <h3 className="text-xl font-bold text-[var(--app-text)]">Restaurar Base de Datos</h3>
             <p className="text-[var(--app-text-soft)] text-sm mt-3 leading-relaxed font-medium">
               Sube un archivo de respaldo `.sql` previamente generado para restablecer el sistema a un punto de control anterior. 
             </p>
@@ -207,16 +207,16 @@ const Maintenance = () => {
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
               <Upload size={36} className="text-[var(--app-text-muted)] group-hover:text-[var(--app-primary)] transition-colors" strokeWidth={2.5} />
-              <span className="text-sm font-black text-[var(--app-text)]">
+              <span className="text-sm font-bold text-[var(--app-text)]">
                 {selectedFile ? selectedFile.name : 'Haz clic para cargar archivo .SQL'}
               </span>
-              <span className="text-[10px] text-[var(--app-text-muted)] font-black uppercase tracking-widest">Tamaño máx: 50MB</span>
+              <span className="text-[10px] text-[var(--app-text-muted)] font-bold uppercase tracking-widest">Tamaño máx: 50MB</span>
             </div>
 
             <button
               type="submit"
               disabled={restoring || !selectedFile}
-              className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg transition-all duration-300 cursor-pointer ${
+              className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg transition-all duration-300 cursor-pointer ${
                 !selectedFile 
                   ? 'bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)] border border-[var(--app-border)] cursor-not-allowed shadow-none' 
                   : 'bg-red-500 text-white shadow-red-500/20 hover:scale-105 active:scale-95'

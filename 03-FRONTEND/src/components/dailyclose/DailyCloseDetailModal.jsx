@@ -17,7 +17,7 @@ const DailyCloseDetailModal = ({
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl">
         <div className="sticky top-0 flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-4">
           <div>
-            <h3 className="text-lg font-black text-[var(--app-text)]">Acta del {closure.closureDate}</h3>
+            <h3 className="text-lg font-bold text-[var(--app-text)]">Acta del {closure.closureDate}</h3>
             <p className="text-xs font-bold text-[var(--app-text-muted)]">
               Cerrado por {closure.closedBy?.fullName || '—'} · {closure.closedAt ? new Date(closure.closedAt).toLocaleString() : '—'}
             </p>
@@ -28,10 +28,10 @@ const DailyCloseDetailModal = ({
         </div>
         <div className="space-y-4 p-5 text-sm">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <div className="rounded-xl border border-[var(--app-border)] p-3"><p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Ventas</p><p className="mt-1 font-black">{formatMoney(closure.totalSales)}</p></div>
-            <div className="rounded-xl border border-[var(--app-border)] p-3"><p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Utilidad</p><p className="mt-1 font-black">{formatMoney(closure.grossProfit)}</p></div>
-            <div className="rounded-xl border border-[var(--app-border)] p-3"><p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Margen</p><p className="mt-1 font-black">{Number(closure.grossMarginPercentage || 0).toFixed(2)}%</p></div>
-            <div className="rounded-xl border border-[var(--app-border)] p-3"><p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Dif. caja</p><p className="mt-1 font-black">{formatMoney(closure.totalDifference)}</p></div>
+            <div className="rounded-xl border border-[var(--app-border)] p-3"><p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Ventas</p><p className="mt-1 font-bold">{formatMoney(closure.totalSales)}</p></div>
+            <div className="rounded-xl border border-[var(--app-border)] p-3"><p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Utilidad</p><p className="mt-1 font-bold">{formatMoney(closure.grossProfit)}</p></div>
+            <div className="rounded-xl border border-[var(--app-border)] p-3"><p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Margen</p><p className="mt-1 font-bold">{Number(closure.grossMarginPercentage || 0).toFixed(2)}%</p></div>
+            <div className="rounded-xl border border-[var(--app-border)] p-3"><p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Dif. caja</p><p className="mt-1 font-bold">{formatMoney(closure.totalDifference)}</p></div>
           </div>
           <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 space-y-1 text-xs font-bold text-[var(--app-text-soft)]">
             <p>Efectivo: {formatMoney(closure.totalCashSales)} (dif. {formatMoney(closure.totalCashDifference)})</p>
@@ -40,7 +40,7 @@ const DailyCloseDetailModal = ({
           </div>
           {parseClosureAlerts(closure.alertsJson, []).length > 0 && (
             <div>
-              <p className="mb-2 text-[10px] font-black uppercase text-[var(--app-text-muted)]">Alertas</p>
+              <p className="mb-2 text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Alertas</p>
               <ul className="space-y-2">
                 {parseClosureAlerts(closure.alertsJson, []).map((alert, i) => (
                   <li key={i} className="rounded-lg border border-[var(--app-border)] px-3 py-2 text-xs font-bold">{alert.title}: {alert.text}</li>
@@ -50,7 +50,7 @@ const DailyCloseDetailModal = ({
           )}
           {closure.notes && (
             <div>
-              <p className="mb-2 text-[10px] font-black uppercase text-[var(--app-text-muted)]">Notas</p>
+              <p className="mb-2 text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Notas</p>
               <p className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-3 text-xs whitespace-pre-wrap">{closure.notes}</p>
             </div>
           )}

@@ -54,6 +54,13 @@ const LocationService = {
     const response = await api.get(`/locations/${locationId}/products`);
     return response.data;
   },
+
+  removeProductLocation: async (productId, locationId) => {
+    const response = await api.delete(`/locations/product/${productId}`, {
+      params: { locationId }
+    });
+    return response.data;
+  },
 };
 
 export default LocationService;

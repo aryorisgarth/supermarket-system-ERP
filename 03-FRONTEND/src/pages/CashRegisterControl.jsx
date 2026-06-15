@@ -13,6 +13,8 @@ import ActiveSessionsPanel from '../components/dailyclose/ActiveSessionsPanel';
 import PeriodReportPanel from '../components/dailyclose/PeriodReportPanel';
 import SessionsHistoryTable from '../components/dailyclose/SessionsHistoryTable';
 import SessionDetailModal from '../components/dailyclose/SessionDetailModal';
+import PhysicalRegistersPanel from '../components/dailyclose/PhysicalRegistersPanel';
+import { Monitor, Activity } from 'lucide-react';
 
 const today = isoDate(new Date());
 const weekAgo = isoDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
@@ -40,6 +42,7 @@ const formatDateTime = (value) => {
 };
 
 const CashRegisterControl = () => {
+  const [activeTab, setActiveTab] = useState('supervision');
   const [loading, setLoading] = useState(true);
   const [activeSessions, setActiveSessions] = useState([]);
   const [history, setHistory] = useState([]);
@@ -117,17 +120,46 @@ const CashRegisterControl = () => {
         title="Control de Cajas"
         description="Supervisión de turnos, cuadres, movimientos manuales e historial consolidado."
         actions={
-          <Button icon={RefreshCw} variant="secondary" onClick={loadData} disabled={loading}>
-            Actualizar
-          </Button>
+          activeTab === 'supervision' ? (
+            <Button icon={RefreshCw} variant="secondary" onClick={loadData} disabled={loading}>
+              Actualizar
+            </Button>
+          ) : null
         }
         meta={<Badge tone="blue">{activeSessions.length} turnos activos</Badge>}
       />
 
-      {loading ? (
+      <div className="flex bg-[var(--app-bg-subtle)] p-1 rounded-xl border border-[var(--app-border)] w-fit">
+        <button
+          onClick={() => setActiveTab('supervision')}
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            activeTab === 'supervision'
+              ? 'bg-gradient-to-r from-[var(--app-primary)] to-blue-700 text-white shadow-md'
+              : 'text-[var(--app-text-muted)] hover:text-[var(--app-text)]'
+          }`}
+        >
+          <Activity size={13} />
+          Supervisión de Turnos
+        </button>
+        <button
+          onClick={() => setActiveTab('terminals')}
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            activeTab === 'terminals'
+              ? 'bg-gradient-to-r from-[var(--app-primary)] to-blue-700 text-white shadow-md'
+              : 'text-[var(--app-text-muted)] hover:text-[var(--app-text)]'
+          }`}
+        >
+          <Monitor size={13} />
+          Terminales de Caja
+        </button>
+      </div>
+
+      {activeTab === 'terminals' ? (
+        <PhysicalRegistersPanel onRefreshActiveSessions={loadData} />
+      ) : loading ? (
         <div className="flex h-64 flex-col items-center justify-center gap-3 text-[var(--app-text-muted)]">
           <Loader2 className="animate-spin text-[var(--app-primary)]" size={36} />
-          <p className="text-xs font-black uppercase tracking-widest">Cargando datos de caja...</p>
+          <p className="text-xs font-bold uppercase tracking-widest">Cargando datos de caja...</p>
         </div>
       ) : (
         <>

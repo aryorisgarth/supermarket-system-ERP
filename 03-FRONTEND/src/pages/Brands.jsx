@@ -104,7 +104,7 @@ const Brands = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-[var(--app-text)] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--app-text)] tracking-tight flex items-center gap-2">
             <Bookmark className="text-[var(--app-primary)] shrink-0" size={26} />
             Gestión de Marcas
           </h1>
@@ -185,7 +185,7 @@ const Brands = () => {
             <div className="bg-gradient-to-r from-[var(--app-primary)] to-blue-700 p-5 text-white flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <Bookmark size={18} />
-                <h3 className="text-sm font-black uppercase tracking-wider">{editingBrand ? 'Editar Marca' : 'Nueva Marca'}</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider">{editingBrand ? 'Editar Marca' : 'Nueva Marca'}</h3>
               </div>
               <button onClick={() => setShowModal(false)} className="text-white/70 hover:text-white p-1 rounded-lg transition-all cursor-pointer">
                 <X size={16} />

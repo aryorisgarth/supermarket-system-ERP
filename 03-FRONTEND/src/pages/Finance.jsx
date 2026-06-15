@@ -232,10 +232,10 @@ const Finance = () => {
                 <CardHeader icon={Landmark} title="Resumen de Liquidación" description="Estado consolidado de las cuentas destino." />
                 <div className="grid gap-4">
                   <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-5 shadow-inner">
-                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--app-text-muted)]">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--app-text-muted)]">
                       Neto pendiente de depósito
                     </p>
-                    <p className="mt-2 text-3xl font-black text-[var(--app-primary)] tabular-nums">
+                    <p className="mt-2 text-3xl font-bold text-[var(--app-primary)] tabular-nums">
                       {money(summary.pendingNet)}
                     </p>
                     <p className="mt-2 text-xs font-bold text-[var(--app-text-muted)]">
@@ -244,12 +244,12 @@ const Finance = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="rounded-xl border border-[var(--app-border)] p-4 bg-white dark:bg-[var(--app-surface-raised)]">
-                      <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Cuentas Activas</p>
-                      <p className="mt-1 text-2xl font-black">{accounts.filter((a) => a.isActive).length}</p>
+                      <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Cuentas Activas</p>
+                      <p className="mt-1 text-2xl font-bold">{accounts.filter((a) => a.isActive).length}</p>
                     </div>
                     <div className="rounded-xl border border-[var(--app-border)] p-4 bg-white dark:bg-[var(--app-surface-raised)]">
-                      <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Movimientos</p>
-                      <p className="mt-1 text-2xl font-black">{transactions.length}</p>
+                      <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Movimientos</p>
+                      <p className="mt-1 text-2xl font-bold">{transactions.length}</p>
                     </div>
                   </div>
                 </div>
@@ -267,7 +267,7 @@ const Finance = () => {
               )}
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               <PaymentAccountsGrid accounts={accounts} onEdit={openEdit} onDelete={remove} />
 
               <SettlementConciliationTable

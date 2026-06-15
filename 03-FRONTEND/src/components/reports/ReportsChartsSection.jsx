@@ -83,7 +83,7 @@ const ReportsChartsSection = ({
                 }}
               />
             ) : (
-              <div className="flex items-center text-xs font-black text-[var(--app-text-muted)] uppercase tracking-widest">
+              <div className="flex items-center text-xs font-bold text-[var(--app-text-muted)] uppercase tracking-widest">
                 Sin datos registrados
               </div>
             )}
@@ -99,19 +99,19 @@ const ReportsChartsSection = ({
                 className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/50 group hover:border-[var(--app-primary)]/30 transition-all"
               >
                 <div className="min-w-0 flex items-center gap-3">
-                  <span className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-[var(--app-surface-raised)] border border-[var(--app-border)] text-xs font-black text-[var(--app-primary)]">
+                  <span className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-[var(--app-surface-raised)] border border-[var(--app-border)] text-xs font-bold text-[var(--app-primary)]">
                     {index + 1}
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-black text-[var(--app-text)]">{item.productName}</p>
+                    <p className="truncate text-sm font-bold text-[var(--app-text)]">{item.productName}</p>
                     <p className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-tight">
                       {Number(item.quantitySold || 0).toLocaleString()} unidades movidas
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">+{money(item.grossProfit)}</p>
-                  <p className="text-[10px] font-black text-[var(--app-text-muted)] uppercase">
+                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+{money(item.grossProfit)}</p>
+                  <p className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase">
                     {Number(item.grossMarginPercentage || 0).toFixed(1)}% margen
                   </p>
                 </div>

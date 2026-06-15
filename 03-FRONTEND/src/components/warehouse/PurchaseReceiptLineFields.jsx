@@ -6,14 +6,14 @@ const PurchaseReceiptLineFields = ({
   onChange,
   compact = false,
 }) => {
-  const labelClass = 'text-[10px] font-black uppercase text-[var(--app-text-muted)]';
+  const labelClass = 'text-[10px] font-bold uppercase text-[var(--app-text-muted)]';
   const gridClass = compact
     ? 'mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3'
     : 'mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4';
 
   const warehouseLocations = locations.filter(loc => !loc.isPisoVenta);
 
-  // Validaciones de fecha de vencimiento
+  
   const today = new Date().toISOString().split('T')[0];
   const isExpiredOrImmediate = line.expirationDate && line.expirationDate <= today;
   
@@ -35,7 +35,7 @@ const PurchaseReceiptLineFields = ({
           min="0"
           max={line.pending}
           step="1"
-          className="ui-input w-full font-black text-xs"
+          className="ui-input w-full font-bold text-xs"
           value={line.quantityReceived}
           onChange={(event) => onChange('quantityReceived', event.target.value)}
         />
@@ -46,7 +46,7 @@ const PurchaseReceiptLineFields = ({
           type="number"
           min="0"
           step="1"
-          className="ui-input w-full font-black text-xs"
+          className="ui-input w-full font-bold text-xs"
           value={line.quantityRejected}
           onChange={(event) => onChange('quantityRejected', event.target.value)}
         />
@@ -56,7 +56,7 @@ const PurchaseReceiptLineFields = ({
           Código de lote {line.requiresBatch && <span className="text-red-500 font-bold ml-0.5">*</span>}
         </span>
         <input
-          className={`ui-input w-full font-mono text-xs font-black ${line.requiresBatch && !line.batchCode ? 'border-amber-400 focus:border-amber-500' : ''}`}
+          className={`ui-input w-full font-mono text-xs font-bold ${line.requiresBatch && !line.batchCode ? 'border-amber-400 focus:border-amber-500' : ''}`}
           placeholder={line.requiresBatch ? 'Lote obligatorio' : 'Lote opcional'}
           value={line.batchCode}
           onChange={(event) => onChange('batchCode', event.target.value)}
@@ -73,12 +73,12 @@ const PurchaseReceiptLineFields = ({
           onChange={(event) => onChange('expirationDate', event.target.value)}
         />
         {isExpiredOrImmediate && (
-          <span className="absolute left-0 bottom-0 text-[8px] text-red-500 font-black leading-none">
+          <span className="absolute left-0 bottom-0 text-[8px] text-red-500 font-bold leading-none">
             ⚠️ ¡Fecha vencida o inválida!
           </span>
         )}
         {isNearExpiry && !isExpiredOrImmediate && (
-          <span className="absolute left-0 bottom-0 text-[8px] text-amber-500 font-black leading-none">
+          <span className="absolute left-0 bottom-0 text-[8px] text-amber-500 font-bold leading-none">
             ⚠️ Vence pronto (&lt; 15 días)
           </span>
         )}

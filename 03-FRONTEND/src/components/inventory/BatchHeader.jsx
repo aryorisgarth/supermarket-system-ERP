@@ -12,7 +12,7 @@ const BatchHeader = ({
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 className="text-2xl font-black text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
           <CalendarClock className="text-primary shrink-0" size={26} />
           Lotes y Vencimientos
         </h1>

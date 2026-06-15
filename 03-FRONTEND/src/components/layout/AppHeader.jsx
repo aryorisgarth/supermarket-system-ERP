@@ -59,12 +59,12 @@ const AppHeader = ({ sidebarOpen, onToggleSidebar, onLogout }) => {
           {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
         </Button>
 
-        <div className="flex items-center lg:hidden mr-2">
-          <img src={logo || "/supernova_logo.png"} alt="Logo" className="h-8 w-8 object-contain rounded-lg p-0.5 bg-white border border-[var(--app-border)] shadow-sm" />
+        <div className="flex items-center lg:hidden mr-2 h-8 w-8 overflow-hidden">
+          <img src={logo || "/supernova_logo.png"} alt="Logo" className="w-full h-full object-contain" />
         </div>
 
         {!isPosPage && (
-          <div className="hidden items-center gap-1.5 rounded-lg bg-[var(--app-bg-subtle)] px-2.5 py-1 text-[11.5px] font-black tabular-nums text-[var(--app-text-soft)] md:flex border border-[var(--app-border)]/50">
+          <div className="hidden items-center gap-1.5 rounded-lg bg-[var(--app-bg-subtle)] px-2.5 py-1 text-[11.5px] font-bold tabular-nums text-[var(--app-text-soft)] md:flex border border-[var(--app-border)]/50">
             <Clock size={12} className="text-[var(--app-primary)]" />
             <span className="uppercase tracking-wider">
               {time.toLocaleDateString('es-NI', { weekday: 'short', day: 'numeric', month: 'short' })} - {time.toLocaleTimeString('es-NI', { hour: '2-digit', minute: '2-digit' })}
@@ -75,7 +75,7 @@ const AppHeader = ({ sidebarOpen, onToggleSidebar, onLogout }) => {
         {isPosPage && (
           <div className="flex items-center gap-3">
             <span className="app-header-pos-label hidden sm:inline">Terminal POS</span>
-            <div className="hidden items-center gap-1.5 rounded-lg bg-[var(--app-bg-subtle)] px-2.5 py-1 text-[11px] font-black tabular-nums text-[var(--app-text-soft)] lg:flex">
+            <div className="hidden items-center gap-1.5 rounded-lg bg-[var(--app-bg-subtle)] px-2.5 py-1 text-[11px] font-bold tabular-nums text-[var(--app-text-soft)] lg:flex">
               <Clock size={12} className="text-[var(--app-primary)]" />
               {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </div>

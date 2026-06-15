@@ -18,7 +18,7 @@ const About = () => {
             <span className="text-xs font-bold uppercase tracking-widest text-[#0F4C81] bg-[#0F4C81]/10 px-3 py-1.5 rounded-full">
               NOSOTROS
             </span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl uppercase">
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl uppercase">
               Cultivando frescura para tu bienestar diario
             </h2>
             <p className="mt-6 text-base leading-relaxed text-slate-600">
@@ -31,15 +31,15 @@ const About = () => {
             
             <div className="mt-10 grid grid-cols-3 gap-6 border-t border-slate-200 pt-8">
               <div>
-                <p className="text-3xl font-black text-[#0F4C81]">100%</p>
+                <p className="text-3xl font-bold text-[#0F4C81]">100%</p>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Orgánico</p>
               </div>
               <div>
-                <p className="text-3xl font-black text-[#0F4C81]">50+</p>
+                <p className="text-3xl font-bold text-[#0F4C81]">50+</p>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Agricultores</p>
               </div>
               <div>
-                <p className="text-3xl font-black text-[#0F4C81]">12k+</p>
+                <p className="text-3xl font-bold text-[#0F4C81]">12k+</p>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Pedidos</p>
               </div>
             </div>

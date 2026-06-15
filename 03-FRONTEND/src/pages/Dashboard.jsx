@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCw, Activity, Clock } from 'lucide-react';
+import { RefreshCw, Activity, Clock, CreditCard, AlertTriangle } from 'lucide-react';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -18,8 +18,10 @@ import ReportService from '../services/ReportService';
 import SupplierService from '../services/SupplierService';
 import CategoryService from '../services/CategoryService';
 import SaleService from '../services/SaleService';
+import ProductService from '../services/ProductService';
 
 import { SkeletonDashboard } from '../components/SkeletonLoader';
+import Card, { CardHeader } from '../components/ui/Card';
 import PageHeader from '../components/ui/PageHeader';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -47,6 +49,8 @@ const Dashboard = () => {
   const [suppliersCount, setSuppliersCount] = useState(0);
   const [categoriesCount, setCategoriesCount] = useState(0);
   const [recentSales, setRecentSales] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -60,7 +64,7 @@ const Dashboard = () => {
       const previousFrom = new Date(previousTo);
       previousFrom.setDate(previousTo.getDate() - 29);
 
-      const [sales, products, status, suppliers, categories, currentKpis, comparison, salesHistory] = await Promise.all([
+      const [sales, products, status, suppliers, categories, currentKpis, comparison, salesHistory, paymentData, lowStockData] = await Promise.all([
         DashboardService.getWeeklySales(),
         DashboardService.getTopProducts(),
         DashboardService.getInventoryStatus(),
@@ -69,6 +73,8 @@ const Dashboard = () => {
         ReportService.getKpis(isoDate(from), isoDate(today)),
         ReportService.getComparativeKpis(isoDate(from), isoDate(today), isoDate(previousFrom), isoDate(previousTo)),
         SaleService.getAll({ size: 5 }),
+        ReportService.getSalesByPaymentMethod(isoDate(from), isoDate(today)),
+        ProductService.getLowStock(),
       ]);
       setWeeklySales(sales || []);
       setTopProducts(products || []);
@@ -78,6 +84,13 @@ const Dashboard = () => {
       setSuppliersCount(suppliers?.length || 0);
       setCategoriesCount(categories?.length || 0);
       setRecentSales(salesHistory?.content || []);
+      
+      const totalAmount = (paymentData || []).reduce((acc, p) => acc + Number(p.totalSales || 0), 0);
+      setPaymentMethods((paymentData || []).map(p => ({
+        ...p,
+        percentage: totalAmount > 0 ? (Number(p.totalSales) / totalAmount) * 100 : 0
+      })));
+      setLowStockProducts(lowStockData || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -176,6 +189,68 @@ const Dashboard = () => {
 
           <TopProductsCard topProducts={topProducts} chartOptions={chartOptions} />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <Card>
+          <CardHeader icon={Activity} title="Margen Financiero" description="Análisis de rentabilidad acumulada del periodo" />
+          <div className="mt-4 flex flex-col justify-center items-center py-4">
+            <div className="relative flex items-center justify-center">
+              <svg className="w-24 h-24 transform -rotate-90">
+                <circle cx="48" cy="48" r="38" stroke="#e2e8f0" strokeWidth="8" fill="transparent" />
+                <circle cx="48" cy="48" r="38" stroke="#4f46e5" strokeWidth="8" fill="transparent"
+                  strokeDasharray={2 * Math.PI * 38}
+                  strokeDashoffset={2 * Math.PI * 38 * (1 - (kpis?.grossMarginPercentage || 0) / 100)} />
+              </svg>
+              <span className="absolute text-lg font-bold text-slate-800 dark:text-white">{(kpis?.grossMarginPercentage || 0).toFixed(1)}%</span>
+            </div>
+            <div className="mt-6 grid grid-cols-2 gap-4 w-full text-center text-xs">
+              <div className="bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                <span className="block font-semibold text-slate-500">Ventas</span>
+                <span className="font-bold text-slate-800 dark:text-white text-sm">{money(kpis?.totalSales || 0)}</span>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                <span className="block font-semibold text-slate-500">Utilidad Bruta</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">{money(kpis?.grossProfit || 0)}</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader icon={CreditCard} title="Distribución de Ventas" description="Ventas agrupadas por método de pago" />
+          <div className="mt-4 space-y-4">
+            {paymentMethods.map((pm) => (
+              <div key={pm.method} className="space-y-1">
+                <div className="flex justify-between text-xs font-bold text-[var(--app-text)]">
+                  <span>{pm.method === 'CASH' ? 'Efectivo' : pm.method === 'CARD' ? 'Tarjeta' : pm.method === 'TRANSFER' ? 'Transferencia' : pm.method}</span>
+                  <span>{money(pm.totalSales)} ({pm.percentage?.toFixed(1) || '0'}%)</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                  <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${pm.percentage || 0}%` }}></div>
+                </div>
+              </div>
+            ))}
+            {paymentMethods.length === 0 && (
+              <p className="py-4 text-center text-xs italic text-slate-400">Sin transacciones registradas.</p>
+            )}
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader icon={AlertTriangle} title="Stock Crítico" description="Productos que requieren reposición inmediata" />
+          <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800 max-h-56 overflow-y-auto">
+            {lowStockProducts.slice(0, 5).map((p) => (
+              <div key={p.id} className="flex justify-between items-center py-2.5 text-xs">
+                <span className="font-semibold text-slate-800 dark:text-white truncate pr-2">{p.name}</span>
+                <Badge tone="red">{p.currentStock} disp.</Badge>
+              </div>
+            ))}
+            {lowStockProducts.length === 0 && (
+              <p className="py-4 text-center text-xs italic text-slate-400">Todo el stock está al día.</p>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );

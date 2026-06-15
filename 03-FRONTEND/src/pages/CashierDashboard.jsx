@@ -7,6 +7,7 @@ import {
   RefreshCw,
   ShoppingCart,
   Wallet,
+  AlertTriangle,
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useCashRegister } from '../context/CashRegisterContext';
@@ -145,6 +146,14 @@ const CashierDashboard = () => {
 
   const busy = loading || summaryLoading;
 
+  const isStaleSession = session?.openedAt ? (() => {
+    const openedDate = new Date(session.openedAt);
+    openedDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return openedDate < today;
+  })() : false;
+
   return (
     <div>
       <PageHeader
@@ -182,6 +191,20 @@ const CashierDashboard = () => {
         </Card>
       ) : (
         <>
+          {isStaleSession && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 flex gap-4 items-start">
+              <div className="p-2 bg-red-100 rounded-lg text-red-600 shrink-0">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="font-bold text-red-800">Cierre de Caja Pendiente</h3>
+                <p className="text-sm text-red-700 mt-1">
+                  Tu turno actual fue abierto en un día anterior al actual y <strong>no puedes facturar</strong> hasta que lo cierres. Por favor, verifica el efectivo físico con el resumen mostrado y cierra este turno inmediatamente.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatCard
               title="Fondo inicial"
@@ -217,10 +240,12 @@ const CashierDashboard = () => {
                 description="Cuando tu caja esté abierta, puedes registrar ventas en el terminal POS."
               />
               <div className="flex flex-wrap gap-3">
-                <Link to="/facturacion">
-                  <Button icon={ShoppingCart}>Ir a facturar</Button>
-                </Link>
-                <Button variant="secondary" icon={Power} onClick={handleCloseShift}>
+                {!isStaleSession && (
+                  <Link to="/facturacion">
+                    <Button icon={ShoppingCart}>Ir a facturar</Button>
+                  </Link>
+                )}
+                <Button variant={isStaleSession ? "primary" : "secondary"} icon={Power} onClick={handleCloseShift}>
                   Cerrar turno
                 </Button>
               </div>

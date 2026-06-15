@@ -1,6 +1,7 @@
-import React, { useMemo, useCallback } from 'react';
-import { PackagePlus, X, Plus, Trash2, Loader2, Save } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { PackagePlus, X, Plus, Trash2, Loader2, Save, ArrowRight } from 'lucide-react';
 import {
+  computeBaseUnits,
   computeLineTotal,
   formatPackSummary,
   getDefaultPurchasePack,
@@ -29,6 +30,13 @@ const PurchaseFormModal = ({
   onSubmit,
   money,
 }) => {
+  const [focusedIndex, setFocusedIndex] = useState(null);
+  
+  
+  const productInputsRef = useRef([]);
+  const packSelectsRef = useRef([]);
+  const quantityInputsRef = useRef([]);
+
   const findProduct = useCallback(
     (productId) => supplierProducts.find((product) => String(product.id) === String(productId)),
     [supplierProducts]
@@ -63,6 +71,11 @@ const PurchaseFormModal = ({
         };
       })
     );
+
+    
+    setTimeout(() => {
+      packSelectsRef.current[index]?.focus();
+    }, 80);
   };
 
   const updateLine = (index, key, value) => {
@@ -80,8 +93,23 @@ const PurchaseFormModal = ({
     );
   };
 
-  const addLine = () => setItems((current) => [...current, emptyLine()]);
-  const removeLine = (index) => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  const addLine = () => {
+    setItems((current) => [...current, emptyLine()]);
+  };
+
+  const removeLine = (index) => {
+    setItems((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  };
+
+  
+  useEffect(() => {
+    if (items.length > 1) {
+      const lastIndex = items.length - 1;
+      setTimeout(() => {
+        productInputsRef.current[lastIndex]?.focus();
+      }, 80);
+    }
+  }, [items.length]);
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
@@ -90,12 +118,13 @@ const PurchaseFormModal = ({
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-4xl w-full overflow-hidden">
-        <div className="p-6 bg-[var(--app-primary)] text-white flex justify-between items-center">
+      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-7xl w-full overflow-hidden">
+        {}
+        <div className="p-5 bg-[var(--app-primary)] text-white flex justify-between items-center">
           <div className="flex items-center gap-3">
             <PackagePlus size={22} strokeWidth={2.5} />
             <div>
-              <h3 className="font-black text-sm uppercase tracking-wider">Registrar Orden de Compra</h3>
+              <h3 className="font-bold text-sm uppercase tracking-wider">Registrar Orden de Compra</h3>
               <p className="text-[10px] text-white/80 font-bold uppercase tracking-widest mt-0.5">
                 Entrada de stock a bodega SuperNova
               </p>
@@ -110,17 +139,18 @@ const PurchaseFormModal = ({
           </button>
         </div>
 
-        <form onSubmit={handleFormSubmit} className="p-6 space-y-6 bg-[var(--app-surface)]">
+        <form onSubmit={handleFormSubmit} className="p-6 space-y-5 bg-[var(--app-surface)]">
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
                 Proveedor
               </label>
               <select
                 required
                 value={supplierId}
                 onChange={(e) => handleSupplierSelect(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-black text-[var(--app-text)] cursor-pointer transition-all"
+                className="w-full px-3 py-2 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-bold text-[var(--app-text)] cursor-pointer transition-all"
               >
                 <option value="">Seleccionar proveedor...</option>
                 {suppliers.map((s) => (
@@ -129,190 +159,244 @@ const PurchaseFormModal = ({
                   </option>
                 ))}
               </select>
-              <p className="text-[10px] font-medium text-[var(--app-text-muted)]">
+              <p className="text-[9px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider mt-0.5">
                 {supplierId
-                  ? `${supplierProducts.length} producto(s) en el catalogo de este proveedor`
-                  : 'Primero elige proveedor; solo veras sus productos.'}
+                  ? `${supplierProducts.length} productos disponibles`
+                  : 'Elige proveedor para habilitar la búsqueda de productos.'}
               </p>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
                 Notas de Recepción
               </label>
               <input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 maxLength="255"
-                className="w-full px-4 py-2.5 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-bold text-[var(--app-text)] transition-all"
+                className="w-full px-3 py-2 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-bold text-[var(--app-text)] transition-all"
                 placeholder="Ej. Factura #4452 - Entrega inmediata"
               />
             </div>
           </div>
 
-          <div className="space-y-3">
+          {}
+          <div className="space-y-2">
             <div className="flex justify-between items-center px-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
-                Desglose de Productos
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
+                Desglose de Ítems
               </label>
               <button
                 type="button"
                 onClick={addLine}
-                className="flex items-center gap-1.5 text-[9px] font-black text-[var(--app-primary)] uppercase hover:opacity-70"
+                className="flex items-center gap-1.5 px-3 py-1 bg-[var(--app-primary-soft)]/20 text-[10px] font-extrabold text-[var(--app-primary)] uppercase hover:opacity-85 rounded-lg border border-[var(--app-primary)]/10 cursor-pointer"
               >
-                <Plus size={12} strokeWidth={3} /> Añadir Linea
+                <Plus size={11} strokeWidth={3} /> Añadir Fila (Tab/Enter)
               </button>
             </div>
 
-            <div className="max-h-[35vh] overflow-y-auto pos-scroll space-y-3 pr-2">
-              {items.map((item, index) => {
-                const product = findProduct(item.productId);
-                const packs = product?.purchasePacks?.length
-                  ? product.purchasePacks
-                  : [{ id: '', label: 'UN', factor: 1 }];
-                const selectedPack = findPack(product, item.purchasePackId);
-                const search = (item.productSearch || '').trim().toLowerCase();
-                const filteredProducts = supplierProducts
-                  .filter((candidate) => {
-                    if (!search) return true;
-                    return (
-                      candidate.name?.toLowerCase().includes(search) ||
-                      candidate.barcode?.toLowerCase().includes(search)
-                    );
-                  })
-                  .slice(0, 8);
-                const lineTotal = computeLineTotal(item.quantityInPacks, item.costPerPack);
+            {}
+            <div className="border border-[var(--app-border)] rounded-2xl overflow-hidden bg-[var(--app-surface)] shadow-sm">
+              <div className="max-h-[50vh] min-h-[300px] overflow-y-auto pos-scroll">
+                <table className="w-full text-left border-collapse table-fixed">
+                  <thead>
+                    <tr className="border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/70 text-[10px] font-extrabold uppercase tracking-wider text-[var(--app-text-muted)]">
+                      <th className="py-2.5 px-4 w-[42%]">Producto del Proveedor</th>
+                      <th className="py-2.5 px-3 w-[18%]">Presentación (Empaque)</th>
+                      <th className="py-2.5 px-3 w-[12%]">Cantidad</th>
+                      <th className="py-2.5 px-3 w-[14%]">Costo Unit.</th>
+                      <th className="py-2.5 px-4 w-[14%] text-right">Subtotal</th>
+                      <th className="py-2.5 px-2 w-[40px] text-center"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--app-border)]/50">
+                    {items.map((item, index) => {
+                      const product = findProduct(item.productId);
+                      const packs = product?.purchasePacks?.length
+                        ? product.purchasePacks
+                        : [{ id: '', label: 'UN', factor: 1 }];
+                      const selectedPack = findPack(product, item.purchasePackId);
+                      const search = (item.productSearch || '').trim().toLowerCase();
+                      const filteredProducts = supplierProducts
+                        .filter((candidate) => {
+                          if (!search) return true;
+                          return (
+                            candidate.name?.toLowerCase().includes(search) ||
+                            candidate.barcode?.toLowerCase().includes(search)
+                          );
+                        })
+                        .slice(0, 8);
+                      const lineTotal = computeLineTotal(item.quantityInPacks, item.costPerPack);
 
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-col gap-3 bg-[var(--app-bg-subtle)]/50 p-4 rounded-2xl border border-[var(--app-border)] relative group transition-all hover:border-[var(--app-primary)]/30"
-                  >
-                    <div className="flex flex-col md:flex-row gap-4">
-                      <div className="flex-1 space-y-1.5 relative">
-                        <label className="text-[8px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">
-                          Producto del proveedor
-                        </label>
-                        <input
-                          type="text"
-                          value={item.productSearch}
-                          onChange={(e) => updateLine(index, 'productSearch', e.target.value)}
-                          placeholder={supplierId ? 'Buscar por nombre...' : 'Selecciona proveedor primero'}
-                          disabled={!supplierId}
-                          className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-[11px] font-bold text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] transition-all disabled:opacity-50"
-                        />
-                        {supplierId && search && filteredProducts.length > 0 && !item.productId && (
-                          <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-lg overflow-hidden">
-                            {filteredProducts.map((candidate) => (
-                              <button
-                                key={candidate.id}
-                                type="button"
-                                onClick={() => selectProductForLine(index, candidate)}
-                                className="w-full text-left px-3 py-2 text-[11px] font-bold hover:bg-[var(--app-bg-subtle)]"
-                              >
-                                {candidate.name}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        {item.productId && product && (
-                          <p className="text-[10px] font-medium text-[var(--app-text-muted)]">
-                            SKU venta: {product.barcode}
-                          </p>
-                        )}
-                      </div>
-                      <div className="w-full md:w-32 space-y-1.5">
-                        <label className="text-[8px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">
-                          Presentacion
-                        </label>
-                        <select
-                          required
-                          value={item.purchasePackId}
-                          onChange={(e) => updateLine(index, 'purchasePackId', e.target.value)}
-                          disabled={!item.productId}
-                          className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-[11px] font-bold text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] transition-all cursor-pointer disabled:opacity-50"
+                      return (
+                        <tr
+                          key={index}
+                          className="hover:bg-[var(--app-bg-subtle)]/20 transition-all align-top"
                         >
-                          <option value="">Empaque...</option>
-                          {packs.map((pack) => (
-                            <option key={pack.id || pack.label} value={pack.id || ''}>
-                              {pack.label} ({pack.factor} u)
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="w-full md:w-24 space-y-1.5">
-                        <label className="text-[8px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">
-                          Cant. empaques
-                        </label>
-                        <input
-                          type="number"
-                          min="0.01"
-                          step="0.01"
-                          required
-                          value={item.quantityInPacks}
-                          onChange={(e) => updateLine(index, 'quantityInPacks', e.target.value)}
-                          disabled={!item.productId}
-                          className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-[11px] font-black text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] transition-all disabled:opacity-50"
-                        />
-                      </div>
-                      <div className="w-full md:w-32 space-y-1.5">
-                        <label className="text-[8px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">
-                          Precio / empaque
-                        </label>
-                        <input
-                          type="number"
-                          min="0.01"
-                          step="0.01"
-                          required
-                          value={item.costPerPack}
-                          onChange={(e) => updateLine(index, 'costPerPack', e.target.value)}
-                          disabled={!item.productId}
-                          className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-[11px] font-black text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] transition-all disabled:opacity-50"
-                        />
-                      </div>
-                      <div className="flex items-end pb-0.5">
-                        <button
-                          type="button"
-                          onClick={() => removeLine(index)}
-                          disabled={items.length === 1}
-                          className="h-9 w-9 rounded-xl text-[var(--app-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-30"
-                        >
-                          <Trash2 size={16} strokeWidth={2.5} className="mx-auto" />
-                        </button>
-                      </div>
-                    </div>
-                    {item.productId && (
-                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[var(--app-surface)] px-3 py-2 text-[10px] font-bold text-[var(--app-text-muted)]">
-                        <span>
-                          {formatPackSummary(item.quantityInPacks, selectedPack?.label, selectedPack?.factor)}
-                        </span>
-                        <span className="text-[var(--app-primary)]">Linea: {money(lineTotal)}</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                          {}
+                          <td className={`py-3 px-4 relative overflow-visible ${focusedIndex === index ? 'z-30' : 'z-10'}`}>
+                            <input
+                              type="text"
+                              ref={(el) => (productInputsRef.current[index] = el)}
+                              value={item.productSearch}
+                              onChange={(e) => updateLine(index, 'productSearch', e.target.value)}
+                              onFocus={() => setFocusedIndex(index)}
+                              onBlur={() => setFocusedIndex(null)}
+                              placeholder={supplierId ? 'Escribe o selecciona producto...' : 'Selecciona proveedor...'}
+                              disabled={!supplierId}
+                              className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] rounded-lg px-3 py-2 text-xs font-bold text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] transition-all disabled:opacity-50"
+                            />
+                            
+                            {}
+                            {supplierId && focusedIndex === index && filteredProducts.length > 0 && !item.productId && (
+                              <div className="absolute z-50 left-4 right-4 top-full mt-1 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl overflow-hidden max-h-72 overflow-y-auto">
+                                {filteredProducts.map((candidate) => (
+                                  <button
+                                    key={candidate.id}
+                                    type="button"
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      selectProductForLine(index, candidate);
+                                      setFocusedIndex(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-[var(--app-bg-subtle)] border-b border-[var(--app-border)]/40 last:border-0 transition-colors flex flex-col gap-0.5 cursor-pointer"
+                                  >
+                                    <span className="text-xs font-bold text-[var(--app-text)]">{candidate.name}</span>
+                                    <span className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase">
+                                      Cod: {candidate.barcode} · {candidate.category?.name || 'Abarrotes'}
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {item.productId && product && (
+                              <div className="mt-1 flex gap-2 text-[10px] font-semibold text-[var(--app-text-muted)] uppercase tracking-wider pl-1">
+                                <span>Cod: {product.barcode}</span>
+                                <span>·</span>
+                                <span>{product.category?.name || 'General'}</span>
+                              </div>
+                            )}
+                          </td>
+
+                          {}
+                          <td className="py-3 px-3">
+                            <select
+                              required
+                              ref={(el) => (packSelectsRef.current[index] = el)}
+                              value={item.purchasePackId}
+                              onChange={(e) => updateLine(index, 'purchasePackId', e.target.value)}
+                              disabled={!item.productId}
+                              className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] rounded-lg px-2 py-2 text-xs font-bold text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] transition-all cursor-pointer disabled:opacity-50"
+                            >
+                              <option value="">Empaque...</option>
+                              {packs.map((pack) => (
+                                <option key={pack.id || pack.label} value={pack.id || ''}>
+                                  {pack.label} ({pack.factor} u)
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+
+                          {}
+                          <td className="py-3 px-3">
+                            <input
+                              type="number"
+                              ref={(el) => (quantityInputsRef.current[index] = el)}
+                              min="0.01"
+                              step="0.01"
+                              required
+                              value={item.quantityInPacks}
+                              onChange={(e) => updateLine(index, 'quantityInPacks', e.target.value)}
+                              disabled={!item.productId}
+                              className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] rounded-lg px-3 py-2 text-xs font-bold text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] transition-all disabled:opacity-50"
+                            />
+                            {item.productId && (
+                              <div className="mt-1 pl-1 text-[10px] font-semibold text-[var(--app-text-muted)] lowercase text-ellipsis overflow-hidden whitespace-nowrap">
+                                {formatPackSummary(item.quantityInPacks, selectedPack?.label, selectedPack?.factor)}
+                              </div>
+                            )}
+                          </td>
+
+                          {}
+                          <td className="py-3 px-3">
+                            <input
+                              type="number"
+                              min="0.01"
+                              step="0.01"
+                              required
+                              value={item.costPerPack}
+                              onChange={(e) => updateLine(index, 'costPerPack', e.target.value)}
+                              disabled={!item.productId}
+                              className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] rounded-lg px-3 py-2 text-xs font-bold text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] transition-all disabled:opacity-50"
+                            />
+                            {item.productId && item.costPerPack && selectedPack?.factor > 1 && (
+                              <div className="mt-1 pl-1 text-[9px] font-bold text-emerald-600">
+                                = {money(Number(item.costPerPack) / Number(selectedPack.factor))}/UN
+                              </div>
+                            )}
+                          </td>
+
+                          {}
+                          <td className="py-3 px-4 text-right tabular-nums">
+                            {item.productId ? (
+                              <>
+                                <div className="font-bold text-sm text-[var(--app-text)] pt-1.5">
+                                  {money(lineTotal)}
+                                </div>
+                                {selectedPack?.factor > 1 && Number(item.quantityInPacks) > 0 && (
+                                  <div className="mt-1 flex items-center justify-end gap-1 text-[9px] font-bold text-[var(--app-primary)]">
+                                    <ArrowRight size={8} />
+                                    <span>{computeBaseUnits(item.quantityInPacks, selectedPack.factor)} UN al stock</span>
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="text-xs text-[var(--app-text-muted)] italic pt-1.5">—</div>
+                            )}
+                          </td>
+
+                          {}
+                          <td className="py-3 px-2 text-center">
+                            <button
+                              type="button"
+                              onClick={() => removeLine(index)}
+                              disabled={items.length === 1}
+                              className="h-8 w-8 mt-0.5 rounded-lg text-[var(--app-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-30 cursor-pointer"
+                              title="Eliminar fila"
+                            >
+                              <Trash2 size={14} strokeWidth={2.5} className="mx-auto" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="h-64"></div>
+              </div>
             </div>
           </div>
 
-          <div className="pt-5 border-t border-[var(--app-border)] flex flex-col md:flex-row justify-between items-center gap-5">
+          {}
+          <div className="pt-4 border-t border-[var(--app-border)] flex flex-col md:flex-row justify-between items-center gap-5">
             <div className="text-left">
-              <p className="text-[9px] font-black text-[var(--app-text-muted)] uppercase tracking-widest">
+              <p className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-widest">
                 Inversión Estimada
               </p>
-              <p className="text-2xl font-black text-[var(--app-text)]">{money(total)}</p>
+              <p className="text-2xl font-bold text-[var(--app-text)]">{money(total)}</p>
             </div>
             <div className="flex gap-3 w-full md:w-auto">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 md:flex-none px-6 py-3 border border-[var(--app-border)] text-[var(--app-text-soft)] font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-[var(--app-bg-subtle)] transition-all"
+                className="flex-1 md:flex-none px-6 py-2.5 border border-[var(--app-border)] text-[var(--app-text-soft)] font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-[var(--app-bg-subtle)] transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 md:flex-none px-8 py-3 bg-[var(--app-primary)] text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 md:flex-none px-8 py-2.5 bg-[var(--app-primary)] text-white font-bold text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {saving ? (
                   <Loader2 className="animate-spin" size={14} />

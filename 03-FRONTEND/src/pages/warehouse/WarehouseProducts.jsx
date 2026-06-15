@@ -77,35 +77,35 @@ const WarehouseProducts = () => {
           <CardHeader icon={Package} title="Detalle del producto" />
           <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Nombre</p>
-              <p className="font-black text-[var(--app-text)]">{lastScanned.name}</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Nombre</p>
+              <p className="font-bold text-[var(--app-text)]">{lastScanned.name}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Código</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Código</p>
               <p className="font-mono text-sm">{lastScanned.barcode}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Stock actual</p>
-              <p className="font-black text-[var(--app-primary)]">{lastScanned.currentStock}</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Stock actual</p>
+              <p className="font-bold text-[var(--app-primary)]">{lastScanned.currentStock}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Precio compra</p>
-              <p className="font-black">{money(lastScanned.purchasePrice)}</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Precio compra</p>
+              <p className="font-bold">{money(lastScanned.purchasePrice)}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Categoría</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Categoría</p>
               <p className="text-sm">{lastScanned.category?.name || '—'}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Proveedor</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Proveedor</p>
               <p className="text-sm">{lastScanned.supplier?.companyName || lastScanned.supplier?.name || '—'}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Stock mínimo</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Stock mínimo</p>
               <p className="text-sm">{lastScanned.minimumStock}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Estado</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Estado</p>
               <p className="text-sm">{lastScanned.isActive !== false ? 'Activo' : 'Inactivo'}</p>
             </div>
           </div>

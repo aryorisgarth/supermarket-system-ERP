@@ -17,6 +17,15 @@ class ErrorBoundary extends React.Component {
       errorInfo: errorInfo
     });
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    const chunkFailedMessage = /Failed to fetch dynamically imported module|Loading chunk/i;
+    if (error && chunkFailedMessage.test(error.message || String(error))) {
+      const lastReload = sessionStorage.getItem('chunk_reload_timestamp');
+      const now = Date.now();
+      if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+        sessionStorage.setItem('chunk_reload_timestamp', String(now));
+        window.location.reload();
+      }
+    }
   }
 
   handleReset = () => {

@@ -6,9 +6,9 @@ const UsersTabs = ({ activeTab, setActiveTab }) => {
       <button
         type="button"
         onClick={() => setActiveTab('employees')}
-        className={`pb-3 px-4 text-xs font-black uppercase tracking-wider border-b-2 transition cursor-pointer ${
+        className={`pb-3 px-4 text-xs font-bold uppercase tracking-wider border-b-2 transition cursor-pointer ${
           activeTab === 'employees'
-            ? 'border-[var(--app-primary)] text-[var(--app-primary)] font-black'
+            ? 'border-[var(--app-primary)] text-[var(--app-primary)] font-bold'
             : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text-soft)]'
         }`}
       >
@@ -17,9 +17,9 @@ const UsersTabs = ({ activeTab, setActiveTab }) => {
       <button
         type="button"
         onClick={() => setActiveTab('permissions')}
-        className={`pb-3 px-4 text-xs font-black uppercase tracking-wider border-b-2 transition cursor-pointer ${
+        className={`pb-3 px-4 text-xs font-bold uppercase tracking-wider border-b-2 transition cursor-pointer ${
           activeTab === 'permissions'
-            ? 'border-[var(--app-primary)] text-[var(--app-primary)] font-black'
+            ? 'border-[var(--app-primary)] text-[var(--app-primary)] font-bold'
             : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text-soft)]'
         }`}
       >

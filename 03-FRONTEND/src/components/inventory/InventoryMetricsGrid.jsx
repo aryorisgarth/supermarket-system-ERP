@@ -20,10 +20,10 @@ const InventoryMetricsGrid = ({
       <Card className="min-h-[110px] relative overflow-hidden group">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--app-text-muted)]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--app-text-muted)]">
               {title}
             </p>
-            <p className="mt-2 truncate text-xl sm:text-2xl font-black text-[var(--app-text)] tabular-nums">
+            <p className="mt-2 truncate text-xl sm:text-2xl font-bold text-[var(--app-text)] tabular-nums">
               {value}
             </p>
             {hint && (

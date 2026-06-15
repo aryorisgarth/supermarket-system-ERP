@@ -48,7 +48,7 @@ const Products = ({ activeCategory, setActiveCategory, handleAddToCart }) => {
           <span className="text-xs font-bold uppercase tracking-widest text-[#0F4C81] bg-[#0F4C81]/10 px-3 py-1.5 rounded-full">
             NUESTRO CATÁLOGO
           </span>
-          <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl uppercase">
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl uppercase">
             Productos frescos seleccionados
           </h2>
           <p className="mt-4 text-base text-slate-500">
@@ -78,7 +78,7 @@ const Products = ({ activeCategory, setActiveCategory, handleAddToCart }) => {
                   />
                 </div>
                 <span
-                  className={`mt-4 text-xs font-black uppercase tracking-wider ${
+                  className={`mt-4 text-xs font-bold uppercase tracking-wider ${
                     isActive ? 'text-[#0F4C81]' : 'text-[#6B7280]'
                   }`}
                 >
@@ -91,7 +91,7 @@ const Products = ({ activeCategory, setActiveCategory, handleAddToCart }) => {
 
         
         <div className="mt-12">
-          <h3 className="text-lg font-black tracking-tight text-slate-900 uppercase mb-8 border-b border-slate-200 pb-2">
+          <h3 className="text-lg font-bold tracking-tight text-slate-900 uppercase mb-8 border-b border-slate-200 pb-2">
             Destacados en {categories.find((c) => c.id === activeCategory)?.label}
           </h3>
 
@@ -110,7 +110,7 @@ const Products = ({ activeCategory, setActiveCategory, handleAddToCart }) => {
                 </div>
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-slate-900 text-base">{prod.name}</h4>
-                  <span className="text-lg font-black text-[#0F4C81]">
+                  <span className="text-lg font-bold text-[#0F4C81]">
                     ${prod.price.toFixed(2)}
                   </span>
                 </div>

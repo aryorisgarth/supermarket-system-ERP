@@ -46,7 +46,7 @@ const ElectronicInvoices = () => {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
             <FileText className="text-primary shrink-0" size={26} /> Facturas Electrónicas
           </h1>
           <p className="text-text-secondary dark:text-text-secondary-dark text-sm font-medium">
@@ -81,13 +81,13 @@ const ElectronicInvoices = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)] text-[11px] uppercase tracking-wider">
-                  <th className="text-left font-black px-4 py-3">N° Factura</th>
-                  <th className="text-left font-black px-4 py-3">N° Autorización</th>
-                  <th className="text-left font-black px-4 py-3 hidden md:table-cell">CUF</th>
-                  <th className="text-right font-black px-4 py-3">Total</th>
-                  <th className="text-center font-black px-4 py-3">Emitida</th>
-                  <th className="text-center font-black px-4 py-3">Estado</th>
-                  <th className="text-center font-black px-4 py-3">Acciones</th>
+                  <th className="text-left font-bold px-4 py-3">N° Factura</th>
+                  <th className="text-left font-bold px-4 py-3">N° Autorización</th>
+                  <th className="text-left font-bold px-4 py-3 hidden md:table-cell">CUF</th>
+                  <th className="text-right font-bold px-4 py-3">Total</th>
+                  <th className="text-center font-bold px-4 py-3">Emitida</th>
+                  <th className="text-center font-bold px-4 py-3">Estado</th>
+                  <th className="text-center font-bold px-4 py-3">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -98,10 +98,10 @@ const ElectronicInvoices = () => {
                     <td className="px-4 py-3 hidden md:table-cell">
                       <span className="font-mono text-[11px] text-primary">{inv.fiscalUuid}</span>
                     </td>
-                    <td className="px-4 py-3 text-right font-black text-[var(--app-text)]">—</td>
+                    <td className="px-4 py-3 text-right font-bold text-[var(--app-text)]">—</td>
                     <td className="px-4 py-3 text-center text-[11px] text-[var(--app-text-soft)]">{fmt(inv.authorizedAt || inv.createdAt)}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border ${inv.status === 'AUTHORIZED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25' : inv.status === 'REJECTED' ? 'bg-red-500/10 text-red-600 border-red-500/25' : 'bg-amber-500/10 text-amber-700 border-amber-500/25'}`}>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${inv.status === 'AUTHORIZED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25' : inv.status === 'REJECTED' ? 'bg-red-500/10 text-red-600 border-red-500/25' : 'bg-amber-500/10 text-amber-700 border-amber-500/25'}`}>
                         <ShieldCheck size={9} /> {inv.status || 'PENDING'}
                       </span>
                     </td>

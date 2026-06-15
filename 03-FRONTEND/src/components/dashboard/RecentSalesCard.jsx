@@ -13,7 +13,7 @@ const RecentSalesCard = ({ recentSales = [], money }) => {
         action={
           <Link
             to="/control-ventas"
-            className="text-[10px] font-black uppercase text-[var(--app-primary)] hover:underline animate-fade-in"
+            className="text-[10px] font-bold uppercase text-[var(--app-primary)] hover:underline animate-fade-in"
           >
             Ver Todo
           </Link>
@@ -44,7 +44,7 @@ const RecentSalesCard = ({ recentSales = [], money }) => {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-base font-black text-[var(--app-success)]">{money(sale.totalAmount)}</p>
+                <p className="text-base font-bold text-[var(--app-success)]">{money(sale.totalAmount)}</p>
                 <p className="text-[9px] font-bold text-[var(--app-text-muted)]">
                   {new Date(sale.saleDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>

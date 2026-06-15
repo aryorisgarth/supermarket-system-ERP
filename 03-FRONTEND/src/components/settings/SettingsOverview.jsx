@@ -30,7 +30,7 @@ const SummaryCard = ({ icon: Icon, title, children, tone = 'blue' }) => (
         <Icon size={18} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">{title}</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">{title}</p>
         <div className="mt-2 space-y-1 text-sm text-[var(--app-text-soft)]">{children}</div>
       </div>
       <Badge tone={tone} className="shrink-0 text-[9px]">Activo</Badge>
@@ -38,11 +38,11 @@ const SummaryCard = ({ icon: Icon, title, children, tone = 'blue' }) => (
   </Card>
 );
 
-const SettingsOverview = ({ settings, logo, onNavigateTab }) => (
+const SettingsOverview = ({ settings, logo, ticketLogo, onNavigateTab }) => (
   <div className="space-y-6 animate-fade-in">
     <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/60 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">Estado de configuración</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">Estado de configuración</p>
         <p className="mt-1 text-sm font-bold text-[var(--app-text)]">
           Última actualización: {formatDate(settings.updatedAt)}
         </p>
@@ -53,7 +53,7 @@ const SettingsOverview = ({ settings, logo, onNavigateTab }) => (
             key={tab}
             type="button"
             onClick={() => onNavigateTab(tab)}
-            className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[var(--app-text-soft)] hover:border-[var(--app-primary)] hover:text-[var(--app-primary)] cursor-pointer"
+            className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-soft)] hover:border-[var(--app-primary)] hover:text-[var(--app-primary)] cursor-pointer"
           >
             Editar {tab === 'business' ? 'empresa' : tab === 'localization' ? 'moneda' : tab === 'ticket' ? 'ticket' : 'seguridad'}
           </button>
@@ -63,14 +63,14 @@ const SettingsOverview = ({ settings, logo, onNavigateTab }) => (
 
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       <SummaryCard icon={Building2} title="Empresa">
-        <p className="font-black text-[var(--app-text)]">{settings.companyName}</p>
+        <p className="font-bold text-[var(--app-text)]">{settings.companyName}</p>
         <p>{settings.taxId} · IVA {settings.taxRate}%</p>
         <p className="truncate">{settings.address}</p>
         {logo && <p className="text-[10px] font-bold text-emerald-600">Logo cargado</p>}
       </SummaryCard>
 
       <SummaryCard icon={Globe} title="Moneda" tone="green">
-        <p className="font-black text-[var(--app-text)]">
+        <p className="font-bold text-[var(--app-text)]">
           {settings.currencySymbol} · {settings.currencyName}
         </p>
         <p>País: {settings.country}</p>
@@ -95,7 +95,7 @@ const SettingsOverview = ({ settings, logo, onNavigateTab }) => (
       <SummaryCard icon={ReceiptText} title="Ticket">
         <p className="line-clamp-2">{settings.ticketHeaderMessage}</p>
         <p>Serie {settings.ticketSeries} · {settings.ticketPaymentLabel}</p>
-        <p>{settings.showTicketLogo ? 'Con logo' : 'Sin logo'} · {settings.ticketFontSize}px</p>
+        <p>{settings.showTicketLogo ? (ticketLogo ? 'Logo de Impresión personalizado' : 'Logo Principal en ticket') : 'Sin logo'} · {settings.ticketFontSize}px</p>
       </SummaryCard>
 
       <SummaryCard icon={Shield} title="Seguridad" tone="amber">

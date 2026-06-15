@@ -10,8 +10,13 @@ const CashRegisterService = {
     }
   },
 
-  openSession: async (openingBalance) => {
-    const response = await api.post('/cash-registers/open', { openingBalance });
+  openSession: async (openingBalance, cashRegisterId) => {
+    const response = await api.post('/cash-registers/open', { openingBalance, cashRegisterId });
+    return response.data;
+  },
+
+  getActivePhysicalRegisters: async () => {
+    const response = await api.get('/cash-registers/physical/active');
     return response.data;
   },
 
@@ -62,6 +67,26 @@ const CashRegisterService = {
 
   getReport: async (params = {}) => {
     const response = await api.get('/cash-registers/report', { params });
+    return response.data;
+  },
+
+  getAllPhysicalRegisters: async () => {
+    const response = await api.get('/cash-registers/physical');
+    return response.data;
+  },
+
+  createPhysicalRegister: async (payload) => {
+    const response = await api.post('/cash-registers/physical', payload);
+    return response.data;
+  },
+
+  updatePhysicalRegister: async (id, payload) => {
+    const response = await api.put(`/cash-registers/physical/${id}`, payload);
+    return response.data;
+  },
+
+  deletePhysicalRegister: async (id) => {
+    const response = await api.delete(`/cash-registers/physical/${id}`);
     return response.data;
   },
 };

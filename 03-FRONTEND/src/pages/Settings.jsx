@@ -29,6 +29,7 @@ import SettingsSidebar from '../components/settings/SettingsSidebar';
 import {
   loadSettings,
   loadLogo,
+  loadTicketLogo,
   saveSettings,
   resetSettings,
   exportSettingsFile,
@@ -84,9 +85,10 @@ const buildPayload = (state) => ({
 const Settings = () => {
   const [form, setForm] = useState(() => loadSettings());
   const [logo, setLogo] = useState(() => loadLogo());
+  const [ticketLogo, setTicketLogo] = useState(() => loadTicketLogo());
   const [activeTab, setActiveTab] = useState('overview');
   const [search, setSearch] = useState('');
-  const savedRef = useRef(JSON.stringify({ settings: loadSettings(), logo: loadLogo() }));
+  const savedRef = useRef(JSON.stringify({ settings: loadSettings(), logo: loadLogo(), ticketLogo: loadTicketLogo() }));
 
   const setField = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
@@ -103,8 +105,8 @@ const Settings = () => {
   };
 
   const isDirty = useMemo(
-    () => JSON.stringify({ settings: buildPayload(form), logo }) !== savedRef.current,
-    [form, logo]
+    () => JSON.stringify({ settings: buildPayload(form), logo, ticketLogo }) !== savedRef.current,
+    [form, logo, ticketLogo]
   );
 
   const visibleTabs = useMemo(() => {
@@ -126,9 +128,9 @@ const Settings = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
-    const saved = saveSettings(buildPayload(form), logo);
+    const saved = saveSettings(buildPayload(form), logo, ticketLogo);
     setForm(saved);
-    savedRef.current = JSON.stringify({ settings: buildPayload(saved), logo });
+    savedRef.current = JSON.stringify({ settings: buildPayload(saved), logo, ticketLogo });
     Swal.fire({
       icon: 'success',
       title: 'Configuración guardada',
@@ -153,11 +155,12 @@ const Settings = () => {
     const defaults = { ...DEFAULT_SETTINGS };
     setForm(defaults);
     setLogo(null);
-    savedRef.current = JSON.stringify({ settings: defaults, logo: null });
+    setTicketLogo(null);
+    savedRef.current = JSON.stringify({ settings: defaults, logo: null, ticketLogo: null });
     Swal.fire({ icon: 'success', title: 'Valores restablecidos', timer: 1500, showConfirmButton: false });
   };
 
-  const handleExport = () => exportSettingsFile(buildPayload(form), logo);
+  const handleExport = () => exportSettingsFile(buildPayload(form), logo, ticketLogo);
 
   const handleImport = () => {
     const input = document.createElement('input');
@@ -168,9 +171,10 @@ const Settings = () => {
       if (!file) return;
       try {
         const text = await file.text();
-        const { settings, logo: importedLogo } = parseImportedSettings(text);
+        const { settings, logo: importedLogo, ticketLogo: importedTicketLogo } = parseImportedSettings(text);
         setForm(settings);
         setLogo(importedLogo);
+        setTicketLogo(importedTicketLogo);
         Swal.fire({
           icon: 'info',
           title: 'Configuración importada',
@@ -224,6 +228,7 @@ const Settings = () => {
               <SettingsOverview
                 settings={form}
                 logo={logo}
+                ticketLogo={ticketLogo}
                 onNavigateTab={setActiveTab}
               />
             )}
@@ -263,7 +268,9 @@ const Settings = () => {
               <TicketTab 
                 form={form} 
                 setField={setField} 
-                logo={logo} 
+                logo={ticketLogo} 
+                setLogo={setTicketLogo} 
+                systemLogo={logo}
               />
             )}
 

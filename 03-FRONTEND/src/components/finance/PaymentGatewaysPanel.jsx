@@ -16,7 +16,7 @@ const PaymentGatewaysPanel = () => {
         {PAYMENT_GATEWAY_OPTIONS.map((gateway) => (
           <div key={gateway.value} className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-black uppercase text-[var(--app-text)]">{gateway.label}</p>
+              <p className="text-xs font-bold uppercase text-[var(--app-text)]">{gateway.label}</p>
               <Badge tone={gateway.scope === 'NACIONAL' ? 'blue' : gateway.scope === 'INTERNACIONAL' ? 'amber' : 'neutral'}>
                 {getGatewayScopeLabel(gateway.scope)}
               </Badge>

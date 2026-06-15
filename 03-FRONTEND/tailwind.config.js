@@ -8,13 +8,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#1e40af', // Navy blue empresarial
-        'primary-dark': '#1e3a8a',
-        'primary-light': '#3b82f6',
-        secondary: '#64748b', // Gris azulado profesional
-        success: '#059669', // Verde más sobrio
-        warning: '#d97706', // Amber más serio
-        danger: '#dc2626', // Rojo más profesional
+        primary: '#0B5A8C',
+        'primary-dark': '#073E61',
+        'primary-light': '#1E75B3',
+        secondary: '#64748b',
+        success: '#059669',
+        warning: '#d97706',
+        danger: '#dc2626',
         surface: '#ffffff',
         'surface-dark': '#1e293b',
         background: '#f8fafc',

@@ -74,7 +74,7 @@ const PaymentAccountForm = ({
           <label className="ui-field">
             <span className="ui-label">Divisa</span>
             <input 
-              className="ui-input font-black" 
+              className="ui-input font-bold" 
               value={form.currency || ''} 
               onChange={(e) => handleChange('currency', e.target.value.toUpperCase())} 
               maxLength={3} 
@@ -103,7 +103,7 @@ const PaymentAccountForm = ({
         </div>
 
         <div className="flex gap-6 py-2">
-          <label className="flex items-center gap-2 cursor-pointer text-xs font-black uppercase text-[var(--app-text-soft)]">
+          <label className="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase text-[var(--app-text-soft)]">
             <input 
               type="checkbox" 
               className="w-4 h-4 rounded" 
@@ -112,7 +112,7 @@ const PaymentAccountForm = ({
             /> 
             Predeterminada
           </label>
-          <label className="flex items-center gap-2 cursor-pointer text-xs font-black uppercase text-[var(--app-text-soft)]">
+          <label className="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase text-[var(--app-text-soft)]">
             <input 
               type="checkbox" 
               className="w-4 h-4 rounded" 

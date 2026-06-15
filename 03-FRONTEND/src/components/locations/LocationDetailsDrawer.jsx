@@ -19,7 +19,7 @@ const LocationDetailsDrawer = ({
           <div className="flex justify-between items-start border-b border-[var(--app-border)] pb-3 mb-4">
             <div>
               <span
-                className={`inline-flex px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider mb-1.5 ${
+                className={`inline-flex px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider mb-1.5 ${
                   selectedMapLoc.isPisoVenta
                     ? 'bg-indigo-50 text-indigo-700 border border-indigo-150'
                     : 'bg-amber-50 text-amber-700 border border-amber-150'
@@ -27,7 +27,7 @@ const LocationDetailsDrawer = ({
               >
                 {selectedMapLoc.isPisoVenta ? 'Exhibición' : 'Almacén de Bodega'}
               </span>
-              <h3 className="text-base font-black text-[var(--app-text)] leading-none">{selectedMapLoc.locationCode}</h3>
+              <h3 className="text-base font-bold text-[var(--app-text)] leading-none">{selectedMapLoc.locationCode}</h3>
               <p className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider mt-1">
                 {selectedMapLoc.warehouse}
               </p>
@@ -44,19 +44,19 @@ const LocationDetailsDrawer = ({
           {selectedMapLoc.aisle && (
             <div className="grid grid-cols-3 gap-2 bg-[var(--app-bg-subtle)] p-3 rounded-2xl border border-[var(--app-border)] text-[10px] font-bold text-[var(--app-text-soft)] mb-4">
               <div>
-                <span className="block text-[8px] font-black uppercase tracking-widest text-[var(--app-text-muted)] mb-0.5">
+                <span className="block text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-muted)] mb-0.5">
                   Pasillo
                 </span>
                 {selectedMapLoc.aisle}
               </div>
               <div>
-                <span className="block text-[8px] font-black uppercase tracking-widest text-[var(--app-text-muted)] mb-0.5">
+                <span className="block text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-muted)] mb-0.5">
                   Estante
                 </span>
                 {selectedMapLoc.shelf || '-'}
               </div>
               <div>
-                <span className="block text-[8px] font-black uppercase tracking-widest text-[var(--app-text-muted)] mb-0.5">
+                <span className="block text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-muted)] mb-0.5">
                   Nivel
                 </span>
                 {selectedMapLoc.level || '-'}
@@ -64,9 +64,9 @@ const LocationDetailsDrawer = ({
             </div>
           )}
 
-          {/* Stock inventory in this specific location */}
+          {}
           <div className="space-y-3">
-            <h4 className="text-[10px] font-black uppercase tracking-wider text-[var(--app-text-muted)]">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
               Productos Almacenados
             </h4>
 
@@ -87,7 +87,7 @@ const LocationDetailsDrawer = ({
                     className="p-3 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-2xl flex justify-between items-center hover:border-[var(--app-primary)]/20 transition-all"
                   >
                     <div className="min-w-0 flex-1 pr-2">
-                      <p className="text-[11px] font-black text-[var(--app-text)] line-clamp-2 leading-snug">
+                      <p className="text-[11px] font-bold text-[var(--app-text)] line-clamp-2 leading-snug">
                         {p.productName || 'Producto'}
                       </p>
                       <span className="inline-block font-mono text-[9px] text-[var(--app-text-muted)] mt-1">
@@ -95,7 +95,7 @@ const LocationDetailsDrawer = ({
                       </span>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-xs font-black text-[var(--app-primary)]">{p.stock} u</span>
+                      <span className="text-xs font-bold text-[var(--app-primary)]">{p.stock} u</span>
                     </div>
                   </div>
                 ))}

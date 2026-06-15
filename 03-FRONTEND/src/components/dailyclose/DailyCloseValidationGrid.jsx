@@ -76,10 +76,10 @@ const DailyCloseValidationGrid = ({
         <CardHeader icon={FileText} title="Firma interna" />
         <div className="mt-5 space-y-5">
           <div className="border-b border-dashed border-[var(--app-border)] pb-8">
-            <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Responsable de cierre</p>
+            <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Responsable de cierre</p>
           </div>
           <div className="border-b border-dashed border-[var(--app-border)] pb-8">
-            <p className="text-[10px] font-black uppercase text-[var(--app-text-muted)]">Supervisor / administración</p>
+            <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Supervisor / administración</p>
           </div>
         </div>
       </Card>
@@ -97,7 +97,7 @@ const DailyCloseValidationGrid = ({
               }`}
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="font-black text-[var(--app-text)]">{closure.closureDate}</span>
+                <span className="font-bold text-[var(--app-text)]">{closure.closureDate}</span>
                 <Badge tone="green">{formatMoney(closure.totalSales)}</Badge>
               </div>
               <p className="mt-1 text-[10px] font-bold uppercase text-[var(--app-text-muted)]">
@@ -107,14 +107,14 @@ const DailyCloseValidationGrid = ({
                 <button
                   type="button"
                   onClick={() => onOpenHistory(closure)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-[var(--app-border)] px-2.5 py-1.5 text-[10px] font-black uppercase text-[var(--app-text-soft)] hover:bg-[var(--app-surface)] cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-[var(--app-border)] px-2.5 py-1.5 text-[10px] font-bold uppercase text-[var(--app-text-soft)] hover:bg-[var(--app-surface)] cursor-pointer"
                 >
                   <Eye size={12} /> Ver acta
                 </button>
                 <button
                   type="button"
                   onClick={() => onPrintHistory(closure)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-[var(--app-primary)]/30 bg-[var(--app-primary-soft)] px-2.5 py-1.5 text-[10px] font-black uppercase text-[var(--app-primary)] hover:opacity-90 cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-[var(--app-primary)]/30 bg-[var(--app-primary-soft)] px-2.5 py-1.5 text-[10px] font-bold uppercase text-[var(--app-primary)] hover:opacity-90 cursor-pointer"
                 >
                   <Printer size={12} /> Imprimir
                 </button>

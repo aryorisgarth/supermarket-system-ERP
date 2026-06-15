@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Scale, X } from 'lucide-react';
-import Button from '../ui/Button';
 import { formatMoney } from '../../utils/formatMoney';
 
 const PRESETS = [1, 2, 5, 10, 20, 50];
-
 
 const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConfirm, onClose }) => {
   const [qty, setQty] = useState('1');
@@ -36,15 +34,15 @@ const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConf
   };
 
   return (
-    <div className="pos-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pos-qty-title">
-      <div className="pos-modal-panel">
-        <div className="flex items-start justify-between gap-3 border-b border-[var(--app-border)] px-5 py-4">
+    <div className="pos-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="pos-qty-title">
+      <div className="pos-modal-panel w-full max-w-md bg-white dark:bg-slate-900 border border-slate-350 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 dark:border-slate-800 px-5 py-4">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-primary)]">Cantidad</p>
-            <h2 id="pos-qty-title" className="truncate text-lg font-black text-[var(--app-text)]">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Cantidad</p>
+            <h2 id="pos-qty-title" className="truncate text-lg font-bold text-slate-900 dark:text-white uppercase">
               {product.name}
             </h2>
-            <p className="mt-1 text-xs font-semibold text-[var(--app-text-muted)]">
+            <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
               {product.barcode ? `Código ${product.barcode}` : 'Sin código — venta por cantidad'}
               {' · '}
               Stock: {maxStock}
@@ -53,7 +51,7 @@ const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConf
           <button
             type="button"
             onClick={onClose}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-muted)] hover:bg-[var(--app-bg-subtle)]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             aria-label="Cerrar"
           >
             <X size={18} />
@@ -61,13 +59,13 @@ const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConf
         </div>
 
         <div className="space-y-4 p-5">
-          <div className="flex items-center justify-between rounded-xl bg-[var(--app-bg-subtle)] px-4 py-3">
-            <span className="text-sm font-semibold text-[var(--app-text-soft)]">Precio unitario</span>
-            <span className="text-lg font-black text-[var(--app-text)]">{formatMoney(product.salePrice)}</span>
+          <div className="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-950 px-4 py-3 border border-slate-200 dark:border-slate-850">
+            <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Precio unitario</span>
+            <span className="text-lg font-bold text-slate-900 dark:text-white">{formatMoney(product.salePrice)}</span>
           </div>
 
           <label className="block">
-            <span className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
+            <span className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-550 dark:text-slate-400">
               <Scale size={14} />
               Cantidad a vender
             </span>
@@ -84,18 +82,18 @@ const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConf
                 if (e.key === 'Enter') handleConfirm();
                 if (e.key === 'Escape') onClose();
               }}
-              className="pos-qty-input w-full rounded-xl border-2 border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-4 text-center text-3xl font-black text-[var(--app-text)] outline-none focus:border-[var(--app-primary)]"
+              className="pos-qty-input w-full rounded-lg border-2 border-slate-350 bg-white dark:bg-slate-950 dark:border-slate-700 px-4 py-3 text-center text-3xl font-bold text-slate-900 dark:text-white outline-none focus:border-slate-500"
             />
           </label>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {PRESETS.map((n) => (
               <button
                 key={n}
                 type="button"
                 disabled={n > maxStock}
                 onClick={() => setQty(String(n))}
-                className="min-w-[3rem] rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2 text-sm font-bold text-[var(--app-text)] transition hover:border-[var(--app-primary)] hover:bg-[var(--app-primary-soft)] disabled:opacity-40"
+                className="min-w-[3rem] h-9 rounded-lg border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 disabled:opacity-40 font-bold text-xs uppercase cursor-pointer"
               >
                 {n}
               </button>
@@ -103,30 +101,39 @@ const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConf
             <button
               type="button"
               onClick={() => setQty(String(maxStock))}
-              className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2 text-xs font-bold text-[var(--app-text-muted)] hover:border-[var(--app-primary)]"
+              className="h-9 rounded-lg border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 font-bold text-xs uppercase cursor-pointer"
             >
               Máx ({maxStock})
             </button>
           </div>
 
           {parsed > maxStock && (
-            <p className="text-center text-xs font-bold text-[var(--app-danger)]">
+            <p className="text-center text-xs font-bold uppercase text-rose-700 bg-rose-50 dark:bg-rose-950/40 p-2 rounded-lg border border-rose-200 dark:border-rose-900/60">
               La cantidad supera el stock disponible ({maxStock}).
             </p>
           )}
 
-          <div className="flex items-center justify-between rounded-xl border border-[var(--app-primary)]/25 bg-[var(--app-primary-soft)] px-4 py-3">
-            <span className="text-sm font-bold text-[var(--app-primary)]">Subtotal línea</span>
-            <span className="text-xl font-black text-[var(--app-primary-strong)]">{formatMoney(lineTotal)}</span>
+          <div className="flex items-center justify-between rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-4 py-3">
+            <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Subtotal línea</span>
+            <span className="text-xl font-bold text-slate-900 dark:text-white">{formatMoney(lineTotal)}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-1">
-            <Button type="button" variant="secondary" onClick={onClose}>
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-10 rounded-lg text-xs font-bold uppercase bg-slate-200 hover:bg-slate-300 text-black border border-slate-400 cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white dark:border-slate-650"
+            >
               Cancelar
-            </Button>
-            <Button type="button" disabled={!valid} onClick={handleConfirm}>
-              {isEdit ? 'Guardar cantidad' : 'Agregar al carrito'}
-            </Button>
+            </button>
+            <button
+              type="button"
+              disabled={!valid}
+              onClick={handleConfirm}
+              className="h-10 rounded-lg text-xs font-bold uppercase bg-slate-800 hover:bg-slate-900 text-white border border-slate-900 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer dark:bg-slate-200 dark:text-black dark:hover:bg-slate-100"
+            >
+              {isEdit ? 'Guardar' : 'Agregar'}
+            </button>
           </div>
         </div>
       </div>

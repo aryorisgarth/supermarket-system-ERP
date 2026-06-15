@@ -135,7 +135,7 @@ const RefundModal = ({ saleId, invoiceNumber, onClose, onDone }) => {
               <Undo2 size={20} />
             </div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider">Devolución / Nota de Crédito</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider">Devolución / Nota de Crédito</h3>
               <p className="text-white/80 text-[11px] font-medium">Factura {invoiceNumber}</p>
             </div>
           </div>
@@ -152,9 +152,9 @@ const RefundModal = ({ saleId, invoiceNumber, onClose, onDone }) => {
           <>
             <div className="px-5 py-3 bg-[var(--app-bg-subtle)] border-b border-[var(--app-border)] flex items-center justify-between gap-3 shrink-0">
               <div className="text-xs font-semibold text-[var(--app-text-soft)]">
-                Ya devuelto: <span className="font-black text-[var(--app-text)]">{formatMoney(data.alreadyRefunded)}</span>
+                Ya devuelto: <span className="font-bold text-[var(--app-text)]">{formatMoney(data.alreadyRefunded)}</span>
                 <span className="mx-2 opacity-40">|</span>
-                Disponible: <span className="font-black text-[var(--app-text)]">{formatMoney(data.refundableTotal)}</span>
+                Disponible: <span className="font-bold text-[var(--app-text)]">{formatMoney(data.refundableTotal)}</span>
               </div>
               <div className="flex gap-2">
                 <button onClick={fillAll} disabled={allReturned} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 transition-all disabled:opacity-40 cursor-pointer">
@@ -202,7 +202,7 @@ const RefundModal = ({ saleId, invoiceNumber, onClose, onDone }) => {
                           onChange={(e) => setQty(l.saleDetailId, e.target.value, max)}
                           className="w-20 px-2 py-2 text-center bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 text-sm font-bold text-[var(--app-text)] disabled:cursor-not-allowed"
                         />
-                        <span className="w-24 text-right font-black text-sm text-rose-600">
+                        <span className="w-24 text-right font-bold text-sm text-rose-600">
                           {formatMoney(q * toNum(l.unitRefund))}
                         </span>
                       </div>
@@ -237,7 +237,7 @@ const RefundModal = ({ saleId, invoiceNumber, onClose, onDone }) => {
                 <div className="flex items-center justify-between gap-4">
                   <div className="text-sm">
                     <span className="text-[var(--app-text-muted)] font-semibold">Total a devolver</span>
-                    <p className="text-2xl font-black text-rose-600 leading-none mt-0.5">{formatMoney(totalRefund)}</p>
+                    <p className="text-2xl font-bold text-rose-600 leading-none mt-0.5">{formatMoney(totalRefund)}</p>
                     <span className="text-[11px] text-[var(--app-text-muted)]">{selectedCount} línea(s)</span>
                   </div>
                   <div className="flex gap-2">

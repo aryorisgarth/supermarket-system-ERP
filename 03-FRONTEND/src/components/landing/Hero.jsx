@@ -8,7 +8,7 @@ const Hero = ({ scrollToSection }) => {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div className="flex flex-col justify-center text-left">
-            <span className="text-xs font-black uppercase tracking-widest text-[#FFFFFF] bg-white/10 px-3 py-1.5 rounded-full self-start mb-6">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#FFFFFF] bg-white/10 px-3 py-1.5 rounded-full self-start mb-6">
               🌱 Supermercado Supernova
             </span>
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl uppercase leading-none text-white">

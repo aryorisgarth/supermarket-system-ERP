@@ -53,7 +53,7 @@ const PurchaseOrderTable = ({
                     <button
                       type="button"
                       onClick={() => onSelectOrder(order)}
-                      className="font-black text-[var(--app-primary)] hover:underline"
+                      className="font-bold text-[var(--app-primary)] hover:underline"
                     >
                       {order.orderNumber}
                     </button>
@@ -64,7 +64,7 @@ const PurchaseOrderTable = ({
                       {PURCHASE_STATUS_LABELS[order.status] || order.status}
                     </Badge>
                   </td>
-                  <td className="p-3.5 font-black text-[var(--app-text)]">{money(order.subtotal)}</td>
+                  <td className="p-3.5 font-bold text-[var(--app-text)]">{money(order.subtotal)}</td>
                   <td className="p-3.5 font-bold text-[var(--app-text-muted)]">
                     {order.createdAt ? new Date(order.createdAt).toLocaleString() : '-'}
                   </td>
