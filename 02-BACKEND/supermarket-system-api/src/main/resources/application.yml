@@ -1,0 +1,112 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/supermarket_system}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:mysql}
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_STARTTLS_ENABLE:false}
+        transport:
+          protocol: smtp
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/supermarket}
+
+  jpa:
+    hibernate:
+      # Esquema gestionado por Flyway; no usar update en entornos compartidos
+      ddl-auto: ${DDL_AUTO:validate}
+
+    show-sql: ${SHOW_SQL:false}
+
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    # BD existente: Flyway marca el estado actual como baseline y sigue desde aquí
+    baseline-on-migrate: true
+    baseline-version: 0
+    table: flyway_schema_history_final_v1
+
+server:
+  port: ${PORT:8082}
+
+app:
+  keycloak:
+    redirect-uri: ${KEYCLOAK_REDIRECT_URI:http://localhost:5173/login}
+    admin:
+      server-url: ${KEYCLOAK_ADMIN_SERVER_URL:http://localhost:8080}
+      realm: ${KEYCLOAK_REALM:supermarket}
+      client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:supermarket-admin-client}
+      client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:admin-secret}
+  billing:
+    country: ${BILLING_COUNTRY:GT}
+    electronic-invoice:
+      enabled: ${ELECTRONIC_INVOICE_ENABLED:true}
+      issuer-tax-id: ${ISSUER_TAX_ID:1234567-8}
+    payment-gateway:
+      enabled: ${PAYMENT_GATEWAY_ENABLED:true}
+      provider: ${PAYMENT_GATEWAY_PROVIDER:MOCK}
+      currency: ${PAYMENT_CURRENCY:GTQ}
+      stripe:
+        secret-key: ${STRIPE_SECRET_KEY:sk_test_51P1dummykey}
+  cors:
+    allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}"
+  jwt:
+    # En producción establecer la variable de entorno JWT_SECRET (mínimo 256 bits)
+    secret: "${JWT_SECRET:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}"
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  seed:
+    # Si true y BD vacía, crea roles ADMINISTRADOR/VENDEDOR/CONSULTA y usuario admin@supermarket.local
+    enabled: ${SEED_ENABLED:true}
+  inventory:
+    expired-write-off-enabled: ${EXPIRED_WRITE_OFF_ENABLED:true}
+    expired-write-off-cron: ${EXPIRED_WRITE_OFF_CRON:0 0 1 * * *}
+
+
+
+management:
+  health:
+    mail:
+      enabled: false
+
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+
+  endpoint:
+    health:
+      show-details: when_authorized
+
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: Supermarket System API
+    description: API de gestión y punto de venta para supermercado
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    try-it-out-enabled: true

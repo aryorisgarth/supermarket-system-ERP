@@ -1,0 +1,32 @@
+CREATE TABLE IF NOT EXISTS daily_closures (
+    id                          BIGINT         NOT NULL AUTO_INCREMENT,
+    closure_date                DATE           NOT NULL,
+    total_sales                 DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    sales_count                 BIGINT         NOT NULL DEFAULT 0,
+    gross_profit                DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    gross_margin_percentage     DECIMAL(8,4)   NOT NULL DEFAULT 0,
+    total_cash_sales            DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    total_card_sales            DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    total_transfer_sales        DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    total_cash_difference       DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    total_card_difference       DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    total_transfer_difference   DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    total_difference            DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    open_sessions_count         BIGINT         NOT NULL DEFAULT 0,
+    closed_sessions_count       BIGINT         NOT NULL DEFAULT 0,
+    received_purchases_amount   DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    pending_purchases_count     BIGINT         NOT NULL DEFAULT 0,
+    partial_purchases_count     BIGINT         NOT NULL DEFAULT 0,
+    pending_settlements_count   BIGINT         NOT NULL DEFAULT 0,
+    pending_settlements_amount  DECIMAL(12,4)  NOT NULL DEFAULT 0,
+    stock_alerts_count          BIGINT         NOT NULL DEFAULT 0,
+    alerts_json                 TEXT,
+    notes                       VARCHAR(500),
+    closed_by_id                BIGINT         NOT NULL,
+    closed_at                   DATETIME       NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_daily_closures_date UNIQUE (closure_date),
+    CONSTRAINT fk_daily_closures_user FOREIGN KEY (closed_by_id) REFERENCES users (id)
+);
+
+CREATE INDEX idx_daily_closures_closed_at ON daily_closures (closed_at);

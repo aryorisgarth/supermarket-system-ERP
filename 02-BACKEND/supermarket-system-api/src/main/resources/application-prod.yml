@@ -1,0 +1,41 @@
+# ================================================================
+# Perfil de PRODUCCIÓN — activar con: --spring.profiles.active=prod
+# O con variable de entorno: SPRING_PROFILES_ACTIVE=prod
+# ================================================================
+
+server:
+  port: 8081
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:validate}
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+app:
+  seed:
+    enabled: ${SEED_ENABLED:false}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: WARN
+    com.supermarket: INFO
+    org.springframework.web: WARN
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
