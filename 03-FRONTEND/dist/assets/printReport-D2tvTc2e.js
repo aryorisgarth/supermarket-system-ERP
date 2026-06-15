@@ -1,0 +1,1 @@
+var e=`report-print-mode`;function t(){document.body.classList.add(e);let t=()=>{document.body.classList.remove(e)};window.addEventListener(`afterprint`,t,{once:!0}),window.print(),setTimeout(t,1e3)}function n(e){requestAnimationFrame(()=>{setTimeout(()=>{e&&e(),t()},80)})}export{n as t};

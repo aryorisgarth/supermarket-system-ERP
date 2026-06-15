@@ -1,0 +1,1 @@
+import{r as e}from"./AuthService-D2Z93gw1.js";var t={getWeeklySales:async()=>(await e.get(`/dashboard/sales-weekly`)).data,getTopProducts:async()=>(await e.get(`/dashboard/top-products`)).data,getInventoryStatus:async()=>(await e.get(`/dashboard/inventory-status`)).data};export{t};
