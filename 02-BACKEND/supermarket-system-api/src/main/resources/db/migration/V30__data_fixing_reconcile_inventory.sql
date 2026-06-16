@@ -1,4 +1,10 @@
 -- V30__data_fixing_reconcile_inventory.sql
+
+-- Asegurar rol de administrador y usuario ID 1 para los movimientos de inventario
+INSERT IGNORE INTO roles (id, name) VALUES (1, 'ADMINISTRADOR');
+INSERT IGNORE INTO users (id, full_name, email, password, role_id, created_at) 
+VALUES (1, 'Administrador', 'admin@supermarket.local', '$2a$10$xyz', 1, NOW());
+
 -- 1. Reconciliación del Kardex: Crear movimientos de tipo ENTRY el 2026-01-01 por la diferencia
 INSERT INTO inventory_movements (product_id, user_id, movement_type, quantity, factor, previous_stock, new_stock, notes, created_at)
 SELECT 
