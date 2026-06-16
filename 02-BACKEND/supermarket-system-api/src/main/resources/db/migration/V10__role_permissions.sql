@@ -13,6 +13,14 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     CONSTRAINT fk_role_permissions_permission FOREIGN KEY (permission_id) REFERENCES permissions (id)
 );
 
+INSERT IGNORE INTO roles (name, description) VALUES 
+('ADMIN_INGENIERO', 'Acceso técnico total y gestión de backups'),
+('ADMINISTRADOR', 'Acceso total a la gestión del negocio'),
+('SUPERVISOR', 'Supervisión de operaciones y arqueos de caja'),
+('CAJERO', 'Operaciones de venta y cobro en caja'),
+('CONSULTOR', 'Acceso de solo lectura para auditoría y reportes'),
+('BODEGUERO', 'Recepcion de mercaderia, lotes y ordenamiento en bodega');
+
 INSERT IGNORE INTO permissions (code, description) VALUES
 ('SALE_CREATE', 'Registrar ventas'),
 ('SALE_CANCEL', 'Anular ventas'),
