@@ -164,6 +164,11 @@ public class ProductServiceImpl implements ProductService {
 	public ProductResponseDTO create(ProductRequestDTO request) {
 		normalize(request);
 		
+		if (request.getSalePrice() != null && request.getPurchasePrice() != null && 
+			request.getSalePrice().compareTo(request.getPurchasePrice()) < 0) {
+			throw new BadRequestException("El precio de venta no puede ser menor al costo de compra");
+		}
+
 		if (productRepository.existsByBarcode(request.getBarcode())) {
 			throw new ConflictException("Product barcode already exists");
 		}
@@ -213,6 +218,12 @@ public class ProductServiceImpl implements ProductService {
 	@Transactional
 	public ProductResponseDTO update(Long id, ProductRequestDTO request) {
 		normalize(request);
+		
+		if (request.getSalePrice() != null && request.getPurchasePrice() != null && 
+			request.getSalePrice().compareTo(request.getPurchasePrice()) < 0) {
+			throw new BadRequestException("El precio de venta no puede ser menor al costo de compra");
+		}
+
 		Product product = productRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 

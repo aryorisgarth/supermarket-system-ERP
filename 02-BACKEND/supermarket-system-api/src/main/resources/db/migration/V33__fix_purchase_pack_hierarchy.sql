@@ -53,7 +53,7 @@ SELECT p.id, 'CAJA', 12, 1, 2 FROM products p JOIN categories c ON c.id = p.cate
 DELETE uc_dup FROM product_uom_conversions uc_dup
 INNER JOIN product_uom_conversions uc_keep
   ON uc_keep.product_id = uc_dup.product_id
- AND uc_keep.label = uc_dup.label
+ AND uc_keep.label = uc_dup.label COLLATE utf8mb4_unicode_ci
  AND uc_keep.id < uc_dup.id
 WHERE NOT EXISTS (
   SELECT 1 FROM inventory_movements im WHERE im.uom_conversion_id = uc_dup.id
@@ -64,7 +64,7 @@ DELETE uc FROM product_uom_conversions uc
 WHERE uc.label <> 'UN'
   AND NOT EXISTS (
     SELECT 1 FROM product_purchase_packs pp
-    WHERE pp.product_id = uc.product_id AND pp.label = uc.label
+    WHERE pp.product_id = uc.product_id AND pp.label = uc.label COLLATE utf8mb4_unicode_ci
   )
   AND NOT EXISTS (
     SELECT 1 FROM inventory_movements im WHERE im.uom_conversion_id = uc.id
@@ -73,7 +73,7 @@ WHERE uc.label <> 'UN'
 -- 9. Actualizar factores, flags y barcodes por etiqueta
 UPDATE product_uom_conversions uc
 JOIN products p ON p.id = uc.product_id
-JOIN product_purchase_packs pp ON pp.product_id = p.id AND pp.label = uc.label
+JOIN product_purchase_packs pp ON pp.product_id = p.id AND pp.label = uc.label COLLATE utf8mb4_unicode_ci
 SET uc.factor = pp.factor,
     uc.is_purchase_default = pp.is_default,
     uc.sale_price = CASE WHEN pp.label = 'UN' THEN p.sale_price ELSE p.sale_price * pp.factor END,
@@ -106,5 +106,5 @@ FROM product_purchase_packs pp
 JOIN products p ON p.id = pp.product_id
 WHERE NOT EXISTS (
     SELECT 1 FROM product_uom_conversions uc
-    WHERE uc.product_id = pp.product_id AND uc.label = pp.label
+    WHERE uc.product_id = pp.product_id AND uc.label = pp.label COLLATE utf8mb4_unicode_ci
 );

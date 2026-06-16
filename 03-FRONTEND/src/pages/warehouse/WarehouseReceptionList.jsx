@@ -96,11 +96,18 @@ const OrderRow = ({ order, money }) => {
                   <button 
                     onClick={async (e) => { 
                       e.stopPropagation(); 
+                      const allUsers = await UserService.getAll();
+                      const bodegueros = allUsers.filter(u => u.role?.name === 'BODEGUERO' || u.role?.name === 'ADMINISTRADOR');
+                      const inputOptions = {};
+                      bodegueros.forEach(b => {
+                        inputOptions[b.id] = b.fullName || b.email;
+                      });
+
                       const { value: userId } = await Swal.fire({
                         title: 'Reasignar Tarea',
-                        input: 'number',
-                        inputLabel: 'ID del nuevo usuario bodeguero',
-                        inputPlaceholder: 'Ej: 5',
+                        input: 'select',
+                        inputOptions,
+                        inputPlaceholder: 'Seleccione el nuevo encargado',
                         showCancelButton: true
                       });
                       if (userId) {

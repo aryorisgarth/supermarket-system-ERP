@@ -8,6 +8,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import InventoryCountService from '../../services/InventoryCountService';
 import AuthService from '../../services/AuthService';
+import UserService from '../../services/UserService';
 import { getApiErrorMessage } from '../../utils/apiError';
 import InventoryGuideModal from '../../components/warehouse/InventoryGuideModal';
 
@@ -165,10 +166,18 @@ const WarehouseCountList = () => {
                           {isAdmin && (
                             <button
                               onClick={async () => {
+                                const allUsers = await UserService.getAll();
+                                const bodegueros = allUsers.filter(u => u.role?.name === 'BODEGUERO' || u.role?.name === 'ADMINISTRADOR');
+                                const inputOptions = {};
+                                bodegueros.forEach(b => {
+                                  inputOptions[b.id] = b.fullName || b.email;
+                                });
+
                                 const { value: userId } = await Swal.fire({
                                   title: 'Reasignar Conteo',
-                                  input: 'number',
-                                  inputLabel: 'ID del nuevo responsable',
+                                  input: 'select',
+                                  inputOptions,
+                                  inputPlaceholder: 'Seleccione el nuevo responsable',
                                   showCancelButton: true
                                 });
                                 if (userId) {

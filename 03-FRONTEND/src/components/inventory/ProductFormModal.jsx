@@ -139,6 +139,25 @@ const ProductFormModal = ({
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    if (!/^[A-Za-z0-9-]+$/.test(formData.barcode)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Código inválido',
+        text: 'El código de barras solo puede contener letras, números y guiones.'
+      });
+      return;
+    }
+
+    if (parseFloat(formData.salePrice) < parseFloat(formData.purchasePrice)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Margen Inválido',
+        text: 'El Precio de Venta no puede ser menor al Costo de Compra.'
+      });
+      return;
+    }
+
     setSaving(true);
 
     const productPayload = {

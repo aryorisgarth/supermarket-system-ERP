@@ -46,8 +46,14 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
       return;
     }
 
-    if (isEditMode && password.trim() !== '' && password.length < 8) {
-      Swal.fire('Contraseña inválida', 'La contraseña debe tener al menos 8 caracteres.', 'warning');
+    const nameRegex = /^[A-Za-záéíóúÁÉÍÓÚñÑ\s.'-]+$/;
+    if (!nameRegex.test(fullName) || !nameRegex.test(lastName)) {
+      Swal.fire('Formato inválido', 'Los nombres y apellidos solo pueden contener letras, espacios, puntos, guiones y apóstrofes.', 'warning');
+      return;
+    }
+
+    if ((!isEditMode || password.trim() !== '') && !/^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) {
+      Swal.fire('Contraseña débil', 'La contraseña debe tener al menos 8 caracteres, incluir al menos 1 letra mayúscula y 1 número.', 'warning');
       return;
     }
 

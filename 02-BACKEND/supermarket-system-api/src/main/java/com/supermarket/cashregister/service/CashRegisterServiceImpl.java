@@ -107,6 +107,12 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 		BigDecimal countedCard = nz(request.countedCard());
 		BigDecimal countedTransfer = nz(request.countedTransfer());
 
+		if (difference.abs().compareTo(BigDecimal.ONE) > 0) {
+			if (request.notes() == null || request.notes().trim().isEmpty()) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Se requiere una justificación obligatoria en las notas para diferencias mayores a $1.00");
+			}
+		}
+
 		session.setClosedAt(LocalDateTime.now());
 		session.setSystemCalculatedBalance(systemBalance);
 		session.setActualClosingBalance(request.actualClosingBalance());

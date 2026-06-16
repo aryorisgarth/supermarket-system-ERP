@@ -224,11 +224,11 @@ button:disabled {
   min-height: 72px;
   margin-bottom: 22px;
   padding: 14px 18px;
-  background: color-mix(in srgb, var(--app-surface) 92%, transparent);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--app-surface) 75%, transparent);
+  backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in srgb, var(--app-border) 60%, transparent);
   border-radius: var(--app-radius);
-  box-shadow: var(--app-shadow-soft);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
 }
 
 
@@ -593,13 +593,13 @@ button:disabled {
 
 
 .ui-card {
-  @apply bg-[var(--app-surface)] border border-[var(--app-border)] rounded-[var(--radius-xl)] transition-all duration-300;
-  box-shadow: var(--shadow-sm);
+  @apply bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)]/60 rounded-[var(--radius-xl)] transition-all duration-300;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
 }
 
 .ui-card:hover {
-  box-shadow: var(--shadow-md);
-  @apply border-[var(--app-primary)]/20;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 0 20px rgba(59, 130, 246, 0.15);
+  @apply border-[var(--app-primary)]/40 -translate-y-1 bg-[var(--app-surface)]/95;
 }
 
 .ui-card-pad {
@@ -655,8 +655,8 @@ button:disabled {
 }
 
 .ui-button-primary {
-  @apply bg-[var(--app-primary)] text-white border-[var(--app-primary)] hover:bg-[var(--app-primary-strong)] focus:ring-[var(--app-primary)]/20;
-  box-shadow: var(--shadow-primary);
+  @apply bg-gradient-to-r from-[var(--app-primary)] to-blue-800 text-white border-[var(--app-primary)] hover:from-blue-800 hover:to-[var(--app-primary-strong)] focus:ring-[var(--app-primary)]/30 transition-all duration-300;
+  box-shadow: var(--shadow-primary), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .ui-button-secondary {

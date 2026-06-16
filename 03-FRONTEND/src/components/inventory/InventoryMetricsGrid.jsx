@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, DollarSign, AlertTriangle, Tag } from 'lucide-react';
+import { Package, DollarSign, AlertTriangle, Tag, CalendarClock } from 'lucide-react';
 import Card from '../ui/Card';
 import { formatCompactMoney } from '../../utils/formatMoney';
 
@@ -43,7 +43,7 @@ const InventoryMetricsGrid = ({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 animate-fade-in">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-5 animate-fade-in">
       <StatBox
         title="Catálogo Único"
         value={inventoryStatus?.totalProductsCount || totalProductsCount}
@@ -57,6 +57,13 @@ const InventoryMetricsGrid = ({
         icon={DollarSign}
         tone="green"
         hint="Costo de reposición"
+      />
+      <StatBox
+        title="Lotes por Vencer"
+        value={inventoryStatus?.expiringBatchesCount || 0}
+        icon={CalendarClock}
+        tone={inventoryStatus?.expiringBatchesCount > 0 ? 'red' : 'green'}
+        hint="< 30 días"
       />
       <StatBox
         title="Alertas de Stock"

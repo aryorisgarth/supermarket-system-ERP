@@ -71,6 +71,7 @@ class SaleServiceImplTest {
 	@Mock private ProductUomConversionRepository productUomConversionRepository;
 	@Mock private TransactionTemplate transactionTemplate;
 	@Mock private PromotionService promotionService;
+	@Mock private SaleBatchAllocator saleBatchAllocator;
 
 	@InjectMocks
 	private SaleServiceImpl saleService;
@@ -113,6 +114,10 @@ class SaleServiceImplTest {
 			org.springframework.transaction.support.TransactionCallback<?> callback = invocation.getArgument(0);
 			return callback.doInTransaction(null);
 		});
+
+		lenient().when(promotionService.bestPromotion(any(), any(), any())).thenReturn(Optional.empty());
+		lenient().when(saleBatchAllocator.allocatePortions(any(), any(), any(), any()))
+				.thenAnswer(inv -> List.of(new SaleBatchAllocator.Portion(null, inv.getArgument(2), inv.getArgument(2))));
 	}
 
 	@Test

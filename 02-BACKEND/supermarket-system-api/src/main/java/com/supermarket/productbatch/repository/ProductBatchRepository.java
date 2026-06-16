@@ -67,6 +67,9 @@ public interface ProductBatchRepository extends JpaRepository<ProductBatch, Long
 	@Query("SELECT b FROM ProductBatch b WHERE b.currentQuantity > 0 AND b.expirationDate <= :until ORDER BY b.expirationDate ASC")
 	List<ProductBatch> findActiveExpiringUntil(@Param("until") LocalDate until);
 
+	@Query("SELECT COUNT(b) FROM ProductBatch b WHERE b.currentQuantity > 0 AND b.expirationDate <= :until")
+	long countActiveExpiringUntil(@Param("until") LocalDate until);
+
 	@Query("SELECT b FROM ProductBatch b WHERE b.currentQuantity > 0 AND b.expirationDate < :today ORDER BY b.expirationDate ASC")
 	List<ProductBatch> findActiveExpired(@Param("today") LocalDate today);
 

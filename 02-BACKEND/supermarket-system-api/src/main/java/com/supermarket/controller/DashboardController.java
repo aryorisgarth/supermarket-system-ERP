@@ -53,7 +53,8 @@ public class DashboardController {
     public ResponseEntity<Map<String, Object>> getInventoryStatus() {
         return ResponseEntity.ok(Map.of(
             "lowStockCount", reportService.lowStockReport().size(),
-            "totalInventoryValue", reportService.inventoryPurchaseValue()
+            "totalInventoryValue", reportService.inventoryPurchaseValue(),
+            "expiringBatchesCount", reportService.countExpiringBatches(30)
         ));
     }
 }

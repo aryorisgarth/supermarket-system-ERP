@@ -15,6 +15,7 @@ import com.supermarket.inventory.entity.InventoryMovement;
 import com.supermarket.inventory.repository.InventoryMovementRepository;
 import com.supermarket.product.repository.ProductRepository;
 import com.supermarket.purchase.repository.PurchaseOrderRepository;
+import com.supermarket.productbatch.repository.ProductBatchRepository;
 import com.supermarket.report.dto.CustomerRankingReportDTO;
 import com.supermarket.report.dto.DailySalesRowDTO;
 import com.supermarket.report.dto.InventoryTurnoverDTO;
@@ -43,6 +44,7 @@ public class ReportService {
 	private final ProductRepository productRepository;
 	private final InventoryMovementRepository inventoryMovementRepository;
 	private final PurchaseOrderRepository purchaseOrderRepository;
+	private final ProductBatchRepository productBatchRepository;
 
 	private static final int MONEY_SCALE = 4;
 	private static final int PERCENT_SCALE = 2;
@@ -178,6 +180,10 @@ public class ReportService {
 	public BigDecimal inventoryPurchaseValue() {
 		BigDecimal v = productRepository.sumInventoryPurchaseValue();
 		return v != null ? v : BigDecimal.ZERO;
+	}
+
+	public long countExpiringBatches(int days) {
+		return productBatchRepository.countActiveExpiringUntil(LocalDate.now().plusDays(days));
 	}
 
 	public ReportKpiDTO kpis(LocalDate from, LocalDate to) {

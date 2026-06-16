@@ -142,6 +142,13 @@ const CashRegisterStatus = ({ compact = false, className = '' }) => {
           Swal.showValidationMessage('Los montos contados no pueden ser negativos');
           return false;
         }
+
+        const diff = Math.abs(parseFloat(actualClosingBalance) - (summary?.expectedCash || 0));
+        if (diff > 1.00 && !notes.trim()) {
+          Swal.showValidationMessage('Se requiere una nota justificando la diferencia (mayor a $1.00)');
+          return false;
+        }
+
         return {
           actualClosingBalance: parseFloat(actualClosingBalance),
           countedCard: parseFloat(countedCard),

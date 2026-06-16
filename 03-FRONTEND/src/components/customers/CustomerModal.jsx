@@ -27,6 +27,22 @@ const CustomerModal = ({ customer, onClose, onSaved }) => {
       Swal.fire({ icon: 'warning', title: 'Nombre requerido', text: 'Ingresa el nombre del cliente.' });
       return;
     }
+
+    const nameRegex = /^[A-Za-záéíóúÁÉÍÓÚñÑ\s.'-]+$/;
+    if (!nameRegex.test(form.fullName)) {
+      Swal.fire({ icon: 'warning', title: 'Formato inválido', text: 'El nombre solo puede contener letras, espacios, puntos, guiones y apóstrofes.' });
+      return;
+    }
+
+    if (form.phone && !/^\+?[0-9\s-]+$/.test(form.phone)) {
+      Swal.fire({ icon: 'warning', title: 'Teléfono inválido', text: 'El teléfono solo puede contener números, espacios, guiones y un prefijo +.' });
+      return;
+    }
+
+    if (form.documentId && !/^[A-Za-z0-9-]+$/.test(form.documentId)) {
+      Swal.fire({ icon: 'warning', title: 'Documento inválido', text: 'El documento solo puede contener letras, números y guiones.' });
+      return;
+    }
     setSaving(true);
     try {
       const saved = isEdit

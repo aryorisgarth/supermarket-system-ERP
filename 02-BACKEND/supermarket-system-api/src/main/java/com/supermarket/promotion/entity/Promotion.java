@@ -53,7 +53,7 @@ public class Promotion {
 	private PromotionType type;
 
 	@NotNull
-	@Column(nullable = false, precision = 8, scale = 4)
+	@Column(name = "\"value\"", nullable = false, precision = 8, scale = 4)
 	private BigDecimal value;
 
 	@NotNull

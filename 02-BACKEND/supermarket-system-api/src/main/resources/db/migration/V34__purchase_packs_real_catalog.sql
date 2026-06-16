@@ -61,5 +61,5 @@ FROM product_purchase_packs pp
 JOIN products p ON p.id = pp.product_id
 WHERE NOT EXISTS (
     SELECT 1 FROM product_uom_conversions uc
-    WHERE uc.product_id = pp.product_id AND uc.label = pp.label
+    WHERE uc.product_id = pp.product_id AND uc.label = pp.label COLLATE utf8mb4_unicode_ci
 );

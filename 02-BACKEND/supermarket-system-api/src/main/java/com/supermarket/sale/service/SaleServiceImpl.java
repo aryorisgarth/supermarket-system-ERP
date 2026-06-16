@@ -484,7 +484,7 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	
-	private BigDecimal resolveLineDiscount(Long productId, BigDecimal quantity, Long uomConversionId, BigDecimal requestedDiscount) {
+	private BigDecimal resolveLineDiscount(Long productId, BigDecimal quantity, Long uomConversionId, BigDecimal requestedDiscount, BigDecimal lineGross) {
 		BigDecimal promoDiscount = promotionService.bestPromotion(productId, quantity, uomConversionId)
 				.map(AppliedPromotionDTO::discountAmount)
 				.orElse(BigDecimal.ZERO);
@@ -502,6 +502,14 @@ public class SaleServiceImpl implements SaleService {
 		if (!SecurityUtils.hasAuthority("SALE_DISCOUNT")) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tiene permiso para aplicar descuentos");
 		}
+
+		if (!SecurityUtils.hasAuthority("ADMIN_DISCOUNT")) {
+			BigDecimal maxDiscount = lineGross.multiply(new BigDecimal("0.05"));
+			if (requested.compareTo(maxDiscount) > 0) {
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El descuento excede el límite del 5% permitido para su rol. Requiere autorización superior.");
+			}
+		}
+
 		return requested;
 	}
 
@@ -546,9 +554,8 @@ public class SaleServiceImpl implements SaleService {
 					? product.getPurchasePrice().multiply(factor)
 					: BigDecimal.ZERO;
 			BigDecimal taxApplied = product.getTaxCategory().getPercentage();
-			BigDecimal discount = resolveLineDiscount(line.productId(), line.quantity(), line.uomConversionId(), line.discountAmount());
-
 			BigDecimal lineGross = unitPrice.multiply(line.quantity());
+			BigDecimal discount = resolveLineDiscount(line.productId(), line.quantity(), line.uomConversionId(), line.discountAmount(), lineGross);
 			if (discount.compareTo(lineGross) > 0) {
 				throw new BadRequestException("El descuento no puede exceder el total bruto de la línea para el producto: " + product.getName());
 			}

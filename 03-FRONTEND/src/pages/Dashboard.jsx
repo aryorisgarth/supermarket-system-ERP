@@ -52,17 +52,30 @@ const Dashboard = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState('30days');
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const today = new Date();
-      const from = new Date(today);
-      from.setDate(today.getDate() - 29);
-      const previousTo = new Date(from);
-      previousTo.setDate(from.getDate() - 1);
-      const previousFrom = new Date(previousTo);
-      previousFrom.setDate(previousTo.getDate() - 29);
+      const end = new Date();
+      let start = new Date(end);
+
+      if (dateFilter === 'today') {
+        start.setHours(0, 0, 0, 0);
+      } else if (dateFilter === 'week') {
+        const day = end.getDay();
+        const diff = end.getDate() - day + (day === 0 ? -6 : 1);
+        start = new Date(end.getFullYear(), end.getMonth(), diff);
+        start.setHours(0, 0, 0, 0);
+      } else if (dateFilter === 'month') {
+        start = new Date(end.getFullYear(), end.getMonth(), 1);
+      } else {
+        start.setDate(end.getDate() - 29);
+      }
+
+      const msDiff = end.getTime() - start.getTime() || 86400000;
+      const previousTo = new Date(start.getTime() - 86400000);
+      const previousFrom = new Date(previousTo.getTime() - msDiff);
 
       const [sales, products, status, suppliers, categories, currentKpis, comparison, salesHistory, paymentData, lowStockData] = await Promise.all([
         DashboardService.getWeeklySales(),
@@ -70,10 +83,10 @@ const Dashboard = () => {
         DashboardService.getInventoryStatus(),
         SupplierService.getAll(),
         CategoryService.getAll(),
-        ReportService.getKpis(isoDate(from), isoDate(today)),
-        ReportService.getComparativeKpis(isoDate(from), isoDate(today), isoDate(previousFrom), isoDate(previousTo)),
+        ReportService.getKpis(isoDate(start), isoDate(end)),
+        ReportService.getComparativeKpis(isoDate(start), isoDate(end), isoDate(previousFrom), isoDate(previousTo)),
         SaleService.getAll({ size: 5 }),
-        ReportService.getSalesByPaymentMethod(isoDate(from), isoDate(today)),
+        ReportService.getSalesByPaymentMethod(isoDate(start), isoDate(end)),
         ProductService.getLowStock(),
       ]);
       setWeeklySales(sales || []);
@@ -100,7 +113,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [dateFilter]);
 
   const totalWeeklySales = useMemo(
     () => weeklySales.reduce((acc, sale) => acc + Number(sale.amount || 0), 0),
@@ -155,9 +168,21 @@ const Dashboard = () => {
         title="Panel Administrativo"
         description="Vista estratégica del rendimiento operativo y financiero del sistema."
         actions={
-          <Button variant="secondary" icon={RefreshCw} onClick={fetchDashboardData}>
-            Refrescar Datos
-          </Button>
+          <div className="flex items-center gap-2">
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="px-3 py-2 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl focus:outline-none focus:border-primary text-xs font-bold text-[var(--app-text)] cursor-pointer"
+            >
+              <option value="today">Hoy</option>
+              <option value="week">Esta Semana</option>
+              <option value="month">Este Mes</option>
+              <option value="30days">Últimos 30 Días</option>
+            </select>
+            <Button variant="secondary" icon={RefreshCw} onClick={fetchDashboardData}>
+              Refrescar
+            </Button>
+          </div>
         }
         meta={
           <>

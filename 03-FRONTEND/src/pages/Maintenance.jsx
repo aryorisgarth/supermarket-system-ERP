@@ -81,6 +81,18 @@ const Maintenance = () => {
       return;
     }
 
+    if (selectedFile.size === 0) {
+      Swal.fire('Archivo vacío', 'El archivo SQL seleccionado está vacío. No se puede restaurar una base de datos sin datos.', 'error');
+      return;
+    }
+
+    // Read file to ensure it's not just whitespaces
+    const text = await selectedFile.text();
+    if (!text.trim()) {
+      Swal.fire('Archivo inválido', 'El archivo SQL no contiene sentencias válidas o está en blanco.', 'error');
+      return;
+    }
+
     const result = await Swal.fire({
       title: '¿Confirmar restauración?',
       text: '¡PRECAUCIÓN! Esta acción sobrescribirá todos los datos actuales del supermercado (usuarios, productos, ventas) con los datos del archivo cargado. Esta operación es irreversible.',
