@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS notification_rules (
     CONSTRAINT uk_notification_rules_routing UNIQUE (alert_type, severity, role_id, channel)
 );
 
+-- Aseguramos que los roles existan antes de referenciarlos
+INSERT IGNORE INTO roles (name) VALUES ('BODEGUERO'), ('ADMINISTRADOR'), ('SUPERVISOR');
+
 -- Semillas iniciales: Enrutamientos básicos por defecto
 INSERT INTO notification_rules (alert_type, severity, channel, role_id, is_active, created_at, updated_at)
 VALUES 
