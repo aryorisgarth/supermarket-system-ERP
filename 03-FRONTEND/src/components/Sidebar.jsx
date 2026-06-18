@@ -174,10 +174,13 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
         .map((section) => ({
           ...section,
           items: section.items.filter((item) => {
-            const roleAllowed = item.roles.includes(roleName);
             const permissions = Array.isArray(item.permissions) ? item.permissions : [];
-            const permissionAllowed = permissions.length === 0 || AuthService.hasAnyPermission(permissions);
-            return roleAllowed && permissionAllowed;
+            if (permissions.length > 0) {
+              return AuthService.hasAnyPermission(permissions);
+            }
+            
+            const roleAllowed = item.roles && item.roles.includes(roleName);
+            return roleAllowed;
           }),
         }))
         .filter((section) => section.items.length > 0),

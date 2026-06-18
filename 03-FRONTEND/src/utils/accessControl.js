@@ -2,7 +2,13 @@ import AuthService from '../services/AuthService';
 
 export const canViewReports = () => AuthService.hasPermission('REPORT_VIEW');
 
-export const canViewSystemAlerts = () => !!AuthService.getCurrentUser();
+export const canViewSystemAlerts = () => {
+  const roleName = AuthService.getCurrentUser()?.role?.name;
+  return (
+    ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'BODEGUERO'].includes(roleName) ||
+    AuthService.hasPermission('REPORT_VIEW')
+  );
+};
 
 export const canViewFinance = () => AuthService.hasPermission('FINANCE_VIEW');
 

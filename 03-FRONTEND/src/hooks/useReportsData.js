@@ -21,6 +21,8 @@ export const useReportsData = (firstDayOfYearStr, todayStr) => {
   const [salesByUser, setSalesByUser] = useState([]);
   const [customerRanking, setCustomerRanking] = useState([]);
   const [stockAlerts, setStockAlerts] = useState([]);
+  const [salesByBrand, setSalesByBrand] = useState([]);
+  const [purchasesByBrand, setPurchasesByBrand] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchReportsData = useCallback(async () => {
@@ -47,6 +49,8 @@ export const useReportsData = (firstDayOfYearStr, todayStr) => {
         salesByUserData,
         customerData,
         stockAlertData,
+        salesBrandData,
+        purchasesBrandData,
       ] = await Promise.all([
         DashboardService.getWeeklySales(),
         DashboardService.getInventoryStatus(),
@@ -61,6 +65,8 @@ export const useReportsData = (firstDayOfYearStr, todayStr) => {
         ReportService.getSalesByUser(firstDayOfYearStr, todayStr),
         ReportService.getCustomerRanking(firstDayOfYearStr, todayStr),
         ReportService.getStockAlerts(),
+        ReportService.getSalesByBrand(firstDayOfYearStr, todayStr),
+        ReportService.getPurchasesByBrand(firstDayOfYearStr, todayStr),
       ]);
 
       setWeeklySales(weekly || []);
@@ -76,6 +82,8 @@ export const useReportsData = (firstDayOfYearStr, todayStr) => {
       setSalesByUser(salesByUserData || []);
       setCustomerRanking(customerData || []);
       setStockAlerts(stockAlertData || []);
+      setSalesByBrand(salesBrandData || []);
+      setPurchasesByBrand(purchasesBrandData || []);
     } catch (error) {
       console.error('Error loading reports data:', error);
       Swal.fire('Error', 'No se pudieron cargar las estadísticas reales del servidor.', 'error');
@@ -194,6 +202,8 @@ export const useReportsData = (firstDayOfYearStr, todayStr) => {
     salesByUser,
     customerRanking,
     stockAlerts,
+    salesByBrand,
+    purchasesByBrand,
     loading,
     totalWeeklySales,
     barData,

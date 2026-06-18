@@ -125,6 +125,14 @@ public class UserServiceImpl implements UserService {
 		if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
 			user.setPassword(passwordEncoder.encode(request.getPassword()));
 		}
+
+		if (!user.getRole().getName().equalsIgnoreCase(role.getName())) {
+			java.util.Optional<String> kcUserId = keycloakAdminService.findUserIdByEmail(user.getEmail());
+			if (kcUserId.isPresent()) {
+				keycloakAdminService.updateUserRole(kcUserId.get(), role.getName());
+			}
+		}
+
 		user.setRole(role);
 
 		User saved = userRepository.save(user);

@@ -56,6 +56,21 @@ const ReportService = {
     const response = await api.get('/reports/stock-alerts');
     return response.data;
   },
+
+  getSalesByBrand: async (from, to) => {
+    const response = await api.get('/reports/sales/by-brand', { params: { from, to } });
+    return response.data;
+  },
+
+  getPurchasesByBrand: async (from, to) => {
+    const response = await api.get('/reports/purchases/by-brand', { params: { from, to } });
+    return response.data;
+  },
+
+  getInventoryFlowVolume: async (from, to) => {
+    const response = await api.get('/reports/inventory-flow-volume', { params: { from, to } });
+    return response.data;
+  },
 };
 
 export default ReportService;

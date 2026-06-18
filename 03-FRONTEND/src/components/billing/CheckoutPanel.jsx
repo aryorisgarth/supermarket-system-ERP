@@ -5,6 +5,8 @@ import CheckoutCustomerSelector from './CheckoutCustomerSelector';
 import CheckoutQuickPay from './CheckoutQuickPay';
 import CheckoutMultiPay from './CheckoutMultiPay';
 import CheckoutFooter from './CheckoutFooter';
+import CheckoutTotalBar from './CheckoutTotalBar';
+import CheckoutProgressMetrics from './CheckoutProgressMetrics';
 import TransferSimulatorModal from './TransferSimulatorModal';
 
 const CheckoutPanel = ({
@@ -196,15 +198,15 @@ const CheckoutPanel = ({
 
   return (
     <div className="pos-checkout bg-[var(--app-surface)] flex flex-col h-full rounded-lg overflow-hidden border border-[var(--app-border)] shadow-sm">
-      <header className="pos-checkout-head p-3 space-y-2.5 border-b border-[var(--app-border)]">
-        <div className="flex gap-1.5 rounded-lg bg-slate-100 p-1 border border-slate-200">
+      <header className="pos-checkout-head p-1.5 space-y-1.5 border-b border-[var(--app-border)]">
+        <div className="flex gap-1 rounded-lg bg-gray-200 p-0.5 border border-gray-300">
           <button
             type="button"
             onClick={() => isMultiPayment && onToggleMultiPayment()}
-            className={`relative flex-1 rounded-md py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer ${
+            className={`relative flex-1 rounded-md py-1 text-[10px] font-black uppercase tracking-wider transition-all duration-150 cursor-pointer ${
               !isMultiPayment
-                ? 'bg-white text-black shadow-sm border border-slate-350'
-                : 'text-slate-500 hover:bg-slate-200/50'
+                ? 'bg-white text-black shadow border border-gray-400'
+                : 'text-gray-600 hover:bg-gray-300/50 hover:text-black'
             }`}
           >
             Cobro rápido
@@ -212,10 +214,10 @@ const CheckoutPanel = ({
           <button
             type="button"
             onClick={() => !isMultiPayment && onToggleMultiPayment()}
-            className={`relative flex-1 rounded-md py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer ${
+            className={`relative flex-1 rounded-md py-1 text-[10px] font-black uppercase tracking-wider transition-all duration-150 cursor-pointer ${
               isMultiPayment
-                ? 'bg-white text-black shadow-sm border border-slate-350'
-                : 'text-slate-500 hover:bg-slate-200/50'
+                ? 'bg-white text-black shadow border border-gray-400'
+                : 'text-gray-600 hover:bg-gray-300/50 hover:text-black'
             }`}
           >
             Pago mixto
@@ -236,53 +238,23 @@ const CheckoutPanel = ({
           setShowCustomerDropdown={setShowCustomerDropdown}
         />
 
-        <div className="pos-checkout-total-bar flex items-center justify-between gap-4 p-2.5 rounded-lg border border-[var(--app-border)] bg-gradient-to-tr from-[var(--app-bg-subtle)] to-[var(--app-surface)]">
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Subtotal</p>
-            <p className="text-sm font-bold text-[var(--app-text-soft)]">{formatMoney(subtotal - discountTotal)}</p>
-            {discountTotal > 0 && (
-              <p className="text-[9px] font-bold text-slate-700">Desc. -{formatMoney(discountTotal)}</p>
-            )}
-            {enableMulti && usdEquivalent && (
-              <p className="text-[9px] font-bold text-[var(--app-text-muted)]">≈ {usdEquivalent}</p>
-            )}
-          </div>
-          <div className="text-right">
-            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Total a Cobrar</p>
-            <p className="pos-checkout-total-bar-amount text-xl font-bold text-slate-900 tracking-tight">{formatMoney(total)}</p>
-            <p className="text-[9px] font-bold text-[var(--app-text-muted)]">IVA {taxRate}% · {formatMoney(tax)}</p>
-          </div>
-        </div>
+        <CheckoutTotalBar 
+          subtotal={subtotal}
+          discountTotal={discountTotal}
+          usdEquivalent={enableMulti ? usdEquivalent : null}
+          total={total}
+          taxRate={taxRate}
+          tax={tax}
+        />
 
         {isMultiPayment && (
-          <div className="space-y-1.5 pt-0.5">
-            <div className="h-1.5 overflow-hidden rounded-full bg-slate-200 border border-slate-300">
-              <div
-                className="h-full rounded-full bg-slate-850 transition-all duration-500"
-                style={{ width: `${payProgress}%` }}
-              />
-            </div>
-            <div className="pos-checkout-mix-metrics grid grid-cols-3 gap-1.5 text-center text-[9px]">
-              <div className="bg-slate-100 p-1 rounded border border-slate-200">
-                <p className="text-slate-655 font-bold uppercase tracking-wider text-[8px]">Pagado</p>
-                <span className="text-slate-900 text-xs font-bold">{formatMoney(totalPaid)}</span>
-              </div>
-              <div className="bg-slate-100 p-1 rounded border border-slate-200">
-                <p className="text-slate-655 font-bold uppercase tracking-wider text-[8px]">Pendiente</p>
-                <span className="text-slate-900 text-xs font-bold">{formatMoney(pendingAmount)}</span>
-              </div>
-              <div className="bg-[var(--app-bg-subtle)] p-1 rounded border border-[var(--app-border)]">
-                <p className="text-[var(--app-text-soft)] font-bold uppercase tracking-wider text-[8px]">Progreso</p>
-                <span className="text-[var(--app-text)] text-xs font-bold">{payProgress.toFixed(0)}%</span>
-              </div>
-            </div>
-            {isFullyPaid && (
-              <div className="pos-checkout-vuelto-banner bg-slate-100 border border-slate-300 rounded-lg p-2 text-center mt-1 transition-all">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-550 mb-0.5">Vuelto al cliente</p>
-                <p className="text-lg font-bold text-slate-900">{formatMoney(change)}</p>
-              </div>
-            )}
-          </div>
+          <CheckoutProgressMetrics 
+            payProgress={payProgress}
+            totalPaid={totalPaid}
+            pendingAmount={pendingAmount}
+            isFullyPaid={isFullyPaid}
+            change={change}
+          />
         )}
       </header>
 

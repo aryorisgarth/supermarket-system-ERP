@@ -109,6 +109,30 @@ const Reports = () => {
         >
           Ventas cajeros
         </Button>
+        <Button
+          size="sm"
+          icon={Download}
+          onClick={() =>
+            reportsData.handleDownloadExcel(
+              `/reports/sales-by-brand/excel?from=${firstDayOfYearStr}&to=${todayStr}`,
+              'ventas_por_marca.xlsx'
+            )
+          }
+        >
+          Ventas marcas
+        </Button>
+        <Button
+          size="sm"
+          icon={Download}
+          onClick={() =>
+            reportsData.handleDownloadExcel(
+              `/reports/purchases-by-brand/excel?from=${firstDayOfYearStr}&to=${todayStr}`,
+              'compras_por_marca.xlsx'
+            )
+          }
+        >
+          Compras marcas
+        </Button>
       </>
     ) : (
       <>

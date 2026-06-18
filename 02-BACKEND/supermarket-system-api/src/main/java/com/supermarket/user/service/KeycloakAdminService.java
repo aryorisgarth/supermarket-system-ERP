@@ -134,6 +134,32 @@ public class KeycloakAdminService {
 		}
 	}
 
+	public void updateUserRole(String userId, String newRoleName) {
+		String token = getAccessToken();
+
+		try {
+			List<Map<String, Object>> currentRoles = restClient.get()
+					.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/realm")
+					.header("Authorization", "Bearer " + token)
+					.retrieve()
+					.body(List.class);
+
+			if (currentRoles != null && !currentRoles.isEmpty()) {
+				restClient.method(org.springframework.http.HttpMethod.DELETE)
+						.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/realm")
+						.header("Authorization", "Bearer " + token)
+						.contentType(MediaType.APPLICATION_JSON)
+						.body(currentRoles)
+						.retrieve()
+						.toBodilessEntity();
+			}
+
+			assignRole(userId, newRoleName);
+		} catch (HttpClientErrorException e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update role in Keycloak: " + e.getResponseBodyAsString(), e);
+		}
+	}
+
 	public java.util.Optional<String> findUserIdByEmail(String email) {
 		String token = getAccessToken();
 

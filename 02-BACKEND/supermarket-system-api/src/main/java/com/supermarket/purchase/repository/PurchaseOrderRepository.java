@@ -49,4 +49,16 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
 	BigDecimal sumReceivedPurchasesBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
 	long countByStatusAndCreatedAtBetween(PurchaseOrderStatus status, LocalDateTime start, LocalDateTime end);
+
+	@Query(value = """
+			SELECT b.name, COUNT(DISTINCT p.id) AS purchases_count, SUM(i.line_total) AS total
+			FROM purchase_order_items i
+			JOIN products pr ON pr.id = i.product_id
+			JOIN brands b ON b.id = pr.brand_id
+			JOIN purchase_orders p ON p.id = i.purchase_order_id
+			WHERE p.status = 'RECEIVED' AND p.received_at >= :from AND p.received_at < :to
+			GROUP BY b.id, b.name
+			ORDER BY total DESC
+			""", nativeQuery = true)
+	List<Object[]> purchasesByBrandNative(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

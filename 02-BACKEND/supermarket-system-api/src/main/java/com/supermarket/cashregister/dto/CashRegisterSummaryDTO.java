@@ -8,6 +8,8 @@ public record CashRegisterSummaryDTO(
 		BigDecimal cashSales,
 		BigDecimal cardSales,
 		BigDecimal transferSales,
+		BigDecimal couponSales,
+		BigDecimal pointsSales,
 		BigDecimal changeAmount,
 		BigDecimal refunds,
 		BigDecimal manualCashIn,

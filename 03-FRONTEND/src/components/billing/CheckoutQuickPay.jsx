@@ -24,12 +24,9 @@ const CheckoutQuickPay = ({
 
   useEffect(() => {
     const handler = (e) => {
-      if (!e.altKey) return;
-      const tag = document.activeElement?.tagName;
-      
-      if (e.key === '1') { e.preventDefault(); onPaymentMethodChange('CASH'); }
-      if (e.key === '2') { e.preventDefault(); onPaymentMethodChange('CARD'); }
-      if (e.key === '3') { e.preventDefault(); onPaymentMethodChange('TRANSFER'); }
+      if (e.key === 'F1') { e.preventDefault(); onPaymentMethodChange('CASH'); }
+      if (e.key === 'F2') { e.preventDefault(); onPaymentMethodChange('CARD'); }
+      if (e.key === 'F3') { e.preventDefault(); onPaymentMethodChange('TRANSFER'); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -37,63 +34,63 @@ const CheckoutQuickPay = ({
 
   return (
     <div className="flex-1 flex flex-col gap-3">
-      <div className="pos-checkout-quick-row shrink-0 grid grid-cols-3 gap-1.5">
+      <div className="pos-checkout-quick-row shrink-0 grid grid-cols-1 sm:grid-cols-3 gap-2">
         <button
           type="button"
           id="btn-pay-cash"
           onClick={() => onPaymentMethodChange('CASH')}
-          title="Efectivo (Alt+1)"
-          className={`relative flex h-9 items-center justify-center gap-1 rounded-lg border text-[11px] font-bold uppercase transition-colors duration-100 cursor-pointer ${
+          title="Efectivo (F1)"
+          className={`relative flex h-10 sm:h-9 items-center justify-center gap-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors duration-100 cursor-pointer ${
             paymentMethod === 'CASH'
               ? 'border-primary bg-primary text-white shadow-sm'
               : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
           }`}
         >
-          <Banknote size={14} />
+          <Banknote size={15} />
           Efectivo
           <span style={{
-            position: 'absolute', top: '2px', right: '4px',
-            fontSize: '7px', fontWeight: 900, opacity: paymentMethod === 'CASH' ? 0.7 : 0.5,
-            letterSpacing: '0.04em',
-          }}>Alt+1</span>
+            position: 'absolute', top: '3px', right: '5px',
+            fontSize: '8px', fontWeight: 900, opacity: paymentMethod === 'CASH' ? 0.7 : 0.5,
+            letterSpacing: '0.04em', fontFamily: 'monospace'
+          }}>F1</span>
         </button>
         <button
           type="button"
           id="btn-pay-card"
           onClick={() => onPaymentMethodChange('CARD')}
-          title="Tarjeta (Alt+2)"
-          className={`relative flex h-9 items-center justify-center gap-1 rounded-lg border text-[11px] font-bold uppercase transition-colors duration-100 cursor-pointer ${
+          title="Tarjeta (F2)"
+          className={`relative flex h-10 sm:h-9 items-center justify-center gap-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors duration-100 cursor-pointer ${
             paymentMethod === 'CARD'
               ? 'border-primary bg-primary text-white shadow-sm'
               : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
           }`}
         >
-          <CreditCard size={14} />
+          <CreditCard size={15} />
           Tarjeta
           <span style={{
-            position: 'absolute', top: '2px', right: '4px',
-            fontSize: '7px', fontWeight: 900, opacity: paymentMethod === 'CARD' ? 0.7 : 0.5,
-            letterSpacing: '0.04em',
-          }}>Alt+2</span>
+            position: 'absolute', top: '3px', right: '5px',
+            fontSize: '8px', fontWeight: 900, opacity: paymentMethod === 'CARD' ? 0.7 : 0.5,
+            letterSpacing: '0.04em', fontFamily: 'monospace'
+          }}>F2</span>
         </button>
         <button
           type="button"
           id="btn-pay-transfer"
           onClick={() => onPaymentMethodChange('TRANSFER')}
-          title="Transferencia (Alt+3)"
-          className={`relative flex h-9 items-center justify-center gap-1 rounded-lg border text-[11px] font-bold uppercase transition-colors duration-100 cursor-pointer ${
+          title="Transferencia (F3)"
+          className={`relative flex h-10 sm:h-9 items-center justify-center gap-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors duration-100 cursor-pointer ${
             paymentMethod === 'TRANSFER'
               ? 'border-primary bg-primary text-white shadow-sm'
               : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
           }`}
         >
-          <ArrowLeftRight size={14} />
+          <ArrowLeftRight size={15} />
           Transf.
           <span style={{
-            position: 'absolute', top: '2px', right: '4px',
-            fontSize: '7px', fontWeight: 900, opacity: paymentMethod === 'TRANSFER' ? 0.7 : 0.5,
-            letterSpacing: '0.04em',
-          }}>Alt+3</span>
+            position: 'absolute', top: '3px', right: '5px',
+            fontSize: '8px', fontWeight: 900, opacity: paymentMethod === 'TRANSFER' ? 0.7 : 0.5,
+            letterSpacing: '0.04em', fontFamily: 'monospace'
+          }}>F3</span>
         </button>
       </div>
 
@@ -105,16 +102,16 @@ const CheckoutQuickPay = ({
       )}
 
       {paymentMethod === 'TRANSFER' && (
-        <div className="shrink-0 space-y-2">
-          <div className="grid grid-cols-2 gap-2.5 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-            <div className="space-y-0.5">
-              <label className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">
+        <div className="shrink-0 space-y-2.5">
+          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div className="space-y-1">
+              <label className="block text-[9px] font-black uppercase tracking-widest text-slate-500">
                 Banco Destino
               </label>
               <select
                 value={transferBank}
                 onChange={(e) => onTransferBankChange(e.target.value)}
-                className="ui-input ui-select h-9 min-h-[2.25rem] text-xs rounded-lg font-bold bg-white border-slate-300 text-slate-900 py-1"
+                className="ui-input ui-select h-11 w-full text-[13px] rounded-lg font-bold bg-white border-slate-300 text-slate-900 shadow-sm"
               >
                 {(banks || []).map((b) => (
                   <option key={b.id || b.accountNumber} value={b.bankName} className="bg-slate-100 text-slate-900">
@@ -123,23 +120,23 @@ const CheckoutQuickPay = ({
                 ))}
               </select>
             </div>
-            <div className="space-y-0.5">
-              <label className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">
+            <div className="space-y-1">
+              <label className="block text-[9px] font-black uppercase tracking-widest text-slate-500">
                 N° Referencia
               </label>
               <input
                 type="text"
                 value={transferRef}
                 onChange={(e) => onTransferRefChange(e.target.value)}
-                placeholder="Referencia..."
-                className="ui-input h-9 min-h-[2.25rem] text-xs rounded-lg font-bold bg-white border-slate-300 text-slate-900 focus:bg-white"
+                placeholder="N° de Baucher o Referencia"
+                className="ui-input h-11 w-full text-[13px] rounded-lg font-bold bg-white border-slate-300 text-slate-900 focus:bg-white shadow-sm"
               />
             </div>
           </div>
           <button
             type="button"
             onClick={() => onOpenSimulator(total, transferBank, (ref) => onTransferRefChange(ref))}
-            className="w-full flex items-center justify-center gap-1 rounded-lg border border-slate-300 bg-slate-100 hover:bg-slate-200 h-9 text-xs font-bold uppercase text-slate-800 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 h-10 text-[11px] font-black uppercase text-indigo-700 transition-colors cursor-pointer shadow-sm"
           >
             Simular Transferencia
           </button>

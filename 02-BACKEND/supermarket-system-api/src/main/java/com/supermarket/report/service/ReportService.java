@@ -29,6 +29,9 @@ import com.supermarket.report.dto.ReportKpiComparisonDTO;
 import com.supermarket.report.dto.ReportKpiDTO;
 import com.supermarket.report.dto.SalesByUserReportDTO;
 import com.supermarket.report.dto.TopProductRowDTO;
+import com.supermarket.report.dto.SalesByBrandDTO;
+import com.supermarket.report.dto.PurchasesByBrandDTO;
+import com.supermarket.report.dto.InventoryFlowDTO;
 import com.supermarket.sale.model.SaleStatus;
 import com.supermarket.sale.model.PaymentMethod;
 import com.supermarket.sale.repository.SaleRepository;
@@ -374,6 +377,60 @@ public class ReportService {
 						row[6] != null ? row[6].toString() : null,
 						toBigDecimal(row[7]),
 						toBigDecimal(row[8])))
+				.toList();
+	}
+
+	public List<SalesByBrandDTO> salesByBrand(LocalDate from, LocalDate to) {
+		LocalDateTime start = from.atStartOfDay();
+		LocalDateTime end = to.plusDays(1).atStartOfDay();
+		if (!end.isAfter(start)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date range");
+		}
+		return saleRepository.salesByBrandNative(start, end).stream()
+				.map(row -> new SalesByBrandDTO(
+						(String) row[0],
+						toLong(row[1]) != null ? toLong(row[1]) : 0L,
+						toBigDecimal(row[2]).setScale(MONEY_SCALE, RoundingMode.HALF_UP)))
+				.toList();
+	}
+
+	public List<PurchasesByBrandDTO> purchasesByBrand(LocalDate from, LocalDate to) {
+		LocalDateTime start = from.atStartOfDay();
+		LocalDateTime end = to.plusDays(1).atStartOfDay();
+		if (!end.isAfter(start)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date range");
+		}
+		return purchaseOrderRepository.purchasesByBrandNative(start, end).stream()
+				.map(row -> new PurchasesByBrandDTO(
+						(String) row[0],
+						toLong(row[1]) != null ? toLong(row[1]) : 0L,
+						toBigDecimal(row[2]).setScale(MONEY_SCALE, RoundingMode.HALF_UP)))
+				.toList();
+	}
+
+	public List<InventoryFlowDTO> inventoryFlowVolume(LocalDate from, LocalDate to) {
+		LocalDateTime start = from.atStartOfDay();
+		LocalDateTime end = to.plusDays(1).atStartOfDay();
+		if (!end.isAfter(start)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date range");
+		}
+		return inventoryMovementRepository.inventoryFlowVolumeNative(start, end).stream()
+				.map(row -> new InventoryFlowDTO(
+						toLocalDate(row[0]),
+						toBigDecimal(row[1]),
+						toBigDecimal(row[2])))
+				.toList();
+	}
+
+	public List<Object[]> salesByBrandReport(LocalDate from, LocalDate to) {
+		return salesByBrand(from, to).stream()
+				.map(row -> new Object[] {row.brandName() != null ? row.brandName() : "Sin marca", row.salesCount(), row.totalSales()})
+				.toList();
+	}
+
+	public List<Object[]> purchasesByBrandReport(LocalDate from, LocalDate to) {
+		return purchasesByBrand(from, to).stream()
+				.map(row -> new Object[] {row.brandName() != null ? row.brandName() : "Sin marca", row.purchasesCount(), row.totalPurchases()})
 				.toList();
 	}
 

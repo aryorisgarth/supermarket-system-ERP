@@ -180,4 +180,16 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 
 	@Query("SELECT COALESCE(SUM(sp.amount), 0) FROM SalePayment sp WHERE sp.sale.saleDate >= :from AND sp.sale.saleDate < :to AND sp.sale.status = com.supermarket.sale.model.SaleStatus.PAID AND sp.paymentMethod = :method")
 	BigDecimal sumPaymentsByDateBetweenAndMethod(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to, @Param("method") PaymentMethod method);
+
+	@Query(value = """
+			SELECT b.name, COUNT(s.id) AS sales_count, SUM(d.subtotal + (d.subtotal * d.tax_applied / 100)) AS total
+			FROM sale_details d
+			JOIN products p ON p.id = d.product_id
+			JOIN brands b ON b.id = p.brand_id
+			JOIN sales s ON s.id = d.sale_id
+			WHERE s.status = 'PAID' AND s.sale_date >= :from AND s.sale_date < :to
+			GROUP BY b.id, b.name
+			ORDER BY total DESC
+			""", nativeQuery = true)
+	List<Object[]> salesByBrandNative(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

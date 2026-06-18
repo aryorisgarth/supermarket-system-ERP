@@ -12,5 +12,7 @@ public record CashRegisterReportDTO(
 		BigDecimal totalCashSales,
 		BigDecimal totalCardSales,
 		BigDecimal totalTransferSales,
+		BigDecimal totalCouponSales,
+		BigDecimal totalPointsSales,
 		BigDecimal totalSalesVolume) {
 }

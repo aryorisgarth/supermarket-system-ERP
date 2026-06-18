@@ -85,8 +85,8 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
           width: '360px',
           maxWidth: '92vw',
           height: '100%',
-          background: 'var(--app-surface, #1e2535)',
-          borderLeft: '1px solid var(--app-border, #2e3a4e)',
+          background: 'var(--app-surface, #ffffff)',
+          borderLeft: '1px solid var(--app-border, #d1d5db)',
           animation: 'pqcp-slide-in 0.22s cubic-bezier(.16,1,.3,1)',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -98,8 +98,8 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
         <header
           style={{
             padding: '14px 16px 10px',
-            borderBottom: '1px solid var(--app-border, #2e3a4e)',
-            background: 'var(--app-surface-alt, #161d2c)',
+            borderBottom: '1px solid var(--app-border, #d1d5db)',
+            background: 'var(--app-surface-alt, #f3f4f6)',
           }}
         >
           <div className="flex items-center justify-between mb-2">
@@ -108,10 +108,10 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
               <span
                 style={{
                   fontSize: '13px',
-                  fontWeight: 800,
+                  fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
-                  color: 'var(--app-text, #e2e8f0)',
+                  color: 'var(--app-text, #000000)',
                 }}
               >
                 Códigos PLU
@@ -138,23 +138,23 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
                 width: '30px',
                 height: '30px',
                 borderRadius: '8px',
-                border: '1px solid var(--app-border, #2e3a4e)',
-                background: 'transparent',
+                border: '1px solid var(--app-border, #9ca3af)',
+                background: '#e5e7eb',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--app-text-muted, #94a3b8)',
+                color: 'var(--app-text-muted, #000000)',
               }}
             >
-              <X size={16} />
+              <X size={16} strokeWidth={3} />
             </button>
           </div>
           <p
             style={{
               fontSize: '10px',
-              fontWeight: 600,
-              color: 'var(--app-text-muted, #94a3b8)',
+              fontWeight: 800,
+              color: 'var(--app-text-muted, #4b5563)',
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
             }}
@@ -170,11 +170,11 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
             alignItems: 'center',
             gap: '8px',
             padding: '10px 14px',
-            borderBottom: '1px solid var(--app-border, #2e3a4e)',
-            background: 'var(--app-surface-alt, #161d2c)',
+            borderBottom: '1px solid var(--app-border, #d1d5db)',
+            background: 'var(--app-surface-alt, #f3f4f6)',
           }}
         >
-          <Search size={14} style={{ color: 'var(--app-text-muted, #94a3b8)', flexShrink: 0 }} />
+          <Search size={16} strokeWidth={2.5} style={{ color: 'var(--app-text-muted, #000000)', flexShrink: 0 }} />
           <input
             ref={searchRef}
             type="text"
@@ -187,17 +187,17 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
               border: 'none',
               outline: 'none',
               fontSize: '13px',
-              fontWeight: 600,
-              color: 'var(--app-text, #e2e8f0)',
+              fontWeight: 800,
+              color: 'var(--app-text, #000000)',
             }}
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-text-muted, #94a3b8)', padding: 0 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-text-muted, #000000)', padding: 0 }}
             >
-              <X size={13} />
+              <X size={15} strokeWidth={3} />
             </button>
           )}
         </div>
@@ -205,9 +205,9 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
         {}
         <div className="pqcp-list" style={{ flex: 1, overflowY: 'auto', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {grouped.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--app-text-muted, #94a3b8)' }}>
-              <BookOpen size={32} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
-              <p style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--app-text-muted, #4b5563)' }}>
+              <BookOpen size={32} style={{ margin: '0 auto 10px', opacity: 0.8, color: '#000000' }} />
+              <p style={{ fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#000000' }}>
                 Sin resultados
               </p>
             </div>
@@ -217,13 +217,13 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
                 {}
                 <div
                   style={{
-                    fontSize: '9px',
-                    fontWeight: 800,
+                    fontSize: '10px',
+                    fontWeight: 900,
                     textTransform: 'uppercase',
                     letterSpacing: '0.12em',
-                    color: 'var(--app-primary, #6366f1)',
+                    color: 'var(--app-primary, #000000)',
                     padding: '0 4px 6px',
-                    borderBottom: '1px solid var(--app-border, #2e3a4e)',
+                    borderBottom: '1px solid var(--app-border, #d1d5db)',
                     marginBottom: '6px',
                   }}
                 >
@@ -248,11 +248,11 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
                           padding: '8px 10px',
                           borderRadius: '8px',
                           border: copied
-                            ? '1px solid #22c55e'
-                            : '1px solid var(--app-border, #2e3a4e)',
+                            ? '2px solid #22c55e'
+                            : '2px solid var(--app-border, #d1d5db)',
                           background: copied
                             ? 'rgba(34,197,94,0.12)'
-                            : 'var(--app-bg, #111827)',
+                            : 'var(--app-bg, #ffffff)',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                           textAlign: 'left',
@@ -260,14 +260,14 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
                         }}
                         onMouseEnter={(e) => {
                           if (!copied) {
-                            e.currentTarget.style.background = 'var(--app-surface-alt, #161d2c)';
-                            e.currentTarget.style.borderColor = 'var(--app-primary, #6366f1)';
+                            e.currentTarget.style.background = 'var(--app-surface-alt, #f3f4f6)';
+                            e.currentTarget.style.borderColor = 'var(--app-primary, #000000)';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!copied) {
-                            e.currentTarget.style.background = 'var(--app-bg, #111827)';
-                            e.currentTarget.style.borderColor = 'var(--app-border, #2e3a4e)';
+                            e.currentTarget.style.background = 'var(--app-bg, #ffffff)';
+                            e.currentTarget.style.borderColor = 'var(--app-border, #d1d5db)';
                           }
                         }}
                       >
@@ -275,8 +275,8 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
                         <span
                           style={{
                             fontSize: '12px',
-                            fontWeight: 700,
-                            color: 'var(--app-text, #e2e8f0)',
+                            fontWeight: 900,
+                            color: 'var(--app-text, #000000)',
                             flex: 1,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -294,20 +294,20 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
                               fontFamily: 'monospace',
                               fontSize: isShort ? '15px' : '12px',
                               fontWeight: 900,
-                              color: copied ? '#22c55e' : '#f59e0b',
-                              background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.12)',
+                              color: copied ? '#15803d' : '#b45309',
+                              background: copied ? '#dcfce7' : '#fef3c7',
                               padding: isShort ? '3px 9px' : '3px 7px',
                               borderRadius: '6px',
                               letterSpacing: '0.05em',
-                              border: `1px solid ${copied ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                              border: `1px solid ${copied ? '#86efac' : '#fcd34d'}`,
                             }}
                           >
                             {product.barcode}
                           </span>
                           {copied ? (
-                            <Check size={14} style={{ color: '#22c55e' }} />
+                            <Check size={16} strokeWidth={3} style={{ color: '#15803d' }} />
                           ) : (
-                            <Copy size={12} style={{ color: 'var(--app-text-muted, #94a3b8)' }} />
+                            <Copy size={16} strokeWidth={2.5} style={{ color: 'var(--app-text-muted, #000000)' }} />
                           )}
                         </div>
                       </button>
@@ -323,11 +323,11 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
         <div
           style={{
             padding: '10px 16px',
-            borderTop: '1px solid var(--app-border, #2e3a4e)',
-            background: 'var(--app-surface-alt, #161d2c)',
-            fontSize: '10px',
-            fontWeight: 600,
-            color: 'var(--app-text-muted, #94a3b8)',
+            borderTop: '1px solid var(--app-border, #d1d5db)',
+            background: 'var(--app-surface-alt, #f3f4f6)',
+            fontSize: '11px',
+            fontWeight: 800,
+            color: 'var(--app-text-muted, #000000)',
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
             textAlign: 'center',
@@ -344,7 +344,7 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
         }
         .pqcp-list::-webkit-scrollbar { width: 5px; }
         .pqcp-list::-webkit-scrollbar-track { background: transparent; }
-        .pqcp-list::-webkit-scrollbar-thumb { background: var(--app-border, #2e3a4e); border-radius: 4px; }
+        .pqcp-list::-webkit-scrollbar-thumb { background: var(--app-border, #9ca3af); border-radius: 4px; }
       `}</style>
     </div>
   );

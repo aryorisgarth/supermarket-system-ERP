@@ -93,13 +93,18 @@ const ProtectedRoute = ({ children, allowedRoles, allowedPermissions }) => {
   if (allowedRoles || allowedPermissions) {
     const user = AuthService.getCurrentUser();
     const roleName = normalizeRoleName(user?.role?.name);
-    const roleAllowed = !allowedRoles?.length
-      || allowedRoles.some((role) => normalizeRoleName(role) === roleName);
-    if (!roleAllowed) {
-      return <Navigate to={getDefaultPathForRole(roleName)} replace />;
-    }
-    if (allowedPermissions?.length && !AuthService.hasAnyPermission(allowedPermissions)) {
-      return <Navigate to={getDefaultPathForRole(roleName)} replace />;
+    
+    if (allowedPermissions && allowedPermissions.length > 0) {
+      // Si la ruta requiere permisos específicos, el acceso se determina SOLO por los permisos.
+      if (!AuthService.hasAnyPermission(allowedPermissions)) {
+        return <Navigate to={getDefaultPathForRole(roleName)} replace />;
+      }
+    } else if (allowedRoles && allowedRoles.length > 0) {
+      // Si no hay permisos requeridos, validamos por rol
+      const roleAllowed = allowedRoles.some((role) => normalizeRoleName(role) === roleName);
+      if (!roleAllowed) {
+        return <Navigate to={getDefaultPathForRole(roleName)} replace />;
+      }
     }
   }
 

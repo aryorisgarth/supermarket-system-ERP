@@ -54,4 +54,16 @@ public interface InventoryMovementRepository extends JpaRepository<InventoryMove
 			@Param("to") LocalDateTime to);
 
 	List<InventoryMovement> findByMovementTypeOrderByCreatedAtDesc(InventoryMovementType type);
+
+	@Query(value = """
+			SELECT 
+			  DATE(m.created_at) as flow_date,
+			  SUM(CASE WHEN m.factor > 0 THEN m.quantity ELSE 0 END) as inputs,
+			  SUM(CASE WHEN m.factor < 0 THEN m.quantity ELSE 0 END) as outputs
+			FROM inventory_movements m
+			WHERE m.created_at >= :from AND m.created_at < :to
+			GROUP BY DATE(m.created_at)
+			ORDER BY flow_date ASC
+			""", nativeQuery = true)
+	List<Object[]> inventoryFlowVolumeNative(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

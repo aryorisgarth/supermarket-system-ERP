@@ -32,6 +32,8 @@ import DashboardMetricsGrid from '../components/dashboard/DashboardMetricsGrid';
 import SalesChartCard from '../components/dashboard/SalesChartCard';
 import RecentSalesCard from '../components/dashboard/RecentSalesCard';
 import TopProductsCard from '../components/dashboard/TopProductsCard';
+import InventoryFlowChartCard from '../components/dashboard/InventoryFlowChartCard';
+import TopBrandsCard from '../components/dashboard/TopBrandsCard';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
@@ -51,6 +53,8 @@ const Dashboard = () => {
   const [recentSales, setRecentSales] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [inventoryFlow, setInventoryFlow] = useState([]);
+  const [salesByBrand, setSalesByBrand] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('30days');
 
@@ -77,7 +81,7 @@ const Dashboard = () => {
       const previousTo = new Date(start.getTime() - 86400000);
       const previousFrom = new Date(previousTo.getTime() - msDiff);
 
-      const [sales, products, status, suppliers, categories, currentKpis, comparison, salesHistory, paymentData, lowStockData] = await Promise.all([
+      const [sales, products, status, suppliers, categories, currentKpis, comparison, salesHistory, paymentData, lowStockData, flowData, brandSalesData] = await Promise.all([
         DashboardService.getWeeklySales(),
         DashboardService.getTopProducts(),
         DashboardService.getInventoryStatus(),
@@ -88,6 +92,8 @@ const Dashboard = () => {
         SaleService.getAll({ size: 5 }),
         ReportService.getSalesByPaymentMethod(isoDate(start), isoDate(end)),
         ProductService.getLowStock(),
+        ReportService.getInventoryFlowVolume(isoDate(start), isoDate(end)),
+        ReportService.getSalesByBrand(isoDate(start), isoDate(end)),
       ]);
       setWeeklySales(sales || []);
       setTopProducts(products || []);
@@ -104,6 +110,8 @@ const Dashboard = () => {
         percentage: totalAmount > 0 ? (Number(p.totalSales) / totalAmount) * 100 : 0
       })));
       setLowStockProducts(lowStockData || []);
+      setInventoryFlow(flowData || []);
+      setSalesByBrand(brandSalesData || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -214,6 +222,11 @@ const Dashboard = () => {
 
           <TopProductsCard topProducts={topProducts} chartOptions={chartOptions} />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <InventoryFlowChartCard inventoryFlow={inventoryFlow} chartOptions={chartOptions} />
+        <TopBrandsCard salesByBrand={salesByBrand} money={money} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">

@@ -28,6 +28,9 @@ import com.supermarket.report.dto.PurchasesVsSalesDTO;
 import com.supermarket.report.dto.ReportKpiComparisonDTO;
 import com.supermarket.report.dto.ReportKpiDTO;
 import com.supermarket.report.dto.SalesByUserReportDTO;
+import com.supermarket.report.dto.SalesByBrandDTO;
+import com.supermarket.report.dto.PurchasesByBrandDTO;
+import com.supermarket.report.dto.InventoryFlowDTO;
 import com.supermarket.util.ExcelExportUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -142,6 +145,33 @@ public class ReportController {
 		return reportService.inventoryMovements(from, to);
 	}
 
+	@GetMapping("/sales/by-brand")
+	@Operation(summary = "Ventas por marca")
+	@PreAuthorize("hasAuthority('REPORT_VIEW')")
+	public List<SalesByBrandDTO> salesByBrand(
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+		return reportService.salesByBrand(from, to);
+	}
+
+	@GetMapping("/purchases/by-brand")
+	@Operation(summary = "Compras por marca")
+	@PreAuthorize("hasAuthority('REPORT_VIEW')")
+	public List<PurchasesByBrandDTO> purchasesByBrand(
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+		return reportService.purchasesByBrand(from, to);
+	}
+
+	@GetMapping("/inventory-flow-volume")
+	@Operation(summary = "Flujo de inventario por volumen")
+	@PreAuthorize("hasAuthority('REPORT_VIEW')")
+	public List<InventoryFlowDTO> inventoryFlowVolume(
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+		return reportService.inventoryFlowVolume(from, to);
+	}
+
 	@GetMapping("/stock-alerts/excel")
 	@Operation(summary = "Reporte de stock crítico (Excel)")
 	@PreAuthorize("hasAuthority('REPORT_VIEW')")
@@ -180,6 +210,46 @@ public class ReportController {
 		}
 		byte[] excelData = ExcelExportUtil.exportToExcel("Ventas por Cajero", headers, rows);
 		return createExcelResponse(excelData, "ventas_por_cajero.xlsx");
+	}
+
+	@GetMapping("/sales-by-brand/excel")
+	@Operation(summary = "Ventas por marca (Excel)")
+	@PreAuthorize("hasAuthority('REPORT_VIEW')")
+	public ResponseEntity<byte[]> exportSalesByBrand(
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) throws Exception {
+		List<Object[]> data = reportService.salesByBrandReport(from, to);
+		String[] headers = {"Marca", "Cant. Ventas", "Total Recaudado"};
+		List<Map<String, Object>> rows = new ArrayList<>();
+		for (Object[] row : data) {
+			Map<String, Object> map = new HashMap<>();
+			map.put(headers[0], row[0]);
+			map.put(headers[1], row[1]);
+			map.put(headers[2], row[2]);
+			rows.add(map);
+		}
+		byte[] excelData = ExcelExportUtil.exportToExcel("Ventas por Marca", headers, rows);
+		return createExcelResponse(excelData, "ventas_por_marca.xlsx");
+	}
+
+	@GetMapping("/purchases-by-brand/excel")
+	@Operation(summary = "Compras por marca (Excel)")
+	@PreAuthorize("hasAuthority('REPORT_VIEW')")
+	public ResponseEntity<byte[]> exportPurchasesByBrand(
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) throws Exception {
+		List<Object[]> data = reportService.purchasesByBrandReport(from, to);
+		String[] headers = {"Marca", "Cant. Compras", "Total Comprado"};
+		List<Map<String, Object>> rows = new ArrayList<>();
+		for (Object[] row : data) {
+			Map<String, Object> map = new HashMap<>();
+			map.put(headers[0], row[0]);
+			map.put(headers[1], row[1]);
+			map.put(headers[2], row[2]);
+			rows.add(map);
+		}
+		byte[] excelData = ExcelExportUtil.exportToExcel("Compras por Marca", headers, rows);
+		return createExcelResponse(excelData, "compras_por_marca.xlsx");
 	}
 
     @GetMapping("/inventory-kardex/excel")

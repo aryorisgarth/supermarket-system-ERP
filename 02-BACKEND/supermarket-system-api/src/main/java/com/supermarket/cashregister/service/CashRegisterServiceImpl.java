@@ -200,6 +200,8 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 		BigDecimal totalCashSales = BigDecimal.ZERO;
 		BigDecimal totalCardSales = BigDecimal.ZERO;
 		BigDecimal totalTransferSales = BigDecimal.ZERO;
+		BigDecimal totalCouponSales = BigDecimal.ZERO;
+		BigDecimal totalPointsSales = BigDecimal.ZERO;
 		long sessionsWithDifference = 0;
 
 		for (CashRegisterSession session : sessions) {
@@ -207,6 +209,8 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 			totalCashSales = totalCashSales.add(summary.cashSales());
 			totalCardSales = totalCardSales.add(summary.cardSales());
 			totalTransferSales = totalTransferSales.add(summary.transferSales());
+			totalCouponSales = totalCouponSales.add(summary.couponSales());
+			totalPointsSales = totalPointsSales.add(summary.pointsSales());
 
 			if (session.getStatus() != SessionStatus.CLOSED) {
 				continue;
@@ -227,7 +231,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 			}
 		}
 
-		BigDecimal totalSalesVolume = totalCashSales.add(totalCardSales).add(totalTransferSales);
+		BigDecimal totalSalesVolume = totalCashSales.add(totalCardSales).add(totalTransferSales).add(totalCouponSales).add(totalPointsSales);
 
 		return new CashRegisterReportDTO(
 				openSessionsCount,
@@ -239,6 +243,8 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 				totalCashSales,
 				totalCardSales,
 				totalTransferSales,
+				totalCouponSales,
+				totalPointsSales,
 				totalSalesVolume);
 	}
 
@@ -278,6 +284,8 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 		BigDecimal cashSales = nz(saleRepository.sumPaymentsBySessionIdAndMethod(session.getId(), PaymentMethod.CASH));
 		BigDecimal cardSales = nz(saleRepository.sumPaymentsBySessionIdAndMethod(session.getId(), PaymentMethod.CARD));
 		BigDecimal transferSales = nz(saleRepository.sumPaymentsBySessionIdAndMethod(session.getId(), PaymentMethod.TRANSFER));
+		BigDecimal couponSales = nz(saleRepository.sumPaymentsBySessionIdAndMethod(session.getId(), PaymentMethod.COUPON));
+		BigDecimal pointsSales = nz(saleRepository.sumPaymentsBySessionIdAndMethod(session.getId(), PaymentMethod.POINTS));
 		BigDecimal changeAmount = nz(saleRepository.sumChangeAmountBySessionId(session.getId()));
 		BigDecimal refunds = nz(creditNoteRepository.sumRefundsBySessionId(session.getId()));
 		BigDecimal manualCashIn = nz(movementRepository.sumBySessionIdAndType(session.getId(), CashMovementType.CASH_IN));
@@ -295,6 +303,8 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 				cashSales,
 				cardSales,
 				transferSales,
+				couponSales,
+				pointsSales,
 				changeAmount,
 				refunds,
 				manualCashIn,
