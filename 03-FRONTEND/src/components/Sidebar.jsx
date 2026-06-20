@@ -175,11 +175,12 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
           ...section,
           items: section.items.filter((item) => {
             const permissions = Array.isArray(item.permissions) ? item.permissions : [];
+            const roleAllowed = item.roles ? item.roles.includes(roleName) : true;
+            
             if (permissions.length > 0) {
-              return AuthService.hasAnyPermission(permissions);
+              return roleAllowed && AuthService.hasAnyPermission(permissions);
             }
             
-            const roleAllowed = item.roles && item.roles.includes(roleName);
             return roleAllowed;
           }),
         }))

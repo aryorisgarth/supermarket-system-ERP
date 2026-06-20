@@ -115,7 +115,7 @@ export const useBilling = () => {
       try {
         searchData.setLoading(true);
         let foundProduct = null;
-        const isLikelyBarcode = /^[a-zA-Z0-9_-]{3,}$/.test(code);
+        const isLikelyBarcode = code.length >= 4 && /^[a-zA-Z0-9_-]{3,}$/.test(code);
 
         if (isLikelyBarcode) {
           try {
@@ -126,8 +126,10 @@ export const useBilling = () => {
         }
 
         if (!foundProduct) {
+          const strippedCode = code.replace(/^0+/, '');
           const matches = searchData.products.filter(p => 
             p.barcode === code || 
+            (p.barcode && p.barcode.replace(/^0+/, '') === strippedCode) ||
             p.name?.toLowerCase().includes(code.toLowerCase())
           );
           if (matches.length > 0) foundProduct = matches[0];
@@ -144,7 +146,8 @@ export const useBilling = () => {
           }
           searchData.setSearchQuery('');
           if (isLikelyBarcode) {
-            cartData.addToCartWithQuantity(foundProduct, 1);
+            const qty = foundProduct.prefilledQuantity != null ? Number(foundProduct.prefilledQuantity) : 1;
+            cartData.addToCartWithQuantity(foundProduct, qty);
             const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1000 });
             Toast.fire({ icon: 'success', title: `Añadido: ${foundProduct.name}` });
           } else {

@@ -63,6 +63,7 @@ public class ProductServiceImpl implements ProductService {
 	private final InventoryLedger inventoryLedger;
 	private final ProductUomConversionRepository productUomConversionRepository;
 	private final BrandRepository brandRepository;
+	private final BarcodeParserService barcodeParserService;
 
 	@Override
 	public org.springframework.data.domain.Page<ProductResponseDTO> findAll(org.springframework.data.domain.Pageable pageable) {
@@ -115,7 +116,19 @@ public class ProductServiceImpl implements ProductService {
 
 	@Override
 	public ProductResponseDTO findByBarcode(String barcode) {
-		var uomOpt = productUomConversionRepository.findByBarcode(barcode.trim());
+		String targetBarcode = barcode.trim();
+		BigDecimal parsedWeight = null;
+		
+		BarcodeParserService.ParsedBarcode parsed = barcodeParserService.parse(targetBarcode);
+		if (parsed.isScaleBarcode()) {
+			targetBarcode = parsed.plu();
+			parsedWeight = parsed.weight();
+		}
+
+		final String finalTargetBarcode = targetBarcode;
+		final BigDecimal finalParsedWeight = parsedWeight;
+
+		var uomOpt = productUomConversionRepository.findByBarcode(finalTargetBarcode);
 		if (uomOpt.isPresent()) {
 			ProductUomConversion conversion = uomOpt.get();
 			Product product = conversion.getProduct();
@@ -143,13 +156,59 @@ public class ProductServiceImpl implements ProductService {
 				response.brand(),
 				response.minStockExhibicion(),
 				response.createdAt(),
-				response.updatedAt()
+				response.updatedAt(),
+				finalParsedWeight
 			);
 		}
 
-		Product product = productRepository.findByBarcode(barcode.trim())
-				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-		return productMapper.toResponse(product);
+		Product product = productRepository.findByBarcode(finalTargetBarcode)
+				.orElseGet(() -> {
+					// Fallback: Si el usuario guardó el código EAN-13 completo en la BD (ej. 2001593000000)
+					// pero el cajero escaneó un código generado con peso (parsedWeight != null) 
+					// O el cajero tecleó manualmente el código corto "1593" en el buscador.
+					if (finalParsedWeight != null || finalTargetBarcode.length() <= 5) {
+						String searchPlu = finalTargetBarcode.replaceFirst("^0+(?!$)", "");
+						List<Product> allProducts = productRepository.findAll();
+						for (Product p : allProducts) {
+							if (p.getBarcode() != null && p.getBarcode().length() == 13 && p.getBarcode().startsWith("20")) {
+								String pPlu = p.getBarcode().substring(2, 7).replaceFirst("^0+(?!$)", "");
+								if (pPlu.equals(searchPlu)) {
+									return p;
+								}
+							}
+						}
+					}
+					throw new ResourceNotFoundException("Product not found");
+				});
+		ProductResponseDTO response = productMapper.toResponse(product);
+		if (finalParsedWeight != null) {
+			return new ProductResponseDTO(
+				response.id(),
+				response.barcode(),
+				response.name(),
+				response.description(),
+				response.purchasePrice(),
+				response.salePrice(),
+				response.currentStock(),
+				response.minimumStock(),
+				response.taxCategory(),
+				response.isActive(),
+				response.category(),
+				response.supplier(),
+				response.purchasePacks(),
+				response.uomBase(),
+				response.uomConversions(),
+				response.scannedConversion(),
+				response.requiresBatch(),
+				response.requiresExpiration(),
+				response.brand(),
+				response.minStockExhibicion(),
+				response.createdAt(),
+				response.updatedAt(),
+				finalParsedWeight
+			);
+		}
+		return response;
 	}
 
 	@Override

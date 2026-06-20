@@ -16,7 +16,7 @@ export const getStockBadge = (stock, minStock = 5) => {
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-650 text-[11px] font-bold border border-emerald-150 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/40 shadow-sm">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-gray-900 text-[11px] font-bold border border-emerald-200 dark:bg-emerald-950/40 dark:text-gray-100 dark:border-emerald-900/40 shadow-sm">
       Disponible ({stock})
     </span>
   );

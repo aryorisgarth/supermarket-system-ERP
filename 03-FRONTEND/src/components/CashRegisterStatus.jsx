@@ -54,7 +54,8 @@ const CashRegisterStatus = ({ compact = false, className = '' }) => {
       preConfirm: () => {
         const amount = document.getElementById('cash-movement-amount').value;
         const reason = document.getElementById('cash-movement-reason').value;
-        if (!amount || amount <= 0) {
+        const parsedAmount = parseFloat(String(amount).replace(/,/g, ''));
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
           Swal.showValidationMessage('Ingresa un monto mayor que cero');
           return false;
         }
@@ -62,7 +63,7 @@ const CashRegisterStatus = ({ compact = false, className = '' }) => {
           Swal.showValidationMessage('Indica el motivo');
           return false;
         }
-        return { amount: parseFloat(amount), reason };
+        return { amount: parsedAmount, reason };
       },
     });
 
@@ -134,25 +135,29 @@ const CashRegisterStatus = ({ compact = false, className = '' }) => {
         const countedCard = document.getElementById('swal-card').value || 0;
         const countedTransfer = document.getElementById('swal-transfer').value || 0;
         const notes = document.getElementById('swal-notes').value;
-        if (!actualClosingBalance || actualClosingBalance < 0) {
-          Swal.showValidationMessage('Debes ingresar el efectivo contado');
+        const parsedCash = parseFloat(String(actualClosingBalance).replace(/,/g, ''));
+        const parsedCard = parseFloat(String(countedCard).replace(/,/g, ''));
+        const parsedTransfer = parseFloat(String(countedTransfer).replace(/,/g, ''));
+
+        if (isNaN(parsedCash) || parsedCash < 0) {
+          Swal.showValidationMessage('Debes ingresar el efectivo contado válido');
           return false;
         }
-        if (countedCard < 0 || countedTransfer < 0) {
-          Swal.showValidationMessage('Los montos contados no pueden ser negativos');
+        if (isNaN(parsedCard) || parsedCard < 0 || isNaN(parsedTransfer) || parsedTransfer < 0) {
+          Swal.showValidationMessage('Los montos contados no pueden ser negativos ni inválidos');
           return false;
         }
 
-        const diff = Math.abs(parseFloat(actualClosingBalance) - (summary?.expectedCash || 0));
+        const diff = Math.abs(parsedCash - (summary?.expectedCash || 0));
         if (diff > 1.00 && !notes.trim()) {
           Swal.showValidationMessage('Se requiere una nota justificando la diferencia (mayor a $1.00)');
           return false;
         }
 
         return {
-          actualClosingBalance: parseFloat(actualClosingBalance),
-          countedCard: parseFloat(countedCard),
-          countedTransfer: parseFloat(countedTransfer),
+          actualClosingBalance: parsedCash,
+          countedCard: parsedCard,
+          countedTransfer: parsedTransfer,
           notes,
         };
       },

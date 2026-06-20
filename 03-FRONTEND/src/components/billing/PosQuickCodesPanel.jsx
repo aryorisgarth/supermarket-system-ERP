@@ -1,17 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, Check, Copy, Search, Tag, X } from 'lucide-react';
-
+import { BookOpen, Check, Copy, Search, Tag, X, Layers, Box } from 'lucide-react';
 
 const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
   const [search, setSearch] = useState('');
   const [copiedId, setCopiedId] = useState(null);
+  const [groupBy, setGroupBy] = useState('category'); // 'category' | 'brand'
   const searchRef = useRef(null);
 
-  
   const pluProducts = useMemo(() => {
-    return products.filter(
-      (p) => p.barcode && p.isActive !== false && p.barcode.length <= 12
-    );
+    return products.filter((p) => {
+      if (!p.barcode || p.isActive === false) return false;
+      const barcodeStr = String(p.barcode).trim();
+      const stripped = barcodeStr.replace(/^0+/, '');
+      if (stripped.length < 12 && stripped.length > 0) return true;
+      if (barcodeStr.length === 13 && barcodeStr.startsWith('20')) return true;
+      return false;
+    }).map(p => {
+      const barcodeStr = String(p.barcode);
+      if (barcodeStr.length === 13 && barcodeStr.startsWith('20')) {
+        const extractedPlu = barcodeStr.substring(2, 7).replace(/^0+/, '');
+        return { ...p, displayBarcode: extractedPlu };
+      }
+      return { ...p, displayBarcode: barcodeStr };
+    });
   }, [products]);
 
   const filtered = useMemo(() => {
@@ -21,20 +32,27 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
       (p) =>
         p.name?.toLowerCase().includes(q) ||
         p.barcode?.toLowerCase().includes(q) ||
-        p.categoryName?.toLowerCase().includes(q)
+        p.displayBarcode?.toLowerCase().includes(q) ||
+        p.category?.name?.toLowerCase().includes(q) ||
+        p.brand?.name?.toLowerCase().includes(q)
     );
   }, [pluProducts, search]);
 
-  
   const grouped = useMemo(() => {
     const map = new Map();
     filtered.forEach((p) => {
-      const cat = p.categoryName || 'Sin Categoría';
-      if (!map.has(cat)) map.set(cat, []);
-      map.get(cat).push(p);
+      let key = 'Otros';
+      if (groupBy === 'category') {
+        key = p.category?.name || 'Sin Categoría';
+      } else if (groupBy === 'brand') {
+        key = p.brand?.name || 'Sin Marca';
+      }
+      
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(p);
     });
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [filtered]);
+  }, [filtered, groupBy]);
 
   useEffect(() => {
     if (open) {
@@ -53,15 +71,12 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
   }, [open, onClose]);
 
   const handleSelectCode = (product) => {
-    
-    navigator.clipboard.writeText(product.barcode).catch(() => {});
+    navigator.clipboard.writeText(product.displayBarcode).catch(() => {});
     setCopiedId(product.id);
     setTimeout(() => setCopiedId(null), 1500);
 
-    
-    onSelectCode?.(product.barcode);
+    onSelectCode?.(product.displayBarcode);
 
-    
     setTimeout(() => {
       const input = document.getElementById('pos-search-input');
       if (input) {
@@ -75,165 +90,100 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
 
   return (
     <div
-      className="pqcp-backdrop fixed inset-0 z-50 flex items-stretch justify-end"
-      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)' }}
+      className="fixed inset-0 z-50 flex items-stretch justify-end bg-black/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="pqcp-panel flex flex-col shadow-2xl"
-        style={{
-          width: '360px',
-          maxWidth: '92vw',
-          height: '100%',
-          background: 'var(--app-surface, #ffffff)',
-          borderLeft: '1px solid var(--app-border, #d1d5db)',
-          animation: 'pqcp-slide-in 0.22s cubic-bezier(.16,1,.3,1)',
-        }}
+        className="flex flex-col shadow-2xl w-[360px] max-w-[92vw] h-full bg-white border-l border-gray-300 animate-in slide-in-from-right duration-200"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Panel de Códigos Cortos PLU"
       >
-        {}
-        <header
-          style={{
-            padding: '14px 16px 10px',
-            borderBottom: '1px solid var(--app-border, #d1d5db)',
-            background: 'var(--app-surface-alt, #f3f4f6)',
-          }}
-        >
+        <header className="px-4 pt-4 pb-3 border-b border-gray-200 bg-gray-50/80">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Tag size={18} style={{ color: 'var(--app-primary, #6366f1)' }} />
-              <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 900,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  color: 'var(--app-text, #000000)',
-                }}
-              >
+              <Tag size={18} className="text-primary" />
+              <span className="text-[13px] font-black uppercase tracking-widest text-gray-900">
                 Códigos PLU
               </span>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  padding: '2px 7px',
-                  borderRadius: '20px',
-                  background: 'var(--app-primary, #6366f1)',
-                  color: '#fff',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                {pluProducts.length}
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white tracking-wider">
+                {pluProducts.length} (Memoria: {products?.length || 0})
               </span>
             </div>
             <button
               type="button"
               onClick={onClose}
               title="Cerrar (Esc)"
-              style={{
-                width: '30px',
-                height: '30px',
-                borderRadius: '8px',
-                border: '1px solid var(--app-border, #9ca3af)',
-                background: '#e5e7eb',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--app-text-muted, #000000)',
-              }}
+              className="w-8 h-8 rounded-lg border border-gray-300 bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 transition-colors"
             >
               <X size={16} strokeWidth={3} />
             </button>
           </div>
-          <p
-            style={{
-              fontSize: '10px',
-              fontWeight: 800,
-              color: 'var(--app-text-muted, #4b5563)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-            }}
-          >
+          <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">
             Clic en el código → copia y envía al POS · Esc = cerrar
           </p>
         </header>
 
-        {}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 14px',
-            borderBottom: '1px solid var(--app-border, #d1d5db)',
-            background: 'var(--app-surface-alt, #f3f4f6)',
-          }}
-        >
-          <Search size={16} strokeWidth={2.5} style={{ color: 'var(--app-text-muted, #000000)', flexShrink: 0 }} />
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-200 bg-white">
+          <Search size={16} strokeWidth={2.5} className="text-gray-400 shrink-0" />
           <input
             ref={searchRef}
             type="text"
-            placeholder="Filtrar por nombre, código o categoría…"
+            placeholder="Filtrar por nombre, código..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              fontSize: '13px',
-              fontWeight: 800,
-              color: 'var(--app-text, #000000)',
-            }}
+            className="flex-1 bg-transparent border-none outline-none text-[13px] font-bold text-gray-900 placeholder:text-gray-400"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-text-muted, #000000)', padding: 0 }}
+              className="text-gray-400 hover:text-gray-600 p-1"
             >
               <X size={15} strokeWidth={3} />
             </button>
           )}
         </div>
 
-        {}
-        <div className="pqcp-list" style={{ flex: 1, overflowY: 'auto', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="flex bg-gray-100 p-1 border-b border-gray-200">
+          <button
+            onClick={() => setGroupBy('category')}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors ${
+              groupBy === 'category' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Layers size={14} />
+            Categorías
+          </button>
+          <button
+            onClick={() => setGroupBy('brand')}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors ${
+              groupBy === 'brand' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Box size={14} />
+            Marcas
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-4 scrollbar-thin scrollbar-thumb-gray-300">
           {grouped.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--app-text-muted, #4b5563)' }}>
-              <BookOpen size={32} style={{ margin: '0 auto 10px', opacity: 0.8, color: '#000000' }} />
-              <p style={{ fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#000000' }}>
+            <div className="text-center py-10 text-gray-500">
+              <BookOpen size={32} className="mx-auto mb-2 opacity-80" />
+              <p className="text-xs font-black uppercase tracking-wider">
                 Sin resultados
               </p>
             </div>
           ) : (
-            grouped.map(([category, items]) => (
-              <div key={category}>
-                {}
-                <div
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: 900,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                    color: 'var(--app-primary, #000000)',
-                    padding: '0 4px 6px',
-                    borderBottom: '1px solid var(--app-border, #d1d5db)',
-                    marginBottom: '6px',
-                  }}
-                >
-                  {category}
+            grouped.map(([groupName, items]) => (
+              <div key={groupName}>
+                <div className="text-[10px] font-black uppercase tracking-[0.12em] text-primary px-1 pb-1.5 border-b border-gray-200 mb-2">
+                  {groupName}
                 </div>
-                {}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div className="flex flex-col gap-1.5">
                   {items.map((product) => {
                     const copied = copiedId === product.id;
-                    const isShort = product.barcode.length <= 6;
 
                     return (
                       <button
@@ -241,73 +191,30 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
                         type="button"
                         onClick={() => handleSelectCode(product)}
                         title={`Código: ${product.barcode} — Clic para enviar al POS`}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 10px',
-                          borderRadius: '8px',
-                          border: copied
-                            ? '2px solid #22c55e'
-                            : '2px solid var(--app-border, #d1d5db)',
-                          background: copied
-                            ? 'rgba(34,197,94,0.12)'
-                            : 'var(--app-bg, #ffffff)',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                          textAlign: 'left',
-                          gap: '10px',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!copied) {
-                            e.currentTarget.style.background = 'var(--app-surface-alt, #f3f4f6)';
-                            e.currentTarget.style.borderColor = 'var(--app-primary, #000000)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!copied) {
-                            e.currentTarget.style.background = 'var(--app-bg, #ffffff)';
-                            e.currentTarget.style.borderColor = 'var(--app-border, #d1d5db)';
-                          }
-                        }}
+                        className={`flex items-center justify-between px-2.5 py-2 rounded-lg border-2 text-left gap-2 transition-colors ${
+                          copied 
+                            ? 'border-green-500 bg-green-50' 
+                            : 'border-gray-200 bg-white hover:border-primary hover:bg-gray-50'
+                        }`}
                       >
-                        {}
-                        <span
-                          style={{
-                            fontSize: '12px',
-                            fontWeight: 900,
-                            color: 'var(--app-text, #000000)',
-                            flex: 1,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            textTransform: 'uppercase',
-                          }}
-                        >
+                        <span className="text-xs font-bold text-gray-900 flex-1 overflow-hidden text-ellipsis whitespace-nowrap uppercase">
                           {product.name}
                         </span>
 
-                        {}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <span
-                            style={{
-                              fontFamily: 'monospace',
-                              fontSize: isShort ? '15px' : '12px',
-                              fontWeight: 900,
-                              color: copied ? '#15803d' : '#b45309',
-                              background: copied ? '#dcfce7' : '#fef3c7',
-                              padding: isShort ? '3px 9px' : '3px 7px',
-                              borderRadius: '6px',
-                              letterSpacing: '0.05em',
-                              border: `1px solid ${copied ? '#86efac' : '#fcd34d'}`,
-                            }}
+                            className={`font-mono text-sm font-black px-2 py-0.5 rounded-md tracking-wider border ${
+                              copied 
+                                ? 'text-green-700 bg-green-100 border-green-300' 
+                                : 'text-amber-700 bg-amber-50 border-amber-300'
+                            }`}
                           >
-                            {product.barcode}
+                            {product.displayBarcode}
                           </span>
                           {copied ? (
-                            <Check size={16} strokeWidth={3} style={{ color: '#15803d' }} />
+                            <Check size={16} strokeWidth={3} className="text-green-700" />
                           ) : (
-                            <Copy size={16} strokeWidth={2.5} style={{ color: 'var(--app-text-muted, #000000)' }} />
+                            <Copy size={16} strokeWidth={2.5} className="text-gray-400" />
                           )}
                         </div>
                       </button>
@@ -319,33 +226,10 @@ const PosQuickCodesPanel = ({ open, products = [], onClose, onSelectCode }) => {
           )}
         </div>
 
-        {}
-        <div
-          style={{
-            padding: '10px 16px',
-            borderTop: '1px solid var(--app-border, #d1d5db)',
-            background: 'var(--app-surface-alt, #f3f4f6)',
-            fontSize: '11px',
-            fontWeight: 800,
-            color: 'var(--app-text-muted, #000000)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            textAlign: 'center',
-          }}
-        >
+        <div className="p-2.5 border-t border-gray-200 bg-gray-50 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
           F6 = Abrir/Cerrar · Esc = Cerrar
         </div>
       </div>
-
-      <style>{`
-        @keyframes pqcp-slide-in {
-          from { transform: translateX(100%); opacity: 0; }
-          to   { transform: translateX(0);   opacity: 1; }
-        }
-        .pqcp-list::-webkit-scrollbar { width: 5px; }
-        .pqcp-list::-webkit-scrollbar-track { background: transparent; }
-        .pqcp-list::-webkit-scrollbar-thumb { background: var(--app-border, #9ca3af); border-radius: 4px; }
-      `}</style>
     </div>
   );
 };

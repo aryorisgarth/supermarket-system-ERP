@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balanza Comercial - Modo Operador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    
+    <!-- Estilos Modulares -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="bg-gray-200 text-gray-800 h-screen flex items-center justify-center font-sans overflow-hidden">
+
+    <div class="bg-white border border-gray-300 rounded-2xl w-full max-w-6xl corporate-shadow overflow-hidden flex flex-col md:flex-row h-[750px] max-h-[95vh]">
+
+        <div class="md:w-3/5 flex flex-col justify-between border-r border-gray-200 bg-gray-50 h-full">
+
+            <div class="bg-blue-800 text-white p-4 flex justify-between items-center shadow-md z-10 shrink-0">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 12h5" />
+                        <path d="M17 12h5" />
+                        <path d="M7 12a5 5 0 0 0 10 0" />
+                        <path d="M12 7v5" />
+                    </svg>
+                    <h1 class="text-2xl font-black tracking-wide uppercase">Balanza Comercial</h1>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                    <div class="text-sm font-bold opacity-80 uppercase tracking-wider">Terminal 01</div>
+                    <div id="erpStatus" class="text-xs bg-white/10 px-2 py-1 rounded shadow-inner">Conectando...</div>
+                </div>
+            </div>
+
+            <div class="p-6 flex-1 flex flex-col gap-6 overflow-hidden">
+
+                <div class="flex-1 min-h-[200px] flex flex-col overflow-hidden bg-white rounded-xl border-2 border-gray-200 p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-gray-500 text-sm font-bold uppercase tracking-widest block">CATÁLOGO DE PRODUCTOS (PLU)</label>
+                        <select id="categorySelect" onchange="window.renderProducts()" class="bg-gray-100 border border-gray-300 text-gray-700 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 font-bold outline-none cursor-pointer">
+                            <option value="ALL">Todas las Categorías</option>
+                        </select>
+                    </div>
+                    <div id="productsContainer" class="flex-1 overflow-y-auto category-scroll grid grid-cols-3 sm:grid-cols-4 gap-3 pr-2 pb-2 content-start">
+                        <div class="col-span-full flex items-center justify-center h-32 text-gray-400 font-bold animate-pulse">
+                            Cargando catálogo del ERP...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 shrink-0">
+                    <div class="bg-white p-4 rounded-xl border-2 border-gray-300 shadow-sm focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100 transition-all">
+                        <label class="text-gray-500 text-xs font-bold uppercase tracking-widest block mb-1">CÓDIGO PLU</label>
+                        <input type="text" id="pluInput" placeholder="Ej: 1593" maxlength="6"
+                            class="bg-transparent text-gray-900 text-4xl font-black w-full outline-none placeholder-gray-300" />
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border-2 border-gray-300 shadow-sm focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100 transition-all">
+                        <label class="text-gray-500 text-xs font-bold uppercase tracking-widest block mb-1">PESO (LBS)</label>
+                        <input type="number" id="weightInput" placeholder="0.000" step="0.001"
+                            class="bg-transparent text-blue-700 text-4xl font-black w-full outline-none placeholder-gray-300"
+                            oninput="window.calculateTotal()" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 shrink-0">
+                    <div class="bg-white p-4 rounded-xl border-2 border-gray-300 shadow-sm focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100 transition-all">
+                        <label class="text-gray-500 text-xs font-bold uppercase tracking-widest block mb-1">PRECIO X LB ($)</label>
+                        <input type="number" id="priceInput" placeholder="0.00" step="0.01"
+                            class="bg-transparent text-gray-900 text-3xl font-bold w-full outline-none placeholder-gray-300"
+                            oninput="window.calculateTotal()" />
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200 flex flex-col justify-center shadow-inner">
+                        <label class="text-blue-600 text-xs font-bold uppercase tracking-widest block mb-1">TOTAL A PAGAR ($)</label>
+                        <div id="totalDisplay" class="text-blue-900 text-4xl font-black tracking-tight">
+                            0.00
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="p-6 bg-white border-t border-gray-200 shrink-0">
+                <button onclick="window.generateLabel()" id="printBtn"
+                    class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-black text-xl py-4 rounded-xl shadow-lg hover:shadow-xl active:translate-y-1 transition-all uppercase tracking-widest flex justify-center items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    Imprimir Etiqueta
+                </button>
+            </div>
+        </div>
+
+        <div class="md:w-2/5 bg-gray-300 flex flex-col items-center justify-center relative p-8 shadow-inner overflow-hidden h-full">
+
+            <div id="labelContainer"
+                class="bg-white p-6 rounded-sm shadow-2xl w-full max-w-[320px] border border-gray-200 transform scale-95 opacity-50 transition-all duration-500 relative">
+                <div class="absolute -top-1 left-0 right-0 h-2 bg-gray-300"
+                    style="clip-path: polygon(0 0, 5% 100%, 10% 0, 15% 100%, 20% 0, 25% 100%, 30% 0, 35% 100%, 40% 0, 45% 100%, 50% 0, 55% 100%, 60% 0, 65% 100%, 70% 0, 75% 100%, 80% 0, 85% 100%, 90% 0, 95% 100%, 100% 0);">
+                </div>
+
+                <div class="text-center font-black text-2xl mb-1 border-b-4 border-black pb-3 pt-2 tracking-tighter">
+                    SUPERMERCADO
+                </div>
+
+                <div class="flex justify-between mt-4 text-base font-bold">
+                    <span>PLU:</span>
+                    <span id="lblPlu" class="text-xl">--</span>
+                </div>
+
+                <div class="flex justify-between mt-2 text-base">
+                    <span class="font-bold">PESO NETO:</span>
+                    <span><span id="lblWeight" class="text-2xl font-black">0.000</span> lb</span>
+                </div>
+
+                <div class="flex justify-between mt-2 text-base text-gray-600">
+                    <span class="font-bold">PRECIO X LB:</span>
+                    <span>$<span id="lblPrice">0.00</span></span>
+                </div>
+
+                <div class="flex justify-between mt-4 mb-3 bg-gray-100 p-2 rounded border border-gray-300">
+                    <span class="font-black text-lg">TOTAL:</span>
+                    <span class="font-black text-2xl">$<span id="lblTotal">0.00</span></span>
+                </div>
+
+                <div class="flex justify-between mt-2 text-sm text-gray-500 mb-4 font-bold">
+                    <span>FECHA:</span>
+                    <span id="lblDate">--/--/----</span>
+                </div>
+
+                <div class="mt-2 flex justify-center bg-white p-2">
+                    <svg id="barcode"></svg>
+                </div>
+                <div id="rawBarcodeDisplay"
+                    class="text-center text-sm font-mono font-bold mt-1 tracking-widest text-gray-600"></div>
+
+            </div>
+
+            <div id="helpText" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div class="bg-gray-800 text-white px-6 py-3 rounded-full font-bold shadow-lg animate-bounce text-center max-w-[80%]">
+                    Seleccione un producto, ingrese peso y presione Imprimir
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Lógica Modular de la Balanza -->
+    <script src="js/app.js"></script>
+</body>
+
+</html>

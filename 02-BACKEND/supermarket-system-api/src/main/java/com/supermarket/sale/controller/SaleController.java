@@ -47,8 +47,12 @@ public class SaleController {
 	@Operation(summary = "Listar ventas", description = "Retorna ventas paginadas ordenadas por fecha descendente. Usa ?page=0&size=20")
 	public ResponseEntity<Page<SaleSummaryResponseDTO>> list(
 			@RequestParam(required = false) String q,
+			@RequestParam(required = false) Long userId,
+			@RequestParam(required = false) com.supermarket.sale.model.SaleStatus status,
+			@RequestParam(required = false) java.time.LocalDateTime fromDate,
+			@RequestParam(required = false) java.time.LocalDateTime toDate,
 			@PageableDefault(size = 20, sort = "saleDate") Pageable pageable) {
-		return ResponseEntity.ok(saleService.findAll(q, pageable));
+		return ResponseEntity.ok(saleService.findAll(q, userId, status, fromDate, toDate, pageable));
 	}
 
 	@GetMapping("/{id}")

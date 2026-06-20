@@ -103,7 +103,8 @@ public class ProductMapper {
 			brandResponse,
 			entity.getMinStockExhibicion(),
 			entity.getCreatedAt(),
-			entity.getUpdatedAt()
+			entity.getUpdatedAt(),
+			null
 		);
 	}
 

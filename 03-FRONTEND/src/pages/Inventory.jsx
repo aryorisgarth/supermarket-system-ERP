@@ -172,20 +172,20 @@ const Inventory = () => {
         categoriesCount={categories.length}
       />
 
-      <div className="ui-tabs-scroll flex gap-1 border-b border-[var(--app-border)]">
+      <div className="flex bg-[var(--app-surface)] dark:bg-[var(--app-bg-subtle)] p-1.5 rounded-2xl border border-[var(--app-border)] shadow-sm w-fit max-w-full overflow-x-auto my-6 gap-1">
         <button
           onClick={() => {
             setActiveTab('ALL');
             setCatFilter('');
             setSupFilter('');
           }}
-          className={`flex items-center gap-2 pb-3 px-6 font-bold text-xs uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center justify-center gap-2 py-2.5 px-6 font-bold text-[11px] uppercase tracking-wider rounded-xl transition-all duration-300 whitespace-nowrap ${
             activeTab === 'ALL'
-              ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]/30'
-              : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'text-[var(--app-text-soft)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg)]'
           }`}
         >
-          <Package size={14} />
+          <Package size={16} />
           Gestión de Productos
         </button>
         <button
@@ -194,13 +194,13 @@ const Inventory = () => {
             setCatFilter('');
             setSupFilter('');
           }}
-          className={`flex items-center gap-2 pb-3 px-6 font-bold text-xs uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center justify-center gap-2 py-2.5 px-6 font-bold text-[11px] uppercase tracking-wider rounded-xl transition-all duration-300 whitespace-nowrap ${
             activeTab === 'CATALOG'
-              ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]/30'
-              : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'
+              ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+              : 'text-[var(--app-text-soft)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg)]'
           }`}
         >
-          <Tag size={14} />
+          <Tag size={16} />
           Catálogo Comercial
         </button>
         <button
@@ -209,16 +209,13 @@ const Inventory = () => {
             setCatFilter('');
             setSupFilter('');
           }}
-          className={`flex items-center gap-2 pb-3 px-6 font-bold text-xs uppercase tracking-widest border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`flex items-center justify-center gap-2 py-2.5 px-6 font-bold text-[11px] uppercase tracking-wider rounded-xl transition-all duration-300 whitespace-nowrap ${
             activeTab === 'LOW_STOCK'
-              ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]/30'
-              : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'
+              ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20'
+              : 'text-[var(--app-text-soft)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg)]'
           }`}
         >
-          <AlertTriangle
-            size={14}
-            className={activeTab === 'LOW_STOCK' ? 'text-[var(--app-danger)]' : 'text-amber-500'}
-          />
+          <AlertTriangle size={16} />
           Alertas de Stock Bajo
         </button>
       </div>

@@ -14,7 +14,7 @@ import com.supermarket.sale.dto.SaleSummaryResponseDTO;
 
 public interface SaleService {
 
-	Page<SaleSummaryResponseDTO> findAll(String search, Pageable pageable);
+	Page<SaleSummaryResponseDTO> findAll(String search, Long userId, com.supermarket.sale.model.SaleStatus status, java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, Pageable pageable);
 
 	SaleResponseDTO findById(Long id);
 

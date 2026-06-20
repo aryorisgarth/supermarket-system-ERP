@@ -42,8 +42,18 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 			WHERE (:search IS NULL OR LOWER(s.invoiceNumber) LIKE LOWER(CONCAT('%', :search, '%'))
 				OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%'))
 				OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :search, '%')))
+			AND (:userId IS NULL OR u.id = :userId)
+			AND (:status IS NULL OR s.status = :status)
+			AND (CAST(:fromDate AS timestamp) IS NULL OR s.saleDate >= :fromDate)
+			AND (CAST(:toDate AS timestamp) IS NULL OR s.saleDate <= :toDate)
 			""")
-	Page<Sale> searchPage(@Param("search") String search, Pageable pageable);
+	Page<Sale> searchPage(
+			@Param("search") String search,
+			@Param("userId") Long userId,
+			@Param("status") SaleStatus status,
+			@Param("fromDate") LocalDateTime fromDate,
+			@Param("toDate") LocalDateTime toDate,
+			Pageable pageable);
 
 	List<Sale> findAllByOrderBySaleDateDesc();
 

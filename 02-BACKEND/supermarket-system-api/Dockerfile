@@ -2,9 +2,8 @@
 FROM maven:3.9.9-eclipse-temurin-17-alpine AS build
 WORKDIR /app
 COPY pom.xml .
-RUN mvn -B -q dependency:go-offline
 COPY src ./src
-RUN mvn -B -q package -DskipTests
+RUN mvn -B package -DskipTests
 
 # Runtime (Debian: cliente MySQL 8 compatible con caching_sha2_password del host)
 FROM eclipse-temurin:17-jre-jammy

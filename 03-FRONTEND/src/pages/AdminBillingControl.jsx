@@ -14,6 +14,20 @@ import AdminBillingDetailModal from '../components/billing/AdminBillingDetailMod
 
 const AdminBillingControl = () => {
   const loadPage = useCallback((params) => SaleService.getPage(params), []);
+  const [filterUserId, setFilterUserId] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterFromDate, setFilterFromDate] = useState('');
+  const [filterToDate, setFilterToDate] = useState('');
+
+  const buildParams = useCallback(() => {
+    const params = {};
+    if (filterUserId) params.userId = filterUserId;
+    if (filterStatus) params.status = filterStatus;
+    if (filterFromDate) params.fromDate = `${filterFromDate}T00:00:00`;
+    if (filterToDate) params.toDate = `${filterToDate}T23:59:59`;
+    return params;
+  }, [filterUserId, filterStatus, filterFromDate, filterToDate]);
+
   const {
     items: sales,
     loading,
@@ -28,7 +42,12 @@ const AdminBillingControl = () => {
     indexOfLastItem,
     handlePageChange,
     handleItemsPerPageChange,
-  } = useBackendList({ loadPage, sort: 'saleDate,desc' });
+  } = useBackendList({ 
+    loadPage, 
+    sort: 'saleDate,desc',
+    buildParams,
+    filterDeps: [filterUserId, filterStatus, filterFromDate, filterToDate]
+  });
 
   const [selectedSale, setSelectedSale] = useState(null);
   const [saleDetails, setSaleDetails] = useState(null);
@@ -152,7 +171,15 @@ const AdminBillingControl = () => {
     <div className="space-y-8 animate-in fade-in duration-300">
       <AdminBillingHeader 
         searchTerm={searchTerm} 
-        setSearchTerm={setSearchTerm} 
+        setSearchTerm={setSearchTerm}
+        filterUserId={filterUserId}
+        setFilterUserId={setFilterUserId}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        filterFromDate={filterFromDate}
+        setFilterFromDate={setFilterFromDate}
+        filterToDate={filterToDate}
+        setFilterToDate={setFilterToDate}
       />
 
       {loading ? (

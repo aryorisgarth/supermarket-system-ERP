@@ -66,23 +66,23 @@ const InventoryTable = ({
           <tbody className="divide-y divide-[var(--app-border)]">
             {products.map((product) => (
               <React.Fragment key={product.id}>
-                <tr className={`group hover:bg-[var(--app-bg-subtle)]/50 transition-all ${!product.isActive ? 'bg-slate-50/50 dark:bg-slate-900/20' : ''}`}>
+                <tr className={`hover:bg-gray-50 transition-colors ${!product.isActive ? 'bg-gray-50/50' : ''}`}>
                   <td className="p-4 pl-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-white dark:bg-[var(--app-surface-raised)] shadow-sm rounded-xl flex items-center justify-center text-[var(--app-primary)] border border-[var(--app-border)] shrink-0 group-hover:scale-110 transition-all duration-300">
-                        <Package size={18} strokeWidth={2.5} />
+                      <div className="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 shrink-0">
+                        <Package size={20} strokeWidth={2} />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-[var(--app-text)] line-clamp-2 max-w-[320px] whitespace-normal leading-snug group-hover:text-[var(--app-primary)] transition-colors text-sm" title={product.name}>
+                        <p className="font-semibold text-gray-900 line-clamp-2 max-w-[320px] whitespace-normal leading-snug text-sm" title={product.name}>
                           {product.name}
                         </p>
-                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                          <Barcode size={10} className="text-[var(--app-text-muted)]" />
-                          <span className="text-[10px] text-[var(--app-text-muted)] font-bold font-mono tracking-tighter uppercase tabular-nums bg-[var(--app-bg-subtle)] px-1.5 py-0.5 rounded-md border border-[var(--app-border)]">
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <div className="flex items-center gap-1 text-[11px] text-gray-500 font-medium font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                            <Barcode size={12} />
                             {product.barcode}
-                          </span>
+                          </div>
                           {product.brand && (
-                            <span className="text-[10px] text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-300 px-1.5 py-0.5 rounded-md border border-blue-100 dark:border-blue-900 font-bold uppercase tracking-wider">
+                            <span className="text-[11px] text-gray-600 px-2 py-0.5 rounded border border-gray-200 font-medium uppercase bg-white">
                               {product.brand.name}
                             </span>
                           )}
@@ -92,25 +92,25 @@ const InventoryTable = ({
                   </td>
 
                   <td>
-                    <span className="inline-flex px-2.5 py-1 rounded-lg bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[10px] font-bold uppercase tracking-wider border border-[var(--app-primary)]/10">
+                    <span className="inline-flex px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-100 text-[11px] font-semibold uppercase tracking-wide">
                       {product.category?.name || 'General'}
                     </span>
                   </td>
 
-                  <td className="text-right font-bold text-[var(--app-text-soft)] tabular-nums">
+                  <td className="text-right font-medium text-gray-600 tabular-nums text-sm">
                     {formatMoney(product.purchasePrice)}
                   </td>
 
-                  <td className="text-right font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                  <td className="text-right font-bold text-gray-900 tabular-nums text-[15px]">
                     {formatMoney(product.salePrice)}
                   </td>
 
                   <td className="text-center">
                     <button 
                       onClick={() => onToggleStatus(product)}
-                      className={`mx-auto w-10 h-5.5 flex items-center rounded-full p-1 transition-all duration-300 cursor-pointer ${product.isActive ? 'bg-[var(--app-success)]' : 'bg-slate-300 dark:bg-slate-700'}`}
+                      className={`mx-auto w-10 h-5.5 flex items-center rounded-full p-1 transition-all duration-300 cursor-pointer ${product.isActive ? 'bg-emerald-500' : 'bg-gray-300'}`}
                     >
-                      <span className={`bg-white w-3.5 h-3.5 rounded-full shadow-lg transition-transform duration-300 ${product.isActive ? 'translate-x-4.5' : 'translate-x-0'}`} />
+                      <span className={`bg-white w-3.5 h-3.5 rounded-full shadow-sm transition-transform duration-300 ${product.isActive ? 'translate-x-4.5' : 'translate-x-0'}`} />
                     </button>
                   </td>
 
@@ -121,68 +121,60 @@ const InventoryTable = ({
                   </td>
 
                   <td className="pr-6 text-center">
-                    <div className="flex items-center justify-center gap-1">
+                    <div className="flex items-center justify-end gap-1">
                       <button 
                         onClick={() => setExpandedProductId(expandedProductId === product.id ? null : product.id)}
-                        className={`p-2 rounded-xl transition-all border border-[var(--app-border)] cursor-pointer ${
+                        className={`p-2 rounded-lg transition-all cursor-pointer border ${
                           expandedProductId === product.id
-                            ? 'bg-[var(--app-primary)] text-white border-transparent'
-                            : 'text-[var(--app-text-muted)] bg-[var(--app-bg-subtle)] hover:bg-[var(--app-primary)] hover:text-white hover:border-transparent'
+                            ? 'bg-blue-50 text-blue-600 border-blue-200'
+                            : 'bg-white text-gray-500 hover:bg-gray-50 hover:text-blue-600 border-gray-200'
                         }`}
-                        title="Ver ubicaciones y stock"
-                        aria-label="Ver ubicaciones y stock"
+                        title="Ubicaciones"
                       >
-                        <MapPin size={14} strokeWidth={2.5} />
+                        <MapPin size={16} strokeWidth={2} />
                       </button>
 
                       <button 
                         onClick={() => onOpenAdjust(product)}
-                        className="p-2 text-[var(--app-text-muted)] bg-[var(--app-bg-subtle)] hover:bg-[var(--app-primary)] hover:text-white hover:border-transparent rounded-xl transition-all border border-[var(--app-border)] cursor-pointer"
+                        className="p-2 bg-white text-gray-500 hover:bg-gray-50 hover:text-indigo-600 rounded-lg transition-all cursor-pointer border border-gray-200"
                         title="Ajuste rápido"
-                        aria-label="Ajuste rápido"
                       >
-                        <RefreshCw size={14} strokeWidth={2.5} />
+                        <RefreshCw size={16} strokeWidth={2} />
                       </button>
 
                       <button 
                         onClick={() => onOpenKardex(product)}
-                        className="p-2 text-[var(--app-text-muted)] bg-[var(--app-bg-subtle)] hover:bg-[var(--app-primary-soft)] hover:text-[var(--app-primary)] hover:border-[var(--app-primary)]/20 rounded-xl transition-all border border-[var(--app-border)] cursor-pointer"
+                        className="p-2 bg-white text-gray-500 hover:bg-gray-50 hover:text-purple-600 rounded-lg transition-all cursor-pointer border border-gray-200"
                         title="Ver Kardex"
-                        aria-label="Ver Kardex"
                       >
-                        <History size={14} strokeWidth={2.5} />
+                        <History size={16} strokeWidth={2} />
                       </button>
 
                       <button 
                         onClick={() => onOpenEdit(product)}
-                        className="p-2 text-[var(--app-text-muted)] bg-[var(--app-bg-subtle)] hover:bg-amber-500/10 hover:text-amber-600 hover:border-amber-500/20 rounded-xl transition-all border border-[var(--app-border)] cursor-pointer"
+                        className="p-2 bg-white text-gray-500 hover:bg-gray-50 hover:text-amber-500 rounded-lg transition-all cursor-pointer border border-gray-200"
                         title="Editar"
-                        aria-label="Editar producto"
                       >
-                        <Edit2 size={14} strokeWidth={2.5} />
+                        <Edit2 size={16} strokeWidth={2} />
                       </button>
 
                       <button 
                         onClick={() => onDeleteProduct(product.id, product.name)}
-                        className="p-2 text-[var(--app-text-muted)] bg-[var(--app-bg-subtle)] hover:bg-[var(--app-danger)] hover:text-white hover:border-transparent rounded-xl transition-all border border-[var(--app-border)] cursor-pointer"
+                        className="p-2 bg-white text-gray-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 rounded-lg transition-all cursor-pointer border border-gray-200"
                         title="Eliminar"
-                        aria-label="Eliminar producto"
                       >
-                        <Trash2 size={14} strokeWidth={2.5} />
+                        <Trash2 size={16} strokeWidth={2} />
                       </button>
                     </div>
                   </td>
                 </tr>
                 {expandedProductId === product.id && (
                   <tr>
-                    <td colSpan="7" className="p-4 bg-[var(--app-bg-subtle)]/40 border-b border-[var(--app-border)]">
+                    <td colSpan="7" className="p-4 bg-gray-50 border-b border-gray-200">
                       <div className="max-w-4xl mx-auto py-2">
                         <ProductLocationsSection 
                           product={product} 
-                          onStockChanged={() => {
-                            
-                            
-                          }} 
+                          onStockChanged={() => {}} 
                         />
                       </div>
                     </td>

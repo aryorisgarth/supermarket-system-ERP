@@ -10,32 +10,33 @@ const InventoryMetricsGrid = ({
 }) => {
   const StatBox = ({ title, value, icon: Icon, tone = 'blue', hint }) => {
     const toneClass = {
-      blue: 'bg-[var(--app-primary-soft)] text-[var(--app-primary)] border-[var(--app-primary)]/10',
-      green: 'bg-[var(--app-success-soft)] text-[var(--app-success)] border-[var(--app-success)]/10',
-      amber: 'bg-[var(--app-warning-soft)] text-[var(--app-warning)] border-[var(--app-warning)]/10',
-      red: 'bg-[var(--app-danger-soft)] text-[var(--app-danger)] border-[var(--app-danger)]/10',
+      blue: 'bg-blue-50 text-blue-600 border-blue-200',
+      green: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      amber: 'bg-amber-50 text-amber-600 border-amber-200',
+      red: 'bg-rose-50 text-rose-600 border-rose-200',
+      purple: 'bg-purple-50 text-purple-600 border-purple-200'
     }[tone];
 
     return (
-      <Card className="min-h-[110px] relative overflow-hidden group">
-        <div className="flex items-start justify-between gap-4">
+      <Card className="min-h-[110px] relative overflow-hidden border border-gray-200 shadow-sm bg-white">
+        <div className="flex items-start justify-between gap-4 p-4">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--app-text-muted)]">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
               {title}
             </p>
-            <p className="mt-2 truncate text-xl sm:text-2xl font-bold text-[var(--app-text)] tabular-nums">
+            <p className="mt-2 truncate text-2xl font-bold text-gray-900 tabular-nums">
               {value}
             </p>
             {hint && (
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-[var(--app-text-muted)]">
+              <p className="mt-1 text-xs text-gray-400">
                 {hint}
               </p>
             )}
           </div>
           <span
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 group-hover:scale-110 ${toneClass}`}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${toneClass}`}
           >
-            <Icon size={20} />
+            <Icon size={18} strokeWidth={2} />
           </span>
         </div>
       </Card>
@@ -43,7 +44,7 @@ const InventoryMetricsGrid = ({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-5 animate-fade-in">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-5 pb-2">
       <StatBox
         title="Catálogo Único"
         value={inventoryStatus?.totalProductsCount || totalProductsCount}
@@ -52,7 +53,7 @@ const InventoryMetricsGrid = ({
         hint="Modelos registrados"
       />
       <StatBox
-        title="Valoración de Inventario"
+        title="Valoración"
         value={formatCompactMoney(inventoryStatus?.totalInventoryValue || 0)}
         icon={DollarSign}
         tone="green"
@@ -62,22 +63,22 @@ const InventoryMetricsGrid = ({
         title="Lotes por Vencer"
         value={inventoryStatus?.expiringBatchesCount || 0}
         icon={CalendarClock}
-        tone={inventoryStatus?.expiringBatchesCount > 0 ? 'red' : 'green'}
-        hint="< 30 días"
+        tone={inventoryStatus?.expiringBatchesCount > 0 ? 'red' : 'purple'}
+        hint="Menor a 30 días"
       />
       <StatBox
         title="Alertas de Stock"
         value={inventoryStatus?.lowStockCount || 0}
         icon={AlertTriangle}
         tone={inventoryStatus?.lowStockCount > 0 ? 'red' : 'amber'}
-        hint="Bajo mínimos"
+        hint="Debajo del mínimo"
       />
       <StatBox
-        title="Grupos de Categoría"
+        title="Categorías"
         value={categoriesCount}
         icon={Tag}
-        tone="blue"
-        hint="Segmentación"
+        tone="purple"
+        hint="Grupos registrados"
       />
     </div>
   );

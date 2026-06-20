@@ -100,12 +100,9 @@ public class SaleServiceImpl implements SaleService {
 	private final SaleBatchAllocator saleBatchAllocator;
 
 	@Override
-	public Page<SaleSummaryResponseDTO> findAll(String search, Pageable pageable) {
+	public Page<SaleSummaryResponseDTO> findAll(String search, Long userId, SaleStatus status, LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable) {
 		String normalized = (search != null && !search.isBlank()) ? search.trim() : null;
-		if (normalized == null) {
-			return saleRepository.findAllByOrderBySaleDateDesc(pageable).map(saleMapper::toSummary);
-		}
-		return saleRepository.searchPage(normalized, pageable).map(saleMapper::toSummary);
+		return saleRepository.searchPage(normalized, userId, status, fromDate, toDate, pageable).map(saleMapper::toSummary);
 	}
 
 	@Override

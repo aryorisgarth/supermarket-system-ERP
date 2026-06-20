@@ -1,1 +1,0 @@
-import{T as e}from"./vendor-misc-CJp4cKi7.js";var t=e(),n={neutral:`ui-badge-neutral`,blue:`ui-badge-blue`,green:`ui-badge-green`,amber:`ui-badge-amber`,red:`ui-badge-red`},r=({children:e,tone:r=`neutral`,icon:i,className:a=``})=>(0,t.jsxs)(`span`,{className:`ui-badge ${n[r]} ${a}`,children:[i&&(0,t.jsx)(i,{size:12}),e]});export{r as t};

@@ -31,6 +31,7 @@ public record ProductResponseDTO(
 	BrandResponseDTO brand,
 	BigDecimal minStockExhibicion,
 	LocalDateTime createdAt,
-	LocalDateTime updatedAt
+	LocalDateTime updatedAt,
+	BigDecimal prefilledQuantity
 ) {
 }

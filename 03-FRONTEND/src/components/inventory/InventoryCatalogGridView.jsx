@@ -20,34 +20,34 @@ const InventoryCatalogGridView = ({
             !product.isActive ? 'opacity-75 bg-slate-50/50 dark:bg-slate-900/10' : ''
           }`}
         >
-          <div className="p-5 border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/30">
+          <div className="p-5 border-b border-gray-200 bg-gray-50/50">
             <div className="flex justify-between items-start gap-3">
               <div className="flex flex-wrap gap-1.5">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--app-primary-soft)] text-[var(--app-primary)] text-[10px] font-bold uppercase tracking-wider border border-[var(--app-primary)]/10">
-                  <Tag size={10} /> {product.category?.name || 'Sin Categoría'}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-[11px] font-semibold uppercase tracking-wide border border-blue-100">
+                  <Tag size={12} /> {product.category?.name || 'Sin Categoría'}
                 </span>
                 {product.brand && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 text-[9px] font-bold uppercase tracking-wider border border-blue-100 dark:border-blue-900">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 text-[11px] font-semibold uppercase tracking-wide border border-gray-200">
                     {product.brand.name}
                   </span>
                 )}
               </div>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border ${
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wide border ${
                   product.isActive
-                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25'
-                    : 'bg-slate-500/10 text-slate-500 border-slate-500/25'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-gray-100 text-gray-600 border-gray-200'
                 }`}
               >
                 {product.isActive ? 'Activo' : 'Inactivo'}
               </span>
             </div>
-            <h3 className="text-base font-bold text-[var(--app-text)] mt-3 leading-snug hover:text-[var(--app-primary)] transition-colors">
+            <h3 className="text-base font-bold text-gray-900 mt-4 leading-snug">
               {product.name}
             </h3>
-            <div className="flex items-center gap-1.5 mt-2">
-              <Barcode size={12} className="text-[var(--app-text-muted)]" />
-              <span className="text-[11px] font-mono font-bold text-[var(--app-text-soft)] bg-[var(--app-bg-subtle)] px-2 py-0.5 rounded-md border border-[var(--app-border)]">
+            <div className="flex items-center gap-2 mt-2 text-gray-500">
+              <Barcode size={14} />
+              <span className="text-[12px] font-mono font-medium">
                 {product.barcode}
               </span>
             </div>
