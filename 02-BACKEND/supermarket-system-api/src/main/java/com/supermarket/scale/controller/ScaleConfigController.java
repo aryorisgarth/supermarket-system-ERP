@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/scale-config")
+@RequestMapping("/api/scale-config")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ADMIN_INGENIERO')")
 public class ScaleConfigController {
