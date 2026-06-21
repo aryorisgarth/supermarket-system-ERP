@@ -64,6 +64,7 @@ public class ProductServiceImpl implements ProductService {
 	private final ProductUomConversionRepository productUomConversionRepository;
 	private final BrandRepository brandRepository;
 	private final BarcodeParserService barcodeParserService;
+	private final com.supermarket.scale.service.ScaleConfigService scaleConfigService;
 
 	@Override
 	public org.springframework.data.domain.Page<ProductResponseDTO> findAll(org.springframework.data.domain.Pageable pageable) {
@@ -169,9 +170,16 @@ public class ProductServiceImpl implements ProductService {
 					if (finalParsedWeight != null || finalTargetBarcode.length() <= 5) {
 						String searchPlu = finalTargetBarcode.replaceFirst("^0+(?!$)", "");
 						List<Product> allProducts = productRepository.findAll();
+						
+						com.supermarket.scale.entity.ScaleConfig config = scaleConfigService.getConfig();
+						int prefixLen = config.getPrefix().length();
+						int expectedLength = prefixLen + config.getPluLength() + config.getWeightLength() + 1;
+						
 						for (Product p : allProducts) {
-							if (p.getBarcode() != null && p.getBarcode().length() == 13 && p.getBarcode().startsWith("20")) {
-								String pPlu = p.getBarcode().substring(2, 7).replaceFirst("^0+(?!$)", "");
+							if (p.getBarcode() != null && p.getBarcode().length() == expectedLength && p.getBarcode().startsWith(config.getPrefix())) {
+								int pluStart = prefixLen;
+								int pluEnd = pluStart + config.getPluLength();
+								String pPlu = p.getBarcode().substring(pluStart, pluEnd).replaceFirst("^0+(?!$)", "");
 								if (pPlu.equals(searchPlu)) {
 									return p;
 								}

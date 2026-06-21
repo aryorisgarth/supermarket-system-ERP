@@ -42,6 +42,7 @@ import {
   LazyBrands,
   LazyLocations,
   LazyCustomers,
+  LazyScaleConfig,
 } from './routes/lazyPages';
 
 const LazyPage = ({ Page }) => (
@@ -284,6 +285,12 @@ function App() {
             <Route path="/configuracion-alertas" element={
               <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['USER_MANAGE']}>
                 <LazyPage Page={LazyNotificationRules} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/configuracion-balanza" element={
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']}>
+                <LazyPage Page={LazyScaleConfig} />
               </ProtectedRoute>
             } />
 

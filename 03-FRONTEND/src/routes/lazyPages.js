@@ -32,4 +32,4 @@ export const LazyNotificationRules = lazy(() => import('../pages/NotificationRul
 export const LazyBrands = lazy(() => import('../pages/Brands'));
 export const LazyLocations = lazy(() => import('../pages/Locations'));
 export const LazyCustomers = lazy(() => import('../pages/Customers'));
-
+export const LazyScaleConfig = lazy(() => import('../pages/ScaleConfig'));

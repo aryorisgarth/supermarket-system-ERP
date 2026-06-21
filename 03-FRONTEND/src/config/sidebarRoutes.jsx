@@ -21,6 +21,7 @@ import {
   MapPin,
   Bookmark,
   Settings as SettingsIcon,
+  Scale,
 } from 'lucide-react';
 
 export const sections = [
@@ -284,6 +285,12 @@ export const sections = [
         path: '/configuracion-alertas',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
         permissions: ['USER_MANAGE'],
+      },
+      {
+        icon: Scale,
+        label: 'Configuración de Balanza',
+        path: '/configuracion-balanza',
+        roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
       },
       {
         icon: Database,

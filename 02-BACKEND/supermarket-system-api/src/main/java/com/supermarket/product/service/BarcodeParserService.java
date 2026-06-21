@@ -1,29 +1,38 @@
 package com.supermarket.product.service;
 
+import com.supermarket.scale.entity.ScaleConfig;
+import com.supermarket.scale.service.ScaleConfigService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class BarcodeParserService {
 
-    private static final String SCALE_PREFIX = "20";
+    private final ScaleConfigService scaleConfigService;
 
     public record ParsedBarcode(boolean isScaleBarcode, String plu, BigDecimal weight) {}
 
     public ParsedBarcode parse(String barcode) {
-        if (barcode != null && barcode.length() == 13 && barcode.startsWith(SCALE_PREFIX)) {
-            // Format: PP CCCCC PPPPP V
-            // PP = prefix (20)
-            // CCCCC = PLU
-            // PPPPP = Weight
-            // V = Checksum
-            String plu = barcode.substring(2, 7);
-            String weightStr = barcode.substring(7, 12);
+        ScaleConfig config = scaleConfigService.getConfig();
+        
+        int prefixLen = config.getPrefix().length();
+        int expectedLength = prefixLen + config.getPluLength() + config.getWeightLength() + 1; // 1 for checksum
+
+        if (barcode != null && barcode.length() == expectedLength && barcode.startsWith(config.getPrefix())) {
             
-            // Weight has 3 decimal places logic (e.g. 02500 -> 2.500)
+            int pluStart = prefixLen;
+            int pluEnd = pluStart + config.getPluLength();
+            String plu = barcode.substring(pluStart, pluEnd);
+            
+            int weightStart = pluEnd;
+            int weightEnd = weightStart + config.getWeightLength();
+            String weightStr = barcode.substring(weightStart, weightEnd);
+            
             BigDecimal weight = new BigDecimal(weightStr)
-                .divide(new BigDecimal("1000"), 3, RoundingMode.HALF_UP);
+                .divide(config.getDivisor(), 3, RoundingMode.HALF_UP);
                 
             return new ParsedBarcode(true, plu, weight);
         }
