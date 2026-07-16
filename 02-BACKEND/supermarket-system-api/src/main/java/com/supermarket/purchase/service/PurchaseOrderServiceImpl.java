@@ -21,10 +21,13 @@ import com.supermarket.inventory.model.InventoryMovementType;
 import com.supermarket.inventory.service.InventoryLedger;
 import com.supermarket.product.service.ProductCostService;
 import com.supermarket.product.service.ProductCostUpdateResult;
+import com.supermarket.product.service.ProductPriceService;
 import com.supermarket.product.dto.ProductSummaryDTO;
 import com.supermarket.product.entity.Product;
 import com.supermarket.product.entity.ProductPurchasePack;
 import com.supermarket.product.entity.ProductUomConversion;
+import com.supermarket.product.model.ProductPricingPolicy;
+import com.supermarket.producthistory.model.ProductSalePriceHistoryReason;
 import com.supermarket.product.repository.ProductPurchasePackRepository;
 import com.supermarket.product.repository.ProductRepository;
 import com.supermarket.product.repository.ProductUomConversionRepository;
@@ -64,6 +67,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 	private final InventoryLedger inventoryLedger;
 	private final ProductUomConversionRepository productUomConversionRepository;
 	private final ProductCostService productCostService;
+	private final ProductPriceService productPriceService;
 
 	@Override
 	public List<PurchaseOrderResponseDTO> findAll(PurchaseOrderStatus status) {
@@ -128,6 +132,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 			item.setPackLabel(resolved.packLabel());
 			item.setQuantityInPacks(resolved.quantityInPacks());
 			item.setCostPerPack(resolved.costPerPack());
+			item.setSalePricePerPack(resolved.salePricePerPack());
+			item.setSalePricePerUnit(resolved.salePricePerUnit());
 			item.setUnitsPerPack(resolved.unitsPerPack());
 			item.setUomConversion(resolved.uomConversion());
 			order.getItems().add(item);
@@ -174,6 +180,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 			item.setPackLabel(resolved.packLabel());
 			item.setQuantityInPacks(resolved.quantityInPacks());
 			item.setCostPerPack(resolved.costPerPack());
+			item.setSalePricePerPack(resolved.salePricePerPack());
+			item.setSalePricePerUnit(resolved.salePricePerUnit());
 			item.setUnitsPerPack(resolved.unitsPerPack());
 			item.setUomConversion(resolved.uomConversion());
 			order.getItems().add(item);
@@ -272,12 +280,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 						saved.getId(),
 						item.getId(),
 						actor);
+				applyPurchaseSalePrices(product, item, actor);
 
 				ProductBatch batch = createBatchFromReceipt(lineRequest, item, product, quantityToReceive, saved.getOrderNumber());
 				String receiptNotes = buildReceiptNotes(lineRequest, saved.getOrderNumber());
 				inventoryLedger.record(actor, product, batch, InventoryMovementType.ENTRY, quantityToReceive,
 						(byte) 1, saved.getId(), item.getId(), "PURCHASE_ORDER", item.getUnitCost(), receiptNotes);
-				receiptImpacts.add(toReceiptImpact(costUpdate));
+				receiptImpacts.add(toReceiptImpact(costUpdate, product));
 				item.setQuantityReceived(nz(item.getQuantityReceived()).add(quantityToReceive));
 			}
 
@@ -455,6 +464,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 				item.getPackLabel(),
 				item.getQuantityInPacks(),
 				item.getCostPerPack(),
+				item.getSalePricePerPack(),
+				item.getSalePricePerUnit(),
 				item.getUnitsPerPack(),
 				item.getQuantityOrdered(),
 				item.getQuantityReceived(),
@@ -463,7 +474,11 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 				item.getLineTotal());
 	}
 
-	private PurchaseReceiptImpactDTO toReceiptImpact(ProductCostUpdateResult result) {
+	private PurchaseReceiptImpactDTO toReceiptImpact(ProductCostUpdateResult result, Product product) {
+		BigDecimal salePrice = product.getSalePrice() != null ? product.getSalePrice() : result.salePrice();
+		BigDecimal currentMargin = productCostService.calculateMarginPercent(salePrice, result.newAverageCost());
+		BigDecimal minMargin = result.minMarginPercent();
+		boolean marginAlert = currentMargin != null && minMargin != null && currentMargin.compareTo(minMargin) < 0;
 		return new PurchaseReceiptImpactDTO(
 				result.productId(),
 				result.productName(),
@@ -474,11 +489,63 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 				result.quantityBefore(),
 				result.quantityReceived(),
 				result.quantityAfter(),
-				result.salePrice(),
-				result.currentMarginPercent(),
-				result.minMarginPercent(),
+				salePrice,
+				currentMargin,
+				minMargin,
 				result.suggestedSalePrice(),
-				result.marginAlert());
+				marginAlert);
+	}
+
+	/**
+	 * Aplica precio de venta unitario y de empaque definidos en la OC.
+	 * Si no vienen en la línea: AUTO_BY_MARGIN calcula y aplica; MANUAL/SUGGEST solo alertan (no tocan venta).
+	 */
+	private void applyPurchaseSalePrices(Product product, PurchaseOrderItem item, User actor) {
+		BigDecimal factor = item.getUnitsPerPack() != null && item.getUnitsPerPack().compareTo(BigDecimal.ZERO) > 0
+				? item.getUnitsPerPack()
+				: BigDecimal.ONE;
+		BigDecimal saleUnit = item.getSalePricePerUnit();
+		BigDecimal salePack = item.getSalePricePerPack();
+
+		if (saleUnit == null && salePack != null) {
+			saleUnit = salePack.divide(factor, 4, RoundingMode.HALF_UP);
+		}
+		if (salePack == null && saleUnit != null) {
+			salePack = saleUnit.multiply(factor).setScale(4, RoundingMode.HALF_UP);
+		}
+
+		if (saleUnit == null) {
+			ProductPricingPolicy policy = product.getPricingPolicy() != null
+					? product.getPricingPolicy()
+					: ProductPricingPolicy.MANUAL;
+			if (policy != ProductPricingPolicy.AUTO_BY_MARGIN) {
+				return;
+			}
+			BigDecimal cost = product.getLastPurchaseCost() != null
+					? product.getLastPurchaseCost()
+					: item.getUnitCost();
+			saleUnit = productCostService.calculateSuggestedSalePrice(cost, product.getMinMarginPercent());
+			if (saleUnit == null) {
+				return;
+			}
+			salePack = saleUnit.multiply(factor).setScale(4, RoundingMode.HALF_UP);
+			item.setSalePricePerUnit(saleUnit);
+			item.setSalePricePerPack(salePack);
+		}
+
+		productPriceService.updateSalePrice(
+				product,
+				product.getSalePrice(),
+				saleUnit,
+				ProductSalePriceHistoryReason.PURCHASE_RECEIPT,
+				"Actualización por recepción de compra (unidad)",
+				actor);
+
+		ProductUomConversion conversion = item.getUomConversion();
+		if (conversion != null && salePack != null) {
+			conversion.setSalePrice(salePack.setScale(4, RoundingMode.HALF_UP));
+			productUomConversionRepository.save(conversion);
+		}
 	}
 
 	private ResolvedPurchaseLine resolveLine(PurchaseOrderItemRequestDTO line, Product product) {
@@ -492,10 +559,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 			BigDecimal quantityOrdered = quantityInPacks.multiply(unitsPerPack);
 			BigDecimal unitCost = costPerPack.divide(unitsPerPack, 4, RoundingMode.HALF_UP);
 			BigDecimal lineTotal = quantityInPacks.multiply(costPerPack);
+			ResolvedSalePrices salePrices = resolveSalePrices(line, unitsPerPack);
 			return new ResolvedPurchaseLine(
 					conversion.getLabel(),
 					quantityInPacks,
 					costPerPack,
+					salePrices.salePricePerPack(),
+					salePrices.salePricePerUnit(),
 					unitsPerPack,
 					quantityOrdered,
 					unitCost,
@@ -520,10 +590,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 					.findFirst()
 					.orElse(null);
 
+			ResolvedSalePrices salePrices = resolveSalePrices(line, unitsPerPack);
 			return new ResolvedPurchaseLine(
 					pack.getLabel(),
 					quantityInPacks,
 					costPerPack,
+					salePrices.salePricePerPack(),
+					salePrices.salePricePerUnit(),
 					unitsPerPack,
 					quantityOrdered,
 					unitCost,
@@ -542,10 +615,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 					.findFirst()
 					.orElse(null);
 
+			ResolvedSalePrices salePrices = resolveSalePrices(line, BigDecimal.ONE);
 			return new ResolvedPurchaseLine(
 					"UN",
 					quantityOrdered,
 					unitCost,
+					salePrices.salePricePerPack(),
+					salePrices.salePricePerUnit(),
 					BigDecimal.ONE,
 					quantityOrdered,
 					unitCost,
@@ -557,10 +633,30 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 				"Each purchase line requires purchase pack data or legacy quantity/unit cost");
 	}
 
+	private ResolvedSalePrices resolveSalePrices(PurchaseOrderItemRequestDTO line, BigDecimal unitsPerPack) {
+		BigDecimal factor = unitsPerPack != null && unitsPerPack.compareTo(BigDecimal.ZERO) > 0
+				? unitsPerPack
+				: BigDecimal.ONE;
+		BigDecimal saleUnit = line.getSalePricePerUnit();
+		BigDecimal salePack = line.getSalePricePerPack();
+		if (saleUnit == null && salePack != null) {
+			saleUnit = salePack.divide(factor, 4, RoundingMode.HALF_UP);
+		}
+		if (salePack == null && saleUnit != null) {
+			salePack = saleUnit.multiply(factor).setScale(4, RoundingMode.HALF_UP);
+		}
+		return new ResolvedSalePrices(salePack, saleUnit);
+	}
+
+	private record ResolvedSalePrices(BigDecimal salePricePerPack, BigDecimal salePricePerUnit) {
+	}
+
 	private record ResolvedPurchaseLine(
 			String packLabel,
 			BigDecimal quantityInPacks,
 			BigDecimal costPerPack,
+			BigDecimal salePricePerPack,
+			BigDecimal salePricePerUnit,
 			BigDecimal unitsPerPack,
 			BigDecimal quantityOrdered,
 			BigDecimal unitCost,

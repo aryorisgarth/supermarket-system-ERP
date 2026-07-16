@@ -294,9 +294,28 @@ public class ProductServiceImpl implements ProductService {
 
 		product.setCreatedAt(LocalDateTime.now());
 		product.setUpdatedAt(LocalDateTime.now());
+		// Stock solo vía ledger → también crea fila en product_locations (evita huérfanos)
+		BigDecimal initialStock = request.getCurrentStock() != null ? request.getCurrentStock() : BigDecimal.ZERO;
+		product.setCurrentStock(BigDecimal.ZERO);
 
 		Product saved = productRepository.save(product);
 		syncPurchasePacks(saved, request.getPurchasePacks());
+
+		if (initialStock.compareTo(BigDecimal.ZERO) > 0 && !Boolean.TRUE.equals(saved.getRequiresBatch())) {
+			inventoryLedger.record(
+					currentUser(),
+					saved,
+					null,
+					InventoryMovementType.ENTRY,
+					initialStock,
+					(byte) 1,
+					saved.getId(),
+					null,
+					"PRODUCT_CREATE",
+					request.getPurchasePrice(),
+					"Stock inicial al crear producto");
+		}
+
 		return productMapper.toResponse(saved);
 	}
 

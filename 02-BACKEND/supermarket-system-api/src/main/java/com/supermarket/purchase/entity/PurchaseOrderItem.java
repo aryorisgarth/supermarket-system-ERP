@@ -55,6 +55,12 @@ public class PurchaseOrderItem {
 	@Column(name = "cost_per_pack", precision = 12, scale = 4)
 	private BigDecimal costPerPack;
 
+	@Column(name = "sale_price_per_pack", precision = 12, scale = 4)
+	private BigDecimal salePricePerPack;
+
+	@Column(name = "sale_price_per_unit", precision = 12, scale = 4)
+	private BigDecimal salePricePerUnit;
+
 	@Column(name = "units_per_pack", precision = 12, scale = 4)
 	private BigDecimal unitsPerPack;
 

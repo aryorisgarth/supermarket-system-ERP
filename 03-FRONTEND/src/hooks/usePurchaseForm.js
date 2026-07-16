@@ -3,6 +3,7 @@ import ProductService from '../services/ProductService';
 import PurchaseOrderService from '../services/PurchaseOrderService';
 import { normalizeProductList } from '../utils/normalizeProduct';
 import { getApiErrorMessage } from '../utils/apiError';
+import { getDefaultPurchasePack, suggestCostPerPack, suggestSalePricesForPack } from '../utils/purchaseUnits';
 import Swal from 'sweetalert2';
 
 const emptyLine = () => ({
@@ -11,6 +12,9 @@ const emptyLine = () => ({
   purchasePackId: '',
   quantityInPacks: '1',
   costPerPack: '',
+  salePricePerPack: '',
+  salePricePerUnit: '',
+  salePriceTouched: false,
 });
 
 export const usePurchaseForm = ({ onSuccess }) => {
@@ -69,12 +73,20 @@ export const usePurchaseForm = ({ onSuccess }) => {
           packs.find((p) => p.label === item.packLabel) ||
           packs.find((p) => Number(p.factor) === Number(item.unitsPerPack)) ||
           packs[0];
+        const factor = Number(item.unitsPerPack || pack?.factor || 1) || 1;
+        const costPerPack = Number(item.costPerPack ?? item.unitCost ?? 0);
+        const suggested = suggestSalePricesForPack(product, pack || { factor }, costPerPack);
+        const saleUnit = Number(item.salePricePerUnit || suggested.salePricePerUnit || 0);
+        const salePack = Number(item.salePricePerPack || suggested.salePricePerPack || saleUnit * factor);
         return {
           productId: String(item.product?.id || ''),
           productSearch: item.product?.name || product?.name || '',
           purchasePackId: pack?.id ? String(pack.id) : '',
           quantityInPacks: String(item.quantityInPacks ?? item.quantityOrdered ?? '1'),
           costPerPack: String(item.costPerPack ?? item.unitCost ?? ''),
+          salePricePerUnit: saleUnit > 0 ? String(saleUnit) : '',
+          salePricePerPack: salePack > 0 ? String(salePack) : '',
+          salePriceTouched: Boolean(item.salePricePerUnit || item.salePricePerPack),
         };
       });
       setItems(mappedItems.length ? mappedItems : [emptyLine()]);
@@ -98,7 +110,7 @@ export const usePurchaseForm = ({ onSuccess }) => {
 
   const findPack = useCallback((product, packId) => {
     const packs = product?.purchasePacks || [];
-    return packs.find((pack) => String(pack.id) === String(packId)) || { label: 'UN', factor: 1 };
+    return packs.find((pack) => String(pack.id) === String(packId)) || getDefaultPurchasePack(product);
   }, []);
 
   const saveOrder = async (event) => {
@@ -108,12 +120,14 @@ export const usePurchaseForm = ({ onSuccess }) => {
         item.productId &&
         item.purchasePackId &&
         Number(item.quantityInPacks) > 0 &&
-        Number(item.costPerPack) > 0
+        Number(item.costPerPack) > 0 &&
+        Number(item.salePricePerUnit) > 0 &&
+        Number(item.salePricePerPack) > 0
     );
     if (!supplierId || validItems.length === 0) {
       Swal.fire(
         'Datos incompletos',
-        'Selecciona proveedor, productos de su catálogo y presentación de compra.',
+        'Completa proveedor, producto, empaque, costo y precios de venta (unidad y empaque).',
         'warning'
       );
       return;
@@ -134,6 +148,8 @@ export const usePurchaseForm = ({ onSuccess }) => {
           uomConversionId: equivalentConversion ? equivalentConversion.id : null,
           quantityInPacks: Number(item.quantityInPacks),
           costPerPack: Number(item.costPerPack),
+          salePricePerPack: Number(item.salePricePerPack),
+          salePricePerUnit: Number(item.salePricePerUnit),
         };
       }),
     };
@@ -152,7 +168,8 @@ export const usePurchaseForm = ({ onSuccess }) => {
       Swal.fire({
         icon: 'success',
         title: wasEditing ? 'Compra actualizada' : 'Compra creada',
-        timer: 1400,
+        text: 'Al recibir en bodega se actualizarán costo y precios de venta.',
+        timer: 1800,
         showConfirmButton: false,
       });
     } catch (error) {

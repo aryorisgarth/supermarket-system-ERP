@@ -72,6 +72,8 @@ const PurchaseDetailModal = ({ order, onClose, money }) => {
                 <th className="pb-3 text-center">Recibido</th>
                 <th className="pb-3 text-center">Rechazado</th>
                 <th className="pb-3 text-right">Costo/ud</th>
+                <th className="pb-3 text-right">Venta/ud</th>
+                <th className="pb-3 text-right">Venta empaque</th>
                 <th className="pb-3 text-right">Total</th>
               </tr>
             </thead>
@@ -90,6 +92,12 @@ const PurchaseDetailModal = ({ order, onClose, money }) => {
                   <td className="py-3 text-center font-bold text-[var(--app-text-soft)]">{item.quantityReceived}</td>
                   <td className="py-3 text-center font-bold text-amber-700">{item.quantityRejected || 0}</td>
                   <td className="py-3 text-right font-bold text-[var(--app-text-soft)]">{money(item.unitCost)}</td>
+                  <td className="py-3 text-right font-bold text-blue-700 dark:text-blue-300">
+                    {item.salePricePerUnit != null ? money(item.salePricePerUnit) : '—'}
+                  </td>
+                  <td className="py-3 text-right font-bold text-blue-700 dark:text-blue-300">
+                    {item.salePricePerPack != null ? money(item.salePricePerPack) : '—'}
+                  </td>
                   <td className="py-3 text-right font-bold text-[var(--app-text)]">{money(item.lineTotal)}</td>
                 </tr>
               ))}

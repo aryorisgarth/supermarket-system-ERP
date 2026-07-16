@@ -10,6 +10,8 @@ public record PurchaseOrderItemResponseDTO(
 		String packLabel,
 		BigDecimal quantityInPacks,
 		BigDecimal costPerPack,
+		BigDecimal salePricePerPack,
+		BigDecimal salePricePerUnit,
 		BigDecimal unitsPerPack,
 		BigDecimal quantityOrdered,
 		BigDecimal quantityReceived,

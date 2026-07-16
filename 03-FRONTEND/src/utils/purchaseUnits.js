@@ -169,6 +169,34 @@ export const suggestCostPerPack = (product, pack) => {
   return unitCost * factor;
 };
 
+/** Markup sobre costo: costo × (1 + margen%/100) — misma fórmula del backend. */
+export const suggestSalePriceFromCost = (cost, minMarginPercent = 20) => {
+  const c = Number(cost || 0);
+  const m = Number(minMarginPercent ?? 20);
+  if (c <= 0) return 0;
+  return Math.round(c * (1 + m / 100) * 100) / 100;
+};
+
+export const suggestSalePricesForPack = (product, pack, costPerPack) => {
+  const factor = Number(pack?.factor || 1) || 1;
+  const packCost = Number(costPerPack || 0);
+  const unitCost = packCost > 0 ? packCost / factor : Number(product?.averageCost ?? product?.purchasePrice ?? 0);
+  const margin = Number(product?.minMarginPercent ?? 20);
+
+  const existingUnit = Number(product?.salePrice || 0);
+  const uom = product?.uomConversions?.find((c) => c.label === pack?.label);
+  const existingPack = Number(uom?.salePrice || 0);
+
+  const salePricePerUnit =
+    existingUnit > 0 ? existingUnit : suggestSalePriceFromCost(unitCost, margin);
+  const salePricePerPack =
+    existingPack > 0
+      ? existingPack
+      : Math.round(salePricePerUnit * factor * 100) / 100;
+
+  return { salePricePerUnit, salePricePerPack, unitCost };
+};
+
 export const computeBaseUnits = (quantityInPacks, factor) =>
   Number(quantityInPacks || 0) * Number(factor || 1);
 

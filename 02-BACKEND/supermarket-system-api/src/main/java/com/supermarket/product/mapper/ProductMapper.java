@@ -153,7 +153,7 @@ public class ProductMapper {
 		entity.setDescription(dto.getDescription());
 		entity.setPurchasePrice(dto.getPurchasePrice());
 		entity.setSalePrice(dto.getSalePrice());
-		entity.setCurrentStock(dto.getCurrentStock());
+		// currentStock solo lo muta InventoryLedger / ajustes de ubicación — nunca el form de producto
 		entity.setMinimumStock(dto.getMinimumStock());
 		entity.setIsActive(dto.getIsActive());
 		entity.setRequiresBatch(dto.getRequiresBatch() != null ? dto.getRequiresBatch() : false);

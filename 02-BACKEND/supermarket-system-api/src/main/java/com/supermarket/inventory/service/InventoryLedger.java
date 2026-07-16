@@ -121,18 +121,19 @@ public class InventoryLedger {
 			if (customLoc != null) {
 				targetLoc = customLoc;
 			} else {
-				targetLoc = locationRepository.findByIsPisoVenta(false).stream().findFirst().orElseGet(() -> {
-					Location l = new Location();
-					l.setWarehouse("Bodega Central");
-					l.setAisle("A");
-					l.setShelf("1");
-					l.setLevel("1");
-					l.setLocationCode("BOD-DEFAULT");
-					l.setIsPisoVenta(false);
-					l.setCreatedAt(LocalDateTime.now());
-					l.setUpdatedAt(LocalDateTime.now());
-					return locationRepository.save(l);
-				});
+				targetLoc = locationRepository.findByLocationCode("BOD-DEFAULT").orElseGet(() ->
+						locationRepository.findByIsPisoVenta(false).stream().findFirst().orElseGet(() -> {
+							Location l = new Location();
+							l.setWarehouse("Bodega Central");
+							l.setAisle("A");
+							l.setShelf("1");
+							l.setLevel("1");
+							l.setLocationCode("BOD-DEFAULT");
+							l.setIsPisoVenta(false);
+							l.setCreatedAt(LocalDateTime.now());
+							l.setUpdatedAt(LocalDateTime.now());
+							return locationRepository.save(l);
+						}));
 			}
 
 			final Location finalLoc = targetLoc;
