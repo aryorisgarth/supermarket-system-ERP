@@ -4,16 +4,16 @@ spring:
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:mysql}
   mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    host: ${SPRING_MAIL_HOST:${MAIL_HOST:localhost}}
+    port: ${SPRING_MAIL_PORT:${MAIL_PORT:1025}}
+    username: ${SPRING_MAIL_USERNAME:${MAIL_USERNAME:}}
+    password: ${SPRING_MAIL_PASSWORD:${MAIL_PASSWORD:}}
     properties:
       mail:
         smtp:
-          auth: ${MAIL_SMTP_AUTH:false}
+          auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:${MAIL_SMTP_AUTH:false}}
           starttls:
-            enable: ${MAIL_STARTTLS_ENABLE:false}
+            enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:${MAIL_STARTTLS_ENABLE:false}}
         transport:
           protocol: smtp
 

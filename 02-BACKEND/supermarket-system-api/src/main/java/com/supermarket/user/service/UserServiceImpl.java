@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
 		String email = request.getEmail();
 		
 		if (userRepository.existsByEmail(email)) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo ya existe en el sistema");
 		}
 
 		Role role = roleRepository.findByNameIgnoreCase(request.getRoleName())
@@ -97,7 +97,20 @@ public class UserServiceImpl implements UserService {
 
 		String tempPassword = PasswordGenerator.generate(12);
 
-		String keycloakId = keycloakAdminService.createUser(email, request.getFullName(), request.getLastName(), tempPassword);
+		String keycloakId;
+		try {
+			keycloakId = keycloakAdminService.createUser(email, request.getFullName(), request.getLastName(), tempPassword);
+		} catch (ResponseStatusException e) {
+			// Reintento tras fallo previo: usuario huérfano en Keycloak sin fila local
+			if (e.getStatusCode() == HttpStatus.CONFLICT) {
+				keycloakId = keycloakAdminService.findUserIdByEmail(email)
+						.orElseThrow(() -> e);
+				keycloakAdminService.resetPassword(keycloakId, tempPassword, true);
+				log.warn("Usuario {} ya existía en Keycloak; se reutilizó y se reinició la contraseña temporal", email);
+			} else {
+				throw e;
+			}
+		}
 		keycloakAdminService.assignRole(keycloakId, request.getRoleName());
 
 		User user = userMapper.toEntity(request);
@@ -108,9 +121,9 @@ public class UserServiceImpl implements UserService {
 		
 		User saved = userRepository.save(user);
 
-		emailService.sendTemporaryPasswordEmail(email, request.getFullName(), tempPassword);
-
-		return userMapper.toResponse(saved);
+		boolean emailSent = emailService.sendTemporaryPasswordEmail(email, request.getFullName(), tempPassword);
+		// Si el correo falla, devolvemos la clave temporal al admin para que la entregue manualmente
+		return userMapper.toResponse(saved, emailSent, emailSent ? null : tempPassword);
 	}
 
 	@Override
@@ -150,16 +163,32 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@Transactional
 	public void deleteById(Long id) {
-		if (!userRepository.existsById(id)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-		}
-		
+		User user = userRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+		String email = user.getEmail();
+
 		try {
-			userRepository.deleteById(id);
+			userRepository.delete(user);
 		} catch (DataIntegrityViolationException ex) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
-					"User cannot be deleted due to related data in the database", ex);
+					"No se puede eliminar: el usuario tiene datos relacionados. Desactívelo en su lugar.",
+					ex);
 		}
+
+		// Tras commit local, borrar también en Keycloak (evita desync por rollback)
+		org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+				new org.springframework.transaction.support.TransactionSynchronization() {
+					@Override
+					public void afterCommit() {
+						try {
+							keycloakAdminService.findUserIdByEmail(email)
+									.ifPresent(keycloakAdminService::deleteUser);
+						} catch (Exception e) {
+							log.error("Usuario {} borrado en BD, pero falló borrarlo en Keycloak: {}",
+									email, e.getMessage());
+						}
+					}
+				});
 	}
 
 	@Override

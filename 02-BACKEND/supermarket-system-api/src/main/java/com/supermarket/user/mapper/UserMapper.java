@@ -45,7 +45,26 @@ public class UserMapper {
 			permissions,
 			directPermissions,
 			entity.getLastLogin(),
-			entity.getCreatedAt()
+			entity.getCreatedAt(),
+			null,
+			null
+		);
+	}
+
+	public UserResponseDTO toResponse(User entity, boolean welcomeEmailSent, String temporaryPassword) {
+		UserResponseDTO base = toResponse(entity);
+		return new UserResponseDTO(
+			base.id(),
+			base.fullName(),
+			base.email(),
+			base.isActive(),
+			base.role(),
+			base.permissions(),
+			base.directPermissions(),
+			base.lastLogin(),
+			base.createdAt(),
+			welcomeEmailSent,
+			temporaryPassword
 		);
 	}
 

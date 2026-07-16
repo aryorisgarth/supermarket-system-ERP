@@ -118,6 +118,27 @@ public class KeycloakAdminService {
 		}
 	}
 
+	public void resetPassword(String userId, String password, boolean temporary) {
+		String token = getAccessToken();
+		Map<String, Object> credentials = new java.util.LinkedHashMap<>();
+		credentials.put("type", "password");
+		credentials.put("value", password);
+		credentials.put("temporary", temporary);
+
+		try {
+			restClient.put()
+					.uri(adminBase() + "/users/" + userId + "/reset-password")
+					.header("Authorization", "Bearer " + token)
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(credentials)
+					.retrieve()
+					.toBodilessEntity();
+		} catch (HttpClientErrorException e) {
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo reiniciar la contraseña en Keycloak: " + e.getResponseBodyAsString(), e);
+		}
+	}
+
 	public void assignRole(String userId, String roleName) {
 		String token = getAccessToken();
 
@@ -210,6 +231,27 @@ public class KeycloakAdminService {
 			}
 			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
 					"No se pudo consultar el usuario en Keycloak: " + e.getResponseBodyAsString(), e);
+		}
+	}
+
+	public void deleteUser(String userId) {
+		String token = getAccessToken();
+		try {
+			restClient.delete()
+					.uri(adminBase() + "/users/" + userId)
+					.header("Authorization", "Bearer " + token)
+					.retrieve()
+					.toBodilessEntity();
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+				return;
+			}
+			if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+						"Keycloak rechazó eliminar usuario (403). Ejecuta scripts/keycloak-grant-admin-roles.sh");
+			}
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo eliminar el usuario en Keycloak: " + e.getResponseBodyAsString(), e);
 		}
 	}
 

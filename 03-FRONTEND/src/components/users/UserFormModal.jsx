@@ -140,14 +140,28 @@ const UserFormModal = ({
           showConfirmButton: false
         });
       } else {
-        await UserService.create(userData);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Usuario creado!',
-          text: 'El nuevo empleado ha sido registrado y sus credenciales enviadas por correo.',
-          timer: 2000,
-          showConfirmButton: false
-        });
+        const created = await UserService.create(userData);
+        if (created?.welcomeEmailSent) {
+          Swal.fire({
+            icon: 'success',
+            title: '¡Usuario creado!',
+            text: 'El nuevo empleado ha sido registrado y sus credenciales enviadas por correo.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          await Swal.fire({
+            icon: 'warning',
+            title: 'Usuario creado (sin correo)',
+            html: `
+              <p>El usuario quedó registrado, pero no se pudo enviar el correo SMTP.</p>
+              <p style="margin-top:12px">Contraseña temporal:</p>
+              <p><code style="font-size:16px;font-weight:700">${created?.temporaryPassword || '(revisa Keycloak)'}</code></p>
+              <p style="margin-top:12px;font-size:13px;color:#6b7280">Configura <b>SPRING_MAIL_USERNAME</b> y <b>SPRING_MAIL_PASSWORD</b> en el .env (App Password de Gmail).</p>
+            `,
+            confirmButtonText: 'Entendido'
+          });
+        }
       }
       onSuccess();
       onClose();

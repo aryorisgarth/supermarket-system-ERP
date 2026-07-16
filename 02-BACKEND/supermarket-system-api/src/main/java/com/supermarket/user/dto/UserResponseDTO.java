@@ -14,6 +14,8 @@ public record UserResponseDTO(
 	List<String> permissions,
 	List<String> directPermissions,
 	LocalDateTime lastLogin,
-	LocalDateTime createdAt
+	LocalDateTime createdAt,
+	Boolean welcomeEmailSent,
+	String temporaryPassword
 ) {
 }
