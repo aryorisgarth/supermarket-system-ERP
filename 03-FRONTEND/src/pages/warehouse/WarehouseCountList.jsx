@@ -11,6 +11,7 @@ import AuthService from '../../services/AuthService';
 import UserService from '../../services/UserService';
 import { getApiErrorMessage } from '../../utils/apiError';
 import InventoryGuideModal from '../../components/warehouse/InventoryGuideModal';
+import WarehouseFlowStrip from '../../components/warehouse/WarehouseFlowStrip';
 
 const STATUS_LABELS = {
   OPEN: 'Abierto',
@@ -24,6 +25,17 @@ const STATUS_TONES = {
   SUBMITTED: 'amber',
   APPROVED: 'green',
   CANCELLED: 'neutral',
+};
+
+const userCanCountInventory = (user) => {
+  const permissions = Array.isArray(user?.permissions) ? user.permissions : [];
+  return permissions.includes('INVENTORY_COUNT') || user?.role?.name === 'ADMINISTRADOR';
+};
+
+const userCanReassignCounts = (user) => {
+  const permissions = Array.isArray(user?.permissions) ? user.permissions : [];
+  const roleName = user?.role?.name || '';
+  return permissions.includes('INVENTORY_ADJUST') || roleName.includes('ADMIN');
 };
 
 const WarehouseCountList = () => {
@@ -58,8 +70,9 @@ const WarehouseCountList = () => {
   const startCount = async () => {
     const { value: warehouseZone } = await Swal.fire({
       title: 'Nuevo conteo cíclico',
+      html: '<p style="text-align:left;font-size:13px;margin-bottom:10px">Se compara contra el <b>stock total</b> del producto (bodega + piso), no solo una ubicación. La zona es una etiqueta para organizar el trabajo.</p>',
       input: 'text',
-      inputLabel: 'Zona de bodega (opcional)',
+      inputLabel: 'Zona / etiqueta (opcional)',
       inputPlaceholder: 'Ej. A-01, Perecederos',
       showCancelButton: true,
       confirmButtonText: 'Iniciar conteo',
@@ -86,7 +99,7 @@ const WarehouseCountList = () => {
       <PageHeader
         eyebrow="Bodega"
         title="Conteo cíclico"
-        description="Escanea productos, compara con el stock del sistema y envía el conteo para aprobación."
+        description="Cuentas el stock total del producto. La zona es solo una etiqueta de trabajo; el sistema compara contra el inventario global, no por ubicación."
         actions={(
           <div className="flex gap-2">
             <Button type="button" variant="secondary" icon={BookOpen} onClick={() => setShowGuideModal(true)}>
@@ -99,6 +112,8 @@ const WarehouseCountList = () => {
         )}
         meta={<Badge tone="blue">{sessions.length} sesiones</Badge>}
       />
+
+      <WarehouseFlowStrip activeStep={4} />
 
       <Card>
         <CardHeader icon={ClipboardCheck} title="Sesiones de conteo" />
@@ -125,9 +140,10 @@ const WarehouseCountList = () => {
             <p className="text-xs text-[var(--app-text-muted)]">No hay sesiones de conteo.</p>
           )}
           {sessions.map((session) => {
-            const isMine = session.countedBy?.id === AuthService.getCurrentUser()?.id;
+            const currentUserId = AuthService.getCurrentUser()?.id;
+            const isMine = currentUserId != null && String(session.countedBy?.id) === String(currentUserId);
             const isTaken = !!session.countedBy && !isMine;
-            const isAdmin = AuthService.hasPermission('ADMIN') || AuthService.getCurrentUser()?.role?.name?.includes('ADMIN');
+            const isAdmin = userCanReassignCounts(AuthService.getCurrentUser());
             const isOpen = session.status === 'OPEN';
 
             return (
@@ -167,7 +183,7 @@ const WarehouseCountList = () => {
                             <button
                               onClick={async () => {
                                 const allUsers = await UserService.getAll();
-                                const bodegueros = allUsers.filter(u => u.role?.name === 'BODEGUERO' || u.role?.name === 'ADMINISTRADOR');
+                                const bodegueros = allUsers.filter(userCanCountInventory);
                                 const inputOptions = {};
                                 bodegueros.forEach(b => {
                                   inputOptions[b.id] = b.fullName || b.email;

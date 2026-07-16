@@ -22,7 +22,7 @@ const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConf
 
   if (!open || !product) return null;
 
-  const maxStock = Number(product.currentStock ?? 0);
+  const maxStock = Number(product.availableForSale ?? product.exhibitionStock ?? 0);
   const parsed = parseFloat(String(qty).replace(',', '.'));
   const valid = !Number.isNaN(parsed) && parsed > 0 && parsed <= maxStock;
   const lineTotal = valid ? parsed * Number(product.salePrice || 0) : 0;
@@ -45,7 +45,7 @@ const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConf
             <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
               {product.barcode ? `Código ${product.barcode}` : 'Sin código — venta por cantidad'}
               {' · '}
-              Stock: {maxStock}
+              Stock piso: {maxStock}
             </p>
           </div>
           <button
@@ -109,7 +109,7 @@ const PosQuantityModal = ({ open, product, mode = 'add', initialQuantity, onConf
 
           {parsed > maxStock && (
             <p className="text-center text-xs font-bold uppercase text-rose-700 bg-rose-50 dark:bg-rose-950/40 p-2 rounded-lg border border-rose-200 dark:border-rose-900/60">
-              La cantidad supera el stock disponible ({maxStock}).
+              La cantidad supera el stock en piso de venta ({maxStock}).
             </p>
           )}
 

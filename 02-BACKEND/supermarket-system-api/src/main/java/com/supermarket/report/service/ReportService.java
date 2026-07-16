@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.supermarket.inventory.entity.InventoryMovement;
+import com.supermarket.inventory.model.InventoryMovementType;
 import com.supermarket.inventory.repository.InventoryMovementRepository;
 import com.supermarket.product.repository.ProductRepository;
 import com.supermarket.purchase.repository.PurchaseOrderRepository;
@@ -171,7 +172,7 @@ public class ReportService {
 		BigDecimal totalSales = saleRepository
 				.sumTotalAmountBySaleDateBetweenAndStatus(start, end, SaleStatus.PAID)
 				.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
-		BigDecimal totalPurchases = purchaseOrderRepository.sumReceivedPurchasesBetween(start, end)
+		BigDecimal totalPurchases = inventoryMovementRepository.sumPurchaseReceiptEntriesBetween(start, end)
 				.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
 		BigDecimal netDifference = totalSales.subtract(totalPurchases).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
 		BigDecimal purchasesToSales = totalSales.compareTo(BigDecimal.ZERO) > 0
@@ -279,9 +280,11 @@ public class ReportService {
 		return productRepository.findAll().stream()
 				.map(p -> {
 					BigDecimal stock = p.getCurrentStock() != null ? p.getCurrentStock() : BigDecimal.ZERO;
-					BigDecimal cost = p.getPurchasePrice() != null ? p.getPurchasePrice() : BigDecimal.ZERO;
+					BigDecimal cost = p.getAverageCost() != null
+							? p.getAverageCost()
+							: p.getLastPurchaseCost() != null ? p.getLastPurchaseCost() : p.getPurchasePrice() != null ? p.getPurchasePrice() : BigDecimal.ZERO;
 					BigDecimal price = p.getSalePrice() != null ? p.getSalePrice() : BigDecimal.ZERO;
-					BigDecimal total = stock.multiply(price);
+					BigDecimal total = stock.multiply(cost);
 					BigDecimal minStock = p.getMinimumStock() != null ? p.getMinimumStock() : BigDecimal.ZERO;
 					String categoryName = p.getCategory() != null ? p.getCategory().getName() : "Sin categoría";
 					String brandName = p.getBrand() != null ? p.getBrand().getName() : "Sin marca";
@@ -400,7 +403,7 @@ public class ReportService {
 		if (!end.isAfter(start)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date range");
 		}
-		return purchaseOrderRepository.purchasesByBrandNative(start, end).stream()
+		return inventoryMovementRepository.purchasesByBrandReceiptNative(start, end).stream()
 				.map(row -> new PurchasesByBrandDTO(
 						(String) row[0],
 						toLong(row[1]) != null ? toLong(row[1]) : 0L,
@@ -445,6 +448,28 @@ public class ReportService {
 		}
 		return inventoryMovementRepository.findKardexByProductAndDateRange(productId, start, end).stream()
 				.map(this::toKardexRow)
+				.toList();
+	}
+
+	public List<Object[]> kardexReport(Long productId, LocalDate from, LocalDate to) {
+		return kardex(productId, from, to).stream()
+				.map(row -> new Object[] {
+						row.createdAt(),
+						row.productBarcode(),
+						row.productName(),
+						row.batchCode() != null ? row.batchCode() : "",
+						row.movementType() != null ? row.movementType().name() : "",
+						row.entryQuantity(),
+						row.exitQuantity(),
+						row.quantity(),
+						row.previousStock(),
+						row.newStock(),
+						row.unitCost(),
+						row.totalCost(),
+						row.sourceType() != null ? row.sourceType() : "",
+						row.userFullName() != null ? row.userFullName() : "",
+						row.notes() != null ? row.notes() : ""
+				})
 				.toList();
 	}
 
@@ -508,10 +533,11 @@ public class ReportService {
 	}
 
 	private KardexRowDTO toKardexRow(InventoryMovement movement) {
-		BigDecimal entryQuantity = movement.getFactor() != null && movement.getFactor() > 0
+		boolean isTransfer = movement.getMovementType() == InventoryMovementType.TRANSFER;
+		BigDecimal entryQuantity = !isTransfer && movement.getFactor() != null && movement.getFactor() > 0
 				? movement.getQuantity()
 				: BigDecimal.ZERO;
-		BigDecimal exitQuantity = movement.getFactor() != null && movement.getFactor() < 0
+		BigDecimal exitQuantity = !isTransfer && movement.getFactor() != null && movement.getFactor() < 0
 				? movement.getQuantity()
 				: BigDecimal.ZERO;
 		Long batchId = movement.getBatch() != null ? movement.getBatch().getId() : null;

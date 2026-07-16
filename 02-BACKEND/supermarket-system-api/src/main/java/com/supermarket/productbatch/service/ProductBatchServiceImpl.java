@@ -16,6 +16,7 @@ import com.supermarket.inventory.model.InventoryMovementType;
 import com.supermarket.inventory.service.InventoryLedger;
 import com.supermarket.product.entity.Product;
 import com.supermarket.product.repository.ProductRepository;
+import com.supermarket.product.service.ProductCostService;
 import com.supermarket.productbatch.dto.BatchExpirySummaryDTO;
 import com.supermarket.productbatch.dto.ProductBatchRequestDTO;
 import com.supermarket.productbatch.dto.ProductBatchResponseDTO;
@@ -38,6 +39,7 @@ public class ProductBatchServiceImpl implements ProductBatchService {
 	private final ProductBatchMapper productBatchMapper;
 	private final UserRepository userRepository;
 	private final InventoryLedger inventoryLedger;
+	private final ProductCostService productCostService;
 
 	@Override
 	public List<ProductBatchResponseDTO> findAll() {
@@ -155,7 +157,7 @@ public class ProductBatchServiceImpl implements ProductBatchService {
 
 		ProductBatch saved = productBatchRepository.save(batch);
 		inventoryLedger.record(currentUser(), product, saved, InventoryMovementType.ENTRY, request.getInitialQuantity(),
-				(byte) 1, saved.getId(), null, "PRODUCT_BATCH", product.getPurchasePrice(), "Initial batch quantity");
+				(byte) 1, saved.getId(), null, "PRODUCT_BATCH", productCostService.resolveOperationalCost(product), "Initial batch quantity");
 		return productBatchMapper.toResponse(saved);
 	}
 
@@ -198,8 +200,8 @@ public class ProductBatchServiceImpl implements ProductBatchService {
 
 		if (batch.getCurrentQuantity().compareTo(java.math.BigDecimal.ZERO) > 0) {
 			Product product = batch.getProduct();
-			inventoryLedger.record(currentUser(), product, null, InventoryMovementType.ADJUSTMENT, batch.getCurrentQuantity(),
-					(byte) -1, batch.getId(), null, "PRODUCT_BATCH_DELETE", product.getPurchasePrice(),
+			inventoryLedger.record(currentUser(), product, batch, InventoryMovementType.ADJUSTMENT, batch.getCurrentQuantity(),
+					(byte) -1, batch.getId(), null, "PRODUCT_BATCH_DELETE", productCostService.resolveOperationalCost(product),
 					"Batch deletion: " + batch.getBatchCode());
 		}
 

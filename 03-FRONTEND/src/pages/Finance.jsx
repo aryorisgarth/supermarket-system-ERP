@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Landmark, Loader2, Plus } from 'lucide-react';
+import { Landmark, Loader2, Plus, Wallet, Building2, FileText, ArrowRightLeft } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 import BillingService from '../services/BillingService';
@@ -50,6 +50,7 @@ const Finance = () => {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [settlingId, setSettlingId] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview'); // overview | accounts | conciliation
 
   const loadData = async () => {
     setLoading(true);
@@ -76,6 +77,7 @@ const Finance = () => {
     setEditing(null);
     setForm({ ...emptyForm, isDefault: accounts.length === 0 });
     setShowForm(true);
+    setActiveTab('accounts');
   };
 
   const openEdit = (account) => {
@@ -98,6 +100,7 @@ const Finance = () => {
       isActive: account.isActive,
     });
     setShowForm(true);
+    setActiveTab('accounts');
   };
 
   const submit = async (event) => {
@@ -198,15 +201,46 @@ const Finance = () => {
     <div className="animate-fade-in space-y-6">
       <PageHeader
         eyebrow="Finanzas"
-        title="Gestión de Cuentas y Liquidaciones"
-        description="Cuentas destino, pasarelas de pago (nacional/internacional) y liquidaciones T+N."
+        title="Módulo Financiero"
+        description="Gestiona métodos de cobro, conciliaciones y el flujo de caja corporativo de forma inteligente."
         actions={
-          <Button icon={Plus} onClick={openCreate}>
-            Vincular Cuenta
+          <Button icon={Plus} onClick={openCreate} className="bg-blue-600 hover:bg-blue-700 text-white border-none shadow-lg shadow-blue-500/30">
+            Nueva Cuenta Bancaria
           </Button>
         }
-        meta={<Badge tone="blue" className="px-3">{accounts.length} Entidades Configuradas</Badge>}
+        meta={
+          <div className="flex items-center gap-2">
+            <Badge tone="blue" className="px-3 shadow-sm">{accounts.length} Cuentas</Badge>
+            <Badge tone="blue" className="px-3 shadow-sm">
+              {summary.overdueCount > 0 ? `${summary.overdueCount} Atrasos` : 'Al día'}
+            </Badge>
+          </div>
+        }
       />
+
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-px">
+        {[
+          { id: 'overview', label: 'Resumen', icon: Landmark },
+          { id: 'accounts', label: 'Cuentas y Bancos', icon: Building2 },
+          { id: 'conciliation', label: 'Conciliación', icon: ArrowRightLeft },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold transition-all relative outline-none ${
+              activeTab === tab.id
+                ? 'text-blue-600 dark:text-blue-400'
+                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+            }`}
+          >
+            <tab.icon size={16} className={activeTab === tab.id ? 'animate-pulse' : ''} />
+            {tab.label}
+            {activeTab === tab.id && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full" />
+            )}
+          </button>
+        ))}
+      </div>
 
       {loading ? (
         <div className="flex h-64 flex-col items-center justify-center gap-3 text-[var(--app-text-muted)]">
@@ -214,62 +248,87 @@ const Finance = () => {
           <p className="font-bold text-xs uppercase tracking-widest">Sincronizando estados financieros...</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          <FinanceMetrics summary={summary} transactionsCount={transactions.length} money={money} />
+        <div className="space-y-8">
+          
+          {/* TAB: OVERVIEW */}
+          {activeTab === 'overview' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <FinanceMetrics summary={summary} transactionsCount={transactions.length} money={money} />
+              
+              {summary.overdueCount > 0 && (
+                <div className="rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4 text-sm font-bold text-slate-800 dark:text-slate-200 shadow-sm flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-black">
+                      !
+                    </span>
+                    Hay {summary.overdueCount} transacción(es) pendientes con fecha esperada de liquidación vencida.
+                  </div>
+                  <Button variant="secondary" size="sm" onClick={() => setActiveTab('conciliation')}>Ver Detalles</Button>
+                </div>
+              )}
 
-          {summary.overdueCount > 0 && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
-              Hay {summary.overdueCount} transacción(es) pendientes con fecha esperada de liquidación vencida. Revisa
-              conciliación bancaria.
+              <PaymentGatewaysPanel />
+              
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card className="shadow-md border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300">
+                  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-500/5 blur-2xl group-hover:bg-blue-500/10 transition-all duration-500" />
+                  <CardHeader icon={Landmark} title="Capital Flotante" description="Neto pendiente de depósito a tus cuentas bancarias." />
+                  <div className="p-5 mt-2">
+                    <p className="text-4xl font-black text-blue-600 dark:text-blue-400 tabular-nums tracking-tight">
+                      {money(summary.pendingNet)}
+                    </p>
+                    <p className="mt-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                      De {summary.pending.length} transacciones procesadas
+                    </p>
+                  </div>
+                </Card>
+                <Card className="shadow-md border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300">
+                  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-500/5 blur-2xl group-hover:bg-blue-500/10 transition-all duration-500" />
+                  <CardHeader icon={Wallet} title="Capital Liquidado" description="Dinero que ya ingresó exitosamente a tus cuentas." />
+                  <div className="p-5 mt-2">
+                    <p className="text-4xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
+                      {money(summary.settledNet)}
+                    </p>
+                    <p className="mt-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                      Bruto procesado: {money(summary.gross)}
+                    </p>
+                  </div>
+                </Card>
+              </div>
             </div>
           )}
 
-          <PaymentGatewaysPanel />
-
-          <div className="grid gap-6 xl:grid-cols-[440px_1fr]">
-            <div className="space-y-6">
-              <Card className="shadow-enterprise-lg border-[var(--app-primary)]/10">
-                <CardHeader icon={Landmark} title="Resumen de Liquidación" description="Estado consolidado de las cuentas destino." />
-                <div className="grid gap-4">
-                  <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-5 shadow-inner">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--app-text-muted)]">
-                      Neto pendiente de depósito
-                    </p>
-                    <p className="mt-2 text-3xl font-bold text-[var(--app-primary)] tabular-nums">
-                      {money(summary.pendingNet)}
-                    </p>
-                    <p className="mt-2 text-xs font-bold text-[var(--app-text-muted)]">
-                      Neto total procesado: {money(summary.net)}
-                    </p>
+          {/* TAB: ACCOUNTS */}
+          {activeTab === 'accounts' && (
+            <div className="grid gap-6 xl:grid-cols-[400px_1fr] animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="space-y-6">
+                {showForm ? (
+                  <PaymentAccountForm
+                    form={form}
+                    setForm={setForm}
+                    onSubmit={submit}
+                    onCancel={() => setShowForm(false)}
+                    editing={editing}
+                    saving={saving}
+                  />
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center bg-slate-50/50 dark:bg-slate-800/20">
+                    <Building2 className="mx-auto mb-4 text-slate-400 opacity-50" size={48} />
+                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Cuentas Bancarias</h3>
+                    <p className="text-xs text-slate-500 mb-6">Vincula las cuentas empresariales a donde las pasarelas o clientes envían fondos.</p>
+                    <Button onClick={openCreate} className="mx-auto" icon={Plus}>Vincular Nueva Cuenta</Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-xl border border-[var(--app-border)] p-4 bg-white dark:bg-[var(--app-surface-raised)]">
-                      <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Cuentas Activas</p>
-                      <p className="mt-1 text-2xl font-bold">{accounts.filter((a) => a.isActive).length}</p>
-                    </div>
-                    <div className="rounded-xl border border-[var(--app-border)] p-4 bg-white dark:bg-[var(--app-surface-raised)]">
-                      <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Movimientos</p>
-                      <p className="mt-1 text-2xl font-bold">{transactions.length}</p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              {showForm && (
-                <PaymentAccountForm
-                  form={form}
-                  setForm={setForm}
-                  onSubmit={submit}
-                  onCancel={() => setShowForm(false)}
-                  editing={editing}
-                  saving={saving}
-                />
-              )}
+                )}
+              </div>
+              <div>
+                <PaymentAccountsGrid accounts={accounts} onEdit={openEdit} onDelete={remove} />
+              </div>
             </div>
+          )}
 
-            <div className="space-y-8">
-              <PaymentAccountsGrid accounts={accounts} onEdit={openEdit} onDelete={remove} />
-
+          {/* TAB: CONCILIATION */}
+          {activeTab === 'conciliation' && (
+            <div className="animate-in fade-in slide-in-from-left-4 duration-500">
               <SettlementConciliationTable
                 transactions={transactions}
                 accounts={accounts}
@@ -279,7 +338,7 @@ const Finance = () => {
                 money={money}
               />
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

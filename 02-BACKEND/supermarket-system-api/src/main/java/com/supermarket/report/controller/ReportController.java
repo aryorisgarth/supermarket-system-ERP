@@ -67,12 +67,36 @@ public class ReportController {
 
 	@GetMapping("/inventory/kardex")
 	@Operation(summary = "Kardex de inventario filtrado por producto")
-	@PreAuthorize("hasAuthority('REPORT_VIEW')")
+	@PreAuthorize("hasAnyAuthority('REPORT_VIEW', 'INVENTORY_VIEW', 'INVENTORY_ADJUST')")
 	public List<KardexRowDTO> kardex(
 			@RequestParam Long productId,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
 		return reportService.kardex(productId, from, to);
+	}
+
+	@GetMapping("/inventory/kardex/excel")
+	@Operation(summary = "Exportar kardex de un producto (Excel)")
+	@PreAuthorize("hasAnyAuthority('REPORT_VIEW', 'INVENTORY_VIEW', 'INVENTORY_ADJUST')")
+	public ResponseEntity<byte[]> exportProductKardex(
+			@RequestParam Long productId,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) throws Exception {
+		List<Object[]> data = reportService.kardexReport(productId, from, to);
+		String[] headers = {
+				"Fecha", "Código", "Producto", "Lote", "Tipo", "Entrada", "Salida", "Cantidad",
+				"Stock previo", "Stock nuevo", "Costo unit.", "Costo total", "Origen", "Usuario", "Notas"
+		};
+		List<Map<String, Object>> rows = new ArrayList<>();
+		for (Object[] row : data) {
+			Map<String, Object> map = new HashMap<>();
+			for (int i = 0; i < headers.length; i++) {
+				map.put(headers[i], row[i]);
+			}
+			rows.add(map);
+		}
+		byte[] excelData = ExcelExportUtil.exportToExcel("Kardex Producto", headers, rows);
+		return createExcelResponse(excelData, "kardex_producto_" + productId + ".xlsx");
 	}
 
 	@GetMapping("/products/performance")
@@ -253,9 +277,9 @@ public class ReportController {
 	}
 
     @GetMapping("/inventory-kardex/excel")
-    @Operation(summary = "Reporte Kardex de movimientos (Excel)")
+    @Operation(summary = "Reporte de movimientos de inventario (Excel) — no es kardex por producto")
     @PreAuthorize("hasAuthority('REPORT_VIEW')")
-    public ResponseEntity<byte[]> exportKardex(
+    public ResponseEntity<byte[]> exportInventoryMovementsExcel(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) throws Exception {
         List<Object[]> data = reportService.inventoryMovementsReport(from, to);
@@ -272,8 +296,8 @@ public class ReportController {
             map.put(headers[6], row[6]);
             rows.add(map);
         }
-        byte[] excelData = ExcelExportUtil.exportToExcel("Kardex Inventario", headers, rows);
-        return createExcelResponse(excelData, "reporte_kardex.xlsx");
+        byte[] excelData = ExcelExportUtil.exportToExcel("Movimientos Inventario", headers, rows);
+        return createExcelResponse(excelData, "movimientos_inventario.xlsx");
     }
 
 	@GetMapping("/inventory-valued/excel")

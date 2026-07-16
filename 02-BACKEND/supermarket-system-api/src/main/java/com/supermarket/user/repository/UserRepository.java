@@ -18,7 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	Optional<User> findByEmail(String email);
 
-	@Query("SELECT u FROM User u JOIN FETCH u.role WHERE LOWER(u.email) = LOWER(:email)")
+	@Query("SELECT DISTINCT u FROM User u JOIN FETCH u.role LEFT JOIN FETCH u.directPermissions WHERE LOWER(u.email) = LOWER(:email)")
 	Optional<User> findByEmailWithRole(@Param("email") String email);
 
 	boolean existsByEmail(String email);
@@ -31,7 +31,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	List<User> findAllByOrderByFullNameAsc();
 
-	@EntityGraph(attributePaths = {"role"})
+	@EntityGraph(attributePaths = {"role", "directPermissions"})
 	@Query("""
 			SELECT u FROM User u
 			WHERE (:search IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%'))

@@ -2,8 +2,8 @@ import { useState } from 'react';
 import Swal from 'sweetalert2';
 import SaleService from '../services/SaleService';
 import CouponService from '../services/CouponService';
-import { normalizeProduct } from '../utils/normalizeProduct';
 import { formatMoney } from '../utils/formatMoney';
+import PaymentService from '../services/PaymentService';
 
 const parseSaleError = (message, cart) => {
   if (typeof message !== 'string') return 'Error interno al registrar la venta.';
@@ -52,6 +52,56 @@ export const useBillingCheckout = ({
   const [showPrintButton, setShowPrintButton] = useState(false);
   const [transferBank, setTransferBank] = useState('BAC');
   const [transferRef, setTransferRef] = useState('');
+  const [stripeClientSecret, setStripeClientSecret] = useState(null);
+  const [showStripeModal, setShowStripeModal] = useState(false);
+
+  const describePaymentMethod = (payment) => {
+    if (payment.method === 'TRANSFER') {
+      const bankLabel = payment.bank ? ` ${payment.bank}` : '';
+      const refLabel = payment.reference ? ` (Ref: ${payment.reference})` : '';
+      return `TRANSF.${bankLabel}${refLabel}`;
+    }
+    return ({
+      CASH: 'EFECTIVO',
+      CARD: 'TARJETA',
+      TRANSFER: 'TRANSFERENCIA',
+      COUPON: payment.couponCode ? `CUPON ${payment.couponCode}` : 'CUPON',
+      POINTS: 'PUNTOS',
+    }[payment.method] || payment.method);
+  };
+
+  const buildMappedPayments = () => {
+    if (isMultiPayment) {
+      return payments.map((payment) => ({
+        method: payment.method,
+        amount: parseFloat(Number(payment.amount || 0).toFixed(4)),
+        ...(payment.bank ? { bank: payment.bank } : {}),
+        ...(payment.reference ? { reference: payment.reference } : {}),
+        ...(payment.method === 'COUPON' && payment.couponCode ? { couponCode: payment.couponCode } : {}),
+      }));
+    }
+
+    if (paymentMethod === 'CASH') {
+      return [{
+        method: 'CASH',
+        amount: parseFloat(Number(amountReceived || 0).toFixed(4)),
+      }];
+    }
+
+    if (paymentMethod === 'TRANSFER') {
+      return [{
+        method: 'TRANSFER',
+        amount: parseFloat(Number(total || 0).toFixed(4)),
+        bank: transferBank,
+        reference: transferRef?.trim() || undefined,
+      }];
+    }
+
+    return [{
+      method: paymentMethod,
+      amount: parseFloat(Number(total || 0).toFixed(4)),
+    }];
+  };
 
   const handleValidateCoupon = async () => {
     if (!couponCode.trim() || total <= 0) return;
@@ -106,7 +156,30 @@ export const useBillingCheckout = ({
       }
     }
 
+    if (isMultiPayment && payments.some((p) => p.method === 'CARD')) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Tarjeta no disponible en pago mixto',
+        text: 'Por seguridad, la tarjeta solo puede cobrarse en modo simple mientras completamos la integración segura del pago mixto.',
+      });
+      return;
+    }
+
     const customerName = selectedCustomer ? selectedCustomer.fullName : 'Consumidor Final';
+
+    if (!isMultiPayment && paymentMethod === 'CARD') {
+      try {
+        Swal.fire({ title: 'Preparando pago...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        const { clientSecret } = await PaymentService.createPaymentIntent(total);
+        setStripeClientSecret(clientSecret);
+        Swal.close();
+        setShowStripeModal(true);
+        return; // Detenemos aquí, el checkout real sucederá tras el pago exitoso en el modal
+      } catch (error) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo inicializar el pago con Stripe' });
+        return;
+      }
+    }
 
     const res = await Swal.fire({ 
       title: '¿Confirmar Factura?', 
@@ -118,17 +191,37 @@ export const useBillingCheckout = ({
     });
 
     if (res.isConfirmed) {
+      const mappedPayments = buildMappedPayments();
+      await processCheckoutLogic(customerName, mappedPayments);
+    }
+  };
+
+  const handleStripePaymentSuccess = async (paymentIntent) => {
+    setShowStripeModal(false);
+    
+    const customerName = selectedCustomer ? selectedCustomer.fullName : 'Consumidor Final';
+    const mappedPayments = [{
+      method: 'CARD',
+      amount: parseFloat(total.toFixed(4)),
+      reference: paymentIntent.id
+    }];
+
+    await processCheckoutLogic(customerName, mappedPayments);
+    Swal.fire({ icon: 'success', title: 'Pago Exitoso', text: 'La factura ha sido registrada', timer: 2000, showConfirmButton: false });
+  };
+
+  const processCheckoutLogic = async (customerName, mappedPayments) => {
       try {
-        const mappedPayments = isMultiPayment
-          ? payments.map((p) => ({
-              method: p.method,
-              amount: parseFloat(Number(p.amount).toFixed(4)),
-              ...(p.method === 'COUPON' && p.couponCode ? { couponCode: p.couponCode } : {}),
-            }))
-          : [{
-              method: paymentMethod,
-              amount: parseFloat((paymentMethod === 'CASH' ? amountReceived : total).toFixed(4)),
-            }];
+        const totalPaid = mappedPayments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+        const cashPaid = mappedPayments
+          .filter((payment) => payment.method === 'CASH')
+          .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+        const change = totalPaid > total ? Math.min(cashPaid, totalPaid - total) : 0;
+        const paymentSummary = isMultiPayment
+          ? `PAGO MIXTO (${mappedPayments.map(describePaymentMethod).join(' + ')})`
+          : paymentMethod === 'TRANSFER'
+            ? describePaymentMethod(mappedPayments[0] || { method: 'TRANSFER', bank: transferBank, reference: transferRef })
+            : describePaymentMethod(mappedPayments[0] || { method: paymentMethod });
 
         const saleData = {
           customerId: selectedCustomer?.id || null,
@@ -145,9 +238,6 @@ export const useBillingCheckout = ({
 
         const sale = await SaleService.create(saleData);
 
-        const cashPaid = mappedPayments.filter(p => p.method === 'CASH').reduce((s, p) => s + p.amount, 0);
-        const change = totalPaid > total ? Math.min(cashPaid, totalPaid - total) : 0;
-
         setReceiptData({
           saleId: sale.id,
           invoiceNumber: sale.invoiceNumber,
@@ -159,15 +249,7 @@ export const useBillingCheckout = ({
           discountTotal,
           tax,
           total,
-          paymentMethod: isMultiPayment
-            ? `PAGO MIXTO (${payments.map(p => p.method === 'TRANSFER' && p.bank ? `TRANSF. ${p.bank}` : p.method === 'CASH' ? 'EFECTIVO' : p.method === 'CARD' ? 'TARJETA' : p.method).join(' + ')})`
-            : paymentMethod === 'TRANSFER'
-              ? `TRANSFERENCIA (${transferBank} - Ref: ${transferRef})`
-              : ({
-                  CASH: 'EFECTIVO',
-                  CARD: 'TARJETA',
-                  TRANSFER: 'TRANSFERENCIA',
-                }[paymentMethod] || paymentMethod),
+          paymentMethod: paymentSummary,
           amountReceived: totalPaid,
           change,
           pointsEarned: sale.pointsEarned || 0,
@@ -196,7 +278,6 @@ export const useBillingCheckout = ({
         );
         Swal.fire({ icon: 'error', title: 'Error al registrar venta', text: message });
       }
-    }
   };
 
   const findSaleByReference = async (reference) => {
@@ -247,22 +328,11 @@ export const useBillingCheckout = ({
   };
 
   const handleEditSale = async () => {
-    const { value: ref } = await promptSaleReference('Editar Venta');
-    if (ref) {
-      try {
-        const sale = await findSaleByReference(ref);
-        setCart(sale.lines.map(l => ({
-          ...normalizeProduct(l.product),
-          quantity: l.quantity,
-          discountAmount: l.discountAmount || 0,
-          extraData: l.extraData || ''
-        })));
-        setSelectedCustomer(sale.customer ? { id: sale.customer.id, fullName: sale.customer.fullName } : null);
-        setPaymentMethod(sale.payments[0]?.paymentMethod || 'CASH');
-      } catch (e) {
-        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar.' });
-      }
-    }
+    await Swal.fire({
+      icon: 'info',
+      title: 'Edición deshabilitada',
+      text: 'La edición de ventas ya cobradas fue desactivada para evitar duplicados y descuadres. Use anulación o devolución y luego registre una nueva venta.',
+    });
   };
 
   const handleCancelSale = async () => {
@@ -320,6 +390,10 @@ export const useBillingCheckout = ({
     transferBank,
     setTransferBank,
     transferRef,
-    setTransferRef
+    setTransferRef,
+    stripeClientSecret,
+    showStripeModal,
+    setShowStripeModal,
+    handleStripePaymentSuccess
   };
 };

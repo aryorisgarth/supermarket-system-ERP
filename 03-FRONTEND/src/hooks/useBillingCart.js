@@ -79,8 +79,13 @@ export const useBillingCart = () => {
       ? parseFloat((Number(existing.quantity) + qty).toFixed(4))
       : qty;
 
-    if (mergedQty > product.currentStock) {
-      Swal.fire({ icon: 'warning', title: 'Límite', text: `Solo hay ${product.currentStock} en stock.` });
+    const available = Number(product.availableForSale ?? product.exhibitionStock ?? 0);
+    if (mergedQty > available) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Límite de exhibición',
+        text: `Solo hay ${available} u. en piso de venta. Traslada desde bodega si necesitas más.`,
+      });
       return;
     }
 
@@ -129,8 +134,13 @@ export const useBillingCart = () => {
     if (qty <= 0) return;
     const current = cart.find((item) => item.id === productId);
     if (!current) return;
-    if (qty > current.currentStock) {
-      Swal.fire({ icon: 'warning', title: 'Límite', text: `Máximo ${current.currentStock} en stock.` });
+    const available = Number(current.availableForSale ?? current.exhibitionStock ?? 0);
+    if (qty > available) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Límite de exhibición',
+        text: `Máximo ${available} u. en piso de venta.`,
+      });
       return;
     }
 

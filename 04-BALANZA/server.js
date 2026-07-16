@@ -3,11 +3,16 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = 3030;
+const PORT = Number(process.env.PORT || 3030);
+const API_URL = process.env.API_URL || 'http://api:8081/api';
 
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+
+app.get('/health', (_req, res) => {
+    res.json({ ok: true, apiUrl: API_URL });
+});
 
 // Endpoint de prueba por si luego quieren conectar cosas por red
 app.post('/api/generate-ean13', (req, res) => {
@@ -44,4 +49,5 @@ app.post('/api/generate-ean13', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`📠 Simulador de Balanza ejecutándose en http://localhost:${PORT}`);
+    console.log(`🔗 API configurada en ${API_URL}`);
 });

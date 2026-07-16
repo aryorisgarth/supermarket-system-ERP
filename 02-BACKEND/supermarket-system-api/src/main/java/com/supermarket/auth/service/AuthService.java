@@ -1,6 +1,9 @@
 package com.supermarket.auth.service;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -61,7 +64,7 @@ public class AuthService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
 		user.setLastLogin(LocalDateTime.now());
 
-		var permissions = permissionRepository.findCodesByRoleId(user.getRole().getId());
+		var permissions = effectivePermissionCodes(user);
 		String accessToken = jwtService.createToken(user.getId(), user.getEmail(), user.getRole().getName(), permissions);
 		RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
@@ -74,7 +77,7 @@ public class AuthService {
 		RefreshToken verifiedToken = refreshTokenService.verifyExpiration(token);
 		
 		User user = verifiedToken.getUser();
-		var permissions = permissionRepository.findCodesByRoleId(user.getRole().getId());
+		var permissions = effectivePermissionCodes(user);
 		String newAccessToken = jwtService.createToken(user.getId(), user.getEmail(), user.getRole().getName(), permissions);
 		
 		return new LoginResponseDTO(newAccessToken, verifiedToken.getToken(), "Bearer", jwtProperties.expirationMs(), userMapper.toResponse(user));
@@ -111,5 +114,15 @@ public class AuthService {
 		keycloakAdminService.findUserIdByEmail(normalizedEmail).ifPresent(userId ->
 				keycloakAdminService.triggerPasswordReset(userId, clientId, redirectUri)
 		);
+	}
+
+	private List<String> effectivePermissionCodes(User user) {
+		Set<String> codes = new LinkedHashSet<>(permissionRepository.findCodesByRoleId(user.getRole().getId()));
+		if (user.getDirectPermissions() != null) {
+			user.getDirectPermissions().stream()
+					.map(permission -> permission.getCode())
+					.forEach(codes::add);
+		}
+		return List.copyOf(codes);
 	}
 }

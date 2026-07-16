@@ -21,8 +21,15 @@ const MainLayout = ({ children }) => {
   const [permissionsTick, setPermissionsTick] = useState(0);
 
   const refreshSessionUser = useCallback(async () => {
-    await AuthService.refreshCurrentUser();
-    setPermissionsTick((value) => value + 1);
+    try {
+      await AuthService.refreshCurrentUser();
+      setPermissionsTick((value) => value + 1);
+    } catch (error) {
+      if (error?.message === 'ACCOUNT_INACTIVE') {
+        return;
+      }
+      console.warn('No se pudo refrescar la sesión activa:', error);
+    }
   }, []);
 
   useEffect(() => {

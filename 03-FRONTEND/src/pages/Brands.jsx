@@ -1,34 +1,33 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Plus, Bookmark, X, Save, Edit, Trash, Loader2, Search } from 'lucide-react';
 import BrandService from '../services/BrandService';
+import BackendPagination from '../components/ui/BackendPagination';
+import useBackendList from '../hooks/useBackendList';
 import Swal from 'sweetalert2';
 
 const Brands = () => {
-  const [brands, setBrands] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const loadPage = useCallback((params) => BrandService.getPage(params), []);
+  const {
+    items: brands,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    currentPage,
+    itemsPerPage,
+    totalItems,
+    totalPages,
+    reload,
+    indexOfFirstItem,
+    indexOfLastItem,
+    handlePageChange,
+    handleItemsPerPageChange,
+  } = useBackendList({ loadPage, sort: 'name,asc' });
+
   const [showModal, setShowModal] = useState(false);
   const [editingBrand, setEditingBrand] = useState(null);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
   const [isActive, setIsActive] = useState(true);
-
-  const fetchBrands = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await BrandService.getAll();
-      setBrands(data || []);
-    } catch (error) {
-      console.error(error);
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar las marcas.', confirmButtonColor: '#ef4444' });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchBrands();
-  }, [fetchBrands]);
 
   const handleOpenCreate = () => {
     setEditingBrand(null);
@@ -59,7 +58,7 @@ const Brands = () => {
         await BrandService.create(brandData);
       }
       setShowModal(false);
-      await fetchBrands();
+      await reload();
       Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true }).fire({
         icon: 'success',
         title: editingBrand ? 'Marca actualizada' : 'Marca creada'
@@ -86,7 +85,7 @@ const Brands = () => {
     if (result.isConfirmed) {
       try {
         await BrandService.delete(id);
-        await fetchBrands();
+        await reload();
         Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true }).fire({
           icon: 'success',
           title: 'Marca eliminada'
@@ -97,8 +96,6 @@ const Brands = () => {
       }
     }
   };
-
-  const filtered = brands.filter((b) => b.name?.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -111,6 +108,7 @@ const Brands = () => {
           <p className="text-[var(--app-text-muted)] text-sm font-medium">Administra las marcas de productos disponibles en el sistema.</p>
         </div>
         <button
+          type="button"
           onClick={handleOpenCreate}
           className="flex items-center gap-2 bg-gradient-to-r from-[var(--app-primary)] to-blue-700 hover:to-[var(--app-primary)] text-white px-5 py-3 rounded-xl transition-all shadow-md font-bold hover:scale-[1.02] cursor-pointer text-sm"
         >
@@ -147,14 +145,14 @@ const Brands = () => {
                     <Loader2 className="animate-spin inline-block mr-2" size={16} /> Cargando...
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : brands.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="px-6 py-8 text-center text-[var(--app-text-muted)]">
                     No se encontraron marcas registradas.
                   </td>
                 </tr>
               ) : (
-                filtered.map((b) => (
+                brands.map((b) => (
                   <tr key={b.id} className="hover:bg-[var(--app-bg-subtle)]/50 transition-colors">
                     <td className="px-6 py-4">{b.id}</td>
                     <td className="px-6 py-4 font-bold">{b.name}</td>
@@ -164,10 +162,10 @@ const Brands = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right flex justify-end gap-2">
-                      <button onClick={() => handleOpenEdit(b)} className="p-2 border border-[var(--app-border)] text-[var(--app-text-muted)] hover:text-[var(--app-primary)] hover:bg-[var(--app-primary-soft)] rounded-lg transition-all cursor-pointer">
+                      <button type="button" onClick={() => handleOpenEdit(b)} className="p-2 border border-[var(--app-border)] text-[var(--app-text-muted)] hover:text-[var(--app-primary)] hover:bg-[var(--app-primary-soft)] rounded-lg transition-all cursor-pointer">
                         <Edit size={14} />
                       </button>
-                      <button onClick={() => handleDelete(b.id, b.name)} className="p-2 border border-[var(--app-border)] text-[var(--app-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-all cursor-pointer">
+                      <button type="button" onClick={() => handleDelete(b.id, b.name)} className="p-2 border border-[var(--app-border)] text-[var(--app-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-all cursor-pointer">
                         <Trash size={14} />
                       </button>
                     </td>
@@ -179,6 +177,18 @@ const Brands = () => {
         </div>
       </div>
 
+      <BackendPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        indexOfFirstItem={indexOfFirstItem}
+        indexOfLastItem={indexOfLastItem}
+        totalItems={totalItems}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        label="marcas"
+      />
+
       {showModal && (
         <div className="fixed inset-0 bg-[var(--app-bg)]/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-md w-full overflow-hidden">
@@ -187,7 +197,7 @@ const Brands = () => {
                 <Bookmark size={18} />
                 <h3 className="text-sm font-bold uppercase tracking-wider">{editingBrand ? 'Editar Marca' : 'Nueva Marca'}</h3>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-white/70 hover:text-white p-1 rounded-lg transition-all cursor-pointer">
+              <button type="button" onClick={() => setShowModal(false)} className="text-white/70 hover:text-white p-1 rounded-lg transition-all cursor-pointer">
                 <X size={16} />
               </button>
             </div>

@@ -164,7 +164,7 @@ export const getDefaultPurchasePack = (product) => {
 };
 
 export const suggestCostPerPack = (product, pack) => {
-  const unitCost = Number(product?.purchasePrice || 0);
+  const unitCost = Number(product?.averageCost ?? product?.purchasePrice ?? 0);
   const factor = Number(pack?.factor || 1);
   return unitCost * factor;
 };

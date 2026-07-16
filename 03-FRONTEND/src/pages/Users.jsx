@@ -9,6 +9,7 @@ import UsersTabs from '../components/users/UsersTabs';
 import UsersTable from '../components/users/UsersTable';
 import RolesPermissionsTab from '../components/users/RolesPermissionsTab';
 import UserFormModal from '../components/users/UserFormModal';
+import { formatRoleLabel } from '../utils/securityLabels';
 
 const Users = () => {
   const loadPage = useCallback((params) => UserService.getPage(params), []);
@@ -81,7 +82,7 @@ const Users = () => {
       Swal.fire({
         icon: 'success',
         title: 'Permisos actualizados',
-        text: `Los permisos del rol ${selectedRole.name} fueron guardados. Los usuarios con ese rol verán los cambios al recargar o al volver a la ventana.`,
+        text: `Los permisos del rol ${formatRoleLabel(selectedRole.name)} fueron guardados. Los usuarios con ese rol verán los cambios al recargar o al volver a la ventana.`,
         timer: 2800,
         showConfirmButton: false,
       });
@@ -130,7 +131,12 @@ const Users = () => {
         });
         reload();
       } catch (error) {
-        Swal.fire('Error', error.message || 'No se pudo cambiar el estado del usuario.', 'error');
+        const message =
+          (typeof error === 'string' && error) ||
+          error?.response?.data?.message ||
+          error?.message ||
+          'No se pudo cambiar el estado del usuario.';
+        Swal.fire('Error', message, 'error');
       }
     }
   };
@@ -211,7 +217,9 @@ const Users = () => {
         onClose={() => setShowModal(false)} 
         isEditMode={isEditMode} 
         user={selectedUser} 
-        onSuccess={reload} 
+        onSuccess={reload}
+        roles={roles}
+        permissions={permissions}
       />
     </div>
   );

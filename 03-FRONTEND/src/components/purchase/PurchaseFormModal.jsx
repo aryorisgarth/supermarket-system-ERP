@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { PackagePlus, X, Plus, Trash2, Loader2, Save, ArrowRight } from 'lucide-react';
+import { PackagePlus, Plus, Trash2, Loader2, Save, ArrowRight } from 'lucide-react';
 import {
   computeBaseUnits,
   computeLineTotal,
@@ -7,6 +7,7 @@ import {
   getDefaultPurchasePack,
   suggestCostPerPack,
 } from '../../utils/purchaseUnits';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const emptyLine = () => ({
   productId: '',
@@ -29,6 +30,7 @@ const PurchaseFormModal = ({
   onSupplierChange,
   onSubmit,
   money,
+  isEditing = false,
 }) => {
   const [focusedIndex, setFocusedIndex] = useState(null);
   
@@ -117,29 +119,18 @@ const PurchaseFormModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-7xl w-full overflow-hidden">
-        {}
-        <div className="p-5 bg-[var(--app-primary)] text-white flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <PackagePlus size={22} strokeWidth={2.5} />
-            <div>
-              <h3 className="font-bold text-sm uppercase tracking-wider">Registrar Orden de Compra</h3>
-              <p className="text-[10px] text-white/80 font-bold uppercase tracking-widest mt-0.5">
-                Entrada de stock a bodega SuperNova
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="hover:bg-white/10 p-1.5 rounded-lg transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <form onSubmit={handleFormSubmit} className="p-6 space-y-5 bg-[var(--app-surface)]">
+    <ResponsiveModal
+      isOpen
+      onClose={onClose}
+      icon={PackagePlus}
+      title={isEditing ? 'Editar Orden de Compra' : 'Registrar Orden de Compra'}
+      subtitle={isEditing ? 'Modifica el borrador antes de ordenar' : 'Entrada de stock a bodega SuperNova'}
+      initialSize="xl"
+      sizeOptions={['lg', 'xl', 'full']}
+      bodyClassName="bg-[var(--app-surface)]"
+    >
+      <form onSubmit={handleFormSubmit} className="flex h-full flex-col bg-[var(--app-surface)]">
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-1">
@@ -378,7 +369,8 @@ const PurchaseFormModal = ({
           </div>
 
           {}
-          <div className="pt-4 border-t border-[var(--app-border)] flex flex-col md:flex-row justify-between items-center gap-5">
+        </div>
+          <div className="mx-6 pt-4 border-t border-[var(--app-border)] flex flex-col md:flex-row justify-between items-center gap-5 pb-6">
             <div className="text-left">
               <p className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-widest">
                 Inversión Estimada
@@ -403,13 +395,12 @@ const PurchaseFormModal = ({
                 ) : (
                   <Save size={14} strokeWidth={2.5} />
                 )}{' '}
-                Guardar Orden
+                {isEditing ? 'Guardar cambios' : 'Guardar Orden'}
               </button>
             </div>
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </ResponsiveModal>
   );
 };
 

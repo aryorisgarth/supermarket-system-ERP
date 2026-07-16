@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Package, Barcode, Tag, Building2, DollarSign, Percent, Loader2, Save, Bookmark } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Package, Barcode, Tag, Building2, DollarSign, Percent, Loader2, Save, Bookmark } from 'lucide-react';
 import {
   defaultPurchasePacksForForm,
   purchasePacksFromTemplate,
@@ -7,9 +7,11 @@ import {
 } from '../../utils/purchaseUnits';
 import ProductService from '../../services/ProductService';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { formatMoney } from '../../utils/formatMoney';
 import Swal from 'sweetalert2';
 import ProductLocationsSection from './ProductLocationsSection';
 import ProductPurchasePacksSection from './ProductPurchasePacksSection';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const ProductFormModal = ({
   isOpen,
@@ -34,6 +36,8 @@ const ProductFormModal = ({
     taxCategoryId: '',
     brandId: '',
     minStockExhibicion: '5',
+    minMarginPercent: '20',
+    pricingPolicy: 'MANUAL',
     isActive: true,
     requiresBatch: false,
     requiresExpiration: false
@@ -66,6 +70,8 @@ const ProductFormModal = ({
         isActive: product.isActive !== false,
         brandId: product.brand?.id || '',
         minStockExhibicion: product.minStockExhibicion || '5',
+        minMarginPercent: product.minMarginPercent || '20',
+        pricingPolicy: product.pricingPolicy || 'MANUAL',
         requiresBatch: !!product.requiresBatch,
         requiresExpiration: !!product.requiresExpiration
       });
@@ -113,6 +119,8 @@ const ProductFormModal = ({
         taxCategoryId: taxCategories[0]?.id || '',
         brandId: '',
         minStockExhibicion: '5',
+        minMarginPercent: '20',
+        pricingPolicy: 'MANUAL',
         isActive: true,
         requiresBatch: false,
         requiresExpiration: false
@@ -171,6 +179,8 @@ const ProductFormModal = ({
       taxCategoryId: parseInt(formData.taxCategoryId),
       brandId: formData.brandId ? parseInt(formData.brandId) : null,
       minStockExhibicion: parseFloat(formData.minStockExhibicion),
+      minMarginPercent: parseFloat(formData.minMarginPercent),
+      pricingPolicy: formData.pricingPolicy,
       requiresBatch: Boolean(formData.requiresBatch),
       requiresExpiration: Boolean(formData.requiresExpiration),
       purchasePacks: purchasePacks
@@ -225,35 +235,24 @@ const ProductFormModal = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in">
-      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-xl w-full overflow-hidden my-8">
-        
-        <div className="bg-gradient-to-r from-primary to-primary-dark p-5 text-white flex justify-between items-center shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/10 rounded-lg text-white">
-              <Package size={18} />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider">
-                {product ? 'Modificar Ficha de Producto' : 'Crear Producto en Catálogo'}
-              </h3>
-              <p className="text-white/80 text-[10px] font-medium mt-0.5">
-                Define códigos de barra fiscales, precios y proveedores en SuperNova.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all cursor-pointer"
-          >
-            <X size={16} />
-          </button>
-        </div>
+  const currentMargin = product?.currentMarginPercent ?? null;
+  const averageCost = product?.averageCost ?? product?.purchasePrice ?? 0;
+  const lastPurchaseCost = product?.lastPurchaseCost ?? product?.purchasePrice ?? 0;
 
-        
-        <form onSubmit={handleSave}>
-          <div className="p-5 space-y-4 max-h-[65vh] overflow-y-auto bg-[var(--app-surface)]">
+  return (
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={Package}
+      title={product ? 'Modificar Ficha de Producto' : 'Crear Producto en Catálogo'}
+      subtitle="Define códigos de barra fiscales, precios y proveedores en SuperNova."
+      initialSize="lg"
+      sizeOptions={['md', 'lg', 'xl', 'full']}
+      bodyClassName="bg-[var(--app-surface)]"
+      headerClassName="bg-gradient-to-r from-primary to-primary-dark text-white"
+    >
+      <form onSubmit={handleSave} className="flex h-full flex-col">
+          <div className="flex-1 overflow-y-auto bg-[var(--app-surface)] p-5 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               <div className="space-y-1">
@@ -432,6 +431,55 @@ const ProductFormModal = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Margen Mínimo (%)</label>
+                <input
+                  type="number"
+                  name="minMarginPercent"
+                  required
+                  min="0"
+                  step="0.01"
+                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
+                  value={formData.minMarginPercent}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Política de Precio</label>
+                <select
+                  name="pricingPolicy"
+                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs cursor-pointer shadow-sm"
+                  value={formData.pricingPolicy}
+                  onChange={handleChange}
+                >
+                  <option value="MANUAL">Manual</option>
+                  <option value="SUGGEST_ON_PURCHASE">Sugerir al comprar</option>
+                  <option value="AUTO_BY_MARGIN">Automático por margen</option>
+                </select>
+              </div>
+            </div>
+
+            {product && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40 p-4">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Último costo</p>
+                  <p className="text-sm font-extrabold text-[var(--app-text)] mt-1">{formatMoney(lastPurchaseCost)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Costo promedio</p>
+                  <p className="text-sm font-extrabold text-[var(--app-text)] mt-1">{formatMoney(averageCost)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Margen actual</p>
+                  <p className={`text-sm font-extrabold mt-1 ${currentMargin !== null && Number(currentMargin) < Number(formData.minMarginPercent || 0) ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    {currentMargin !== null ? `${Number(currentMargin).toFixed(2)}%` : 'Sin cálculo'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Stock Inicial</label>
@@ -546,9 +594,8 @@ const ProductFormModal = ({
               Guardar
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </ResponsiveModal>
   );
 };
 

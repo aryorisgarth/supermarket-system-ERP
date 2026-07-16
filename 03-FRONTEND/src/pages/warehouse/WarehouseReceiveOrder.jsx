@@ -7,12 +7,6 @@ import {
   PackageCheck,
   Save,
   ScanLine,
-  Activity,
-  Clock,
-  Sparkles,
-  Barcode,
-  TrendingUp,
-  Percent,
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import PageHeader from '../../components/ui/PageHeader';
@@ -26,7 +20,6 @@ import ReceiveScanLogCard from '../../components/warehouse/ReceiveScanLogCard';
 import ReceivePedagogicalSummary from '../../components/warehouse/ReceivePedagogicalSummary';
 import PurchaseOrderService from '../../services/PurchaseOrderService';
 import LocationService from '../../services/LocationService';
-import AuthService from '../../services/AuthService';
 import useBarcodeScan from '../../hooks/useBarcodeScan';
 import { getApiErrorMessage } from '../../utils/apiError';
 import {
@@ -37,9 +30,39 @@ import {
   updateReceiptLine,
   validateReceiptPayload,
 } from '../../utils/purchaseReceipt';
+import { ensurePurchaseReceiveAccess } from '../../utils/ensurePurchaseReceiveAccess';
 import { formatMoney } from '../../utils/formatMoney';
+import WarehouseFlowStrip from '../../components/warehouse/WarehouseFlowStrip';
 
 const money = formatMoney;
+
+const buildReceiptImpactHtml = (impacts = []) => {
+  if (!impacts.length) return '';
+  const rows = impacts.map((impact) => {
+    const margin = impact.currentMarginPercent != null ? `${Number(impact.currentMarginPercent).toFixed(2)}%` : 'Sin cálculo';
+    const suggested = impact.suggestedSalePrice != null ? money(impact.suggestedSalePrice) : 'N/D';
+    const alert = impact.marginAlert
+      ? `<div style="margin-top:4px;color:#b45309;font-weight:700">Margen bajo. Sugerido: ${suggested}</div>`
+      : '';
+    return `
+      <div style="text-align:left;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:10px">
+        <div style="font-weight:800;color:#0f172a">${impact.productName}</div>
+        <div style="font-size:12px;color:#475569;margin-top:4px">
+          Costo anterior: <b>${money(impact.previousLastCost)}</b> |
+          Nuevo costo: <b>${money(impact.newLastCost)}</b>
+        </div>
+        <div style="font-size:12px;color:#475569;margin-top:2px">
+          Costo promedio: <b>${money(impact.newAverageCost)}</b> |
+          Precio venta: <b>${money(impact.salePrice)}</b> |
+          Margen actual: <b>${margin}</b>
+        </div>
+        ${alert}
+      </div>
+    `;
+  }).join('');
+
+  return `<div style="max-height:320px;overflow:auto;padding-right:4px">${rows}</div>`;
+};
 
 const WarehouseReceiveOrder = () => {
   const { orderId } = useParams();
@@ -66,20 +89,22 @@ const WarehouseReceiveOrder = () => {
         LocationService.getAll(),
       ]);
       
-      const currentUser = AuthService.getCurrentUser();
-      if (orderData.receivedBy && orderData.receivedBy.id !== currentUser?.id) {
-        Swal.fire('Acceso Denegado', `Esta orden está siendo procesada por ${orderData.receivedBy.fullName || orderData.receivedBy.name || orderData.receivedBy.email}`, 'warning');
-        navigate(backPath);
-        return;
-      } else if (!orderData.receivedBy) {
-        Swal.fire('Aviso', 'Debes tomar esta tarea en la lista de recepciones antes de iniciar el conteo.', 'info');
+      let accessibleOrder = orderData;
+      try {
+        accessibleOrder = await ensurePurchaseReceiveAccess(orderData);
+      } catch (claimError) {
+        Swal.fire({
+          icon: claimError?.code === 'CLAIMED_BY_OTHER' ? 'warning' : 'error',
+          title: claimError?.code === 'CLAIMED_BY_OTHER' ? 'Recepción ocupada' : 'Sin acceso',
+          text: getApiErrorMessage(claimError, claimError?.message || 'No se pudo abrir esta recepción.'),
+        });
         navigate(backPath);
         return;
       }
 
-      setOrder(orderData);
+      setOrder(accessibleOrder);
       setLocations(locationsData || []);
-      setLines(buildReceiptLinesFromOrder(orderData, { pendingOnly: true }));
+      setLines(buildReceiptLinesFromOrder(accessibleOrder, { pendingOnly: true }));
     } catch (error) {
       console.error(error);
       Swal.fire('Error', getApiErrorMessage(error, 'No se pudo cargar la orden de compra.'), 'error');
@@ -126,7 +151,6 @@ const WarehouseReceiveOrder = () => {
   const {
     scanValue,
     setScanValue,
-    scanning,
     handleScanKeyDown,
   } = useBarcodeScan({ onFound: onBarcodeFound });
 
@@ -143,7 +167,7 @@ const WarehouseReceiveOrder = () => {
     const totalReceived = lines.reduce((sum, l) => sum + Number(l.quantityReceived || 0), 0);
     const totalOrdered = lines.reduce((sum, l) => sum + Number(l.pending || 0) + Number(l.alreadyReceived || 0), 0);
     
-    const percent = totalOrdered > 0 ? Math.round((totalReceived / totalPending) * 100) : 0;
+    const percent = totalOrdered > 0 ? Math.round((totalReceived / totalOrdered) * 100) : 0;
     return {
       percent: Math.min(percent, 100),
       receivedItems: totalReceived,
@@ -162,13 +186,15 @@ const WarehouseReceiveOrder = () => {
 
     try {
       setSaving(true);
-      await PurchaseOrderService.receive(order.id, payload);
-      Swal.fire({
+      const response = await PurchaseOrderService.receive(order.id, payload);
+      await Swal.fire({
         icon: 'success',
         title: 'Mercadería recibida',
-        text: 'Stock y lotes actualizados con éxito.',
-        timer: 1600,
-        showConfirmButton: false,
+        html: response?.receiptImpacts?.length
+          ? `<p style="margin-bottom:12px">Stock, lotes y costos actualizados con éxito.</p>${buildReceiptImpactHtml(response.receiptImpacts)}`
+          : 'Stock y lotes actualizados con éxito.',
+        width: response?.receiptImpacts?.length ? 720 : undefined,
+        confirmButtonText: 'Entendido',
       });
       navigate(backPath);
     } catch (error) {
@@ -194,7 +220,7 @@ const WarehouseReceiveOrder = () => {
       <PageHeader
         eyebrow="Recepción"
         title={order.orderNumber}
-        description={`Proveedor: ${order.supplierName} · Registrar entrada con lote, vencimiento y control de calidad.`}
+        description={`Proveedor: ${order.supplierName} · Al confirmar, el stock entra a bodega (no al piso de venta). Luego traslada a exhibición.`}
         actions={(
           <Link to={backPath}>
             <Button type="button" variant="secondary" icon={ArrowLeft}>{backLabel}</Button>
@@ -202,6 +228,8 @@ const WarehouseReceiveOrder = () => {
         )}
         meta={<Badge tone="blue">{lines.length} líneas pendientes</Badge>}
       />
+
+      <WarehouseFlowStrip activeStep={2} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_350px]">
         {}

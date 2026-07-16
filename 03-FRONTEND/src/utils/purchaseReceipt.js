@@ -3,6 +3,7 @@ export const PURCHASE_ORDER_STATUS = {
   ORDERED: 'ORDERED',
   PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED',
   RECEIVED: 'RECEIVED',
+  CLOSED: 'CLOSED',
   CANCELLED: 'CANCELLED',
 };
 
@@ -11,6 +12,7 @@ export const PURCHASE_STATUS_LABELS = {
   ORDERED: 'Ordenada',
   PARTIALLY_RECEIVED: 'Parcial',
   RECEIVED: 'Recibida',
+  CLOSED: 'Cerrada incompleta',
   CANCELLED: 'Cancelada',
 };
 
@@ -19,10 +21,11 @@ export const PURCHASE_STATUS_TONES = {
   ORDERED: 'blue',
   PARTIALLY_RECEIVED: 'amber',
   RECEIVED: 'green',
+  CLOSED: 'neutral',
   CANCELLED: 'red',
 };
 
-export const RECEIVABLE_STATUSES = ['DRAFT', 'ORDERED', 'PARTIALLY_RECEIVED'];
+export const RECEIVABLE_STATUSES = ['ORDERED', 'PARTIALLY_RECEIVED'];
 
 export const RECEIPT_LINE_EXTRA = {
   batchCode: '',
@@ -33,9 +36,12 @@ export const RECEIPT_LINE_EXTRA = {
 };
 
 export function buildReceiptLinesFromOrder(order, { pendingOnly = false } = {}) {
-  const orderNumber = order?.orderNumber || 'PO';
   const lines = (order?.items || []).map((item) => {
-    const pending = Math.max(0, Number(item.quantityOrdered || 0) - Number(item.quantityReceived || 0));
+    const alreadyRejected = Number(item.quantityRejected || 0);
+    const pending = Math.max(
+      0,
+      Number(item.quantityOrdered || 0) - Number(item.quantityReceived || 0) - alreadyRejected
+    );
     return {
       itemId: item.id,
       productId: item.product?.id,
@@ -43,6 +49,7 @@ export function buildReceiptLinesFromOrder(order, { pendingOnly = false } = {}) 
       productName: item.product?.name || 'Producto',
       ordered: Number(item.quantityOrdered || 0),
       alreadyReceived: Number(item.quantityReceived || 0),
+      alreadyRejected,
       pending,
       quantityReceived: pending,
       quantityInPacks: Number(item.quantityInPacks || item.quantityOrdered || 0),
@@ -52,7 +59,7 @@ export function buildReceiptLinesFromOrder(order, { pendingOnly = false } = {}) 
       requiresBatch: !!item.product?.requiresBatch,
       requiresExpiration: !!item.product?.requiresExpiration,
       ...RECEIPT_LINE_EXTRA,
-      batchCode: `L-${orderNumber}-${item.id}`,
+      batchCode: '',
     };
   });
 
@@ -63,8 +70,14 @@ export function updateReceiptLine(lines, itemId, field, value) {
   return lines.map((row) => {
     if (row.itemId !== itemId) return row;
     if (field === 'quantityReceived') {
-      const qty = Math.min(Math.max(0, Number(value || 0)), row.pending);
+      const max = Math.max(0, row.pending - Number(row.quantityRejected || 0));
+      const qty = Math.min(Math.max(0, Number(value || 0)), max);
       return { ...row, quantityReceived: qty };
+    }
+    if (field === 'quantityRejected') {
+      const max = Math.max(0, row.pending - Number(row.quantityReceived || 0));
+      const qty = Math.min(Math.max(0, Number(value || 0)), max);
+      return { ...row, quantityRejected: qty };
     }
     return { ...row, [field]: value };
   });
@@ -83,10 +96,10 @@ export function calcReceiptTotal(lines) {
 
 export function buildReceiptPayload(lines, receiptNotes = '') {
   const items = lines
-    .filter((line) => Number(line.quantityReceived) > 0)
+    .filter((line) => Number(line.quantityReceived) > 0 || Number(line.quantityRejected) > 0)
     .map((line) => ({
       itemId: line.itemId,
-      quantityReceived: Number(line.quantityReceived),
+      quantityReceived: Number(line.quantityReceived || 0),
       quantityRejected: line.quantityRejected ? Number(line.quantityRejected) : undefined,
       batchCode: line.batchCode?.trim() || undefined,
       expirationDate: line.expirationDate || undefined,
@@ -102,11 +115,11 @@ export function buildReceiptPayload(lines, receiptNotes = '') {
 
 export function validateReceiptPayload(items, lines) {
   if (!items.length) {
-    return { valid: false, message: 'Ingresa al menos una cantidad aceptada.' };
+    return { valid: false, message: 'Ingresa al menos una cantidad aceptada o rechazada.' };
   }
   for (const item of items) {
     const orig = (lines || []).find((l) => l.itemId === item.itemId);
-    if (orig) {
+    if (orig && Number(item.quantityReceived) > 0) {
       if (orig.requiresBatch && !item.batchCode) {
         return { valid: false, message: `El código de lote es obligatorio para el producto: ${orig.productName}.` };
       }
@@ -115,7 +128,7 @@ export function validateReceiptPayload(items, lines) {
       }
     }
   }
-  const missingExpiry = items.some((line) => line.batchCode && !line.expirationDate);
+  const missingExpiry = items.some((line) => line.batchCode && !line.expirationDate && Number(line.quantityReceived) > 0);
   if (missingExpiry) {
     return { valid: false, message: 'Si registras un lote, debes indicar la fecha de vencimiento.' };
   }

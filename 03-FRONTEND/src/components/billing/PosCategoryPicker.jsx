@@ -69,7 +69,7 @@ const PosCategoryPicker = ({
   };
 
   const handleQuickAdd = (product) => {
-    if (product.isActive === false || product.currentStock <= 0) return;
+    if (product.isActive === false || Number(product.availableForSale ?? product.exhibitionStock ?? 0) <= 0) return;
     onQuickAdd(product);
     flashRow(product.id);
   };
@@ -79,7 +79,7 @@ const PosCategoryPicker = ({
     clearLongPress();
     longPressRef.current = window.setTimeout(() => {
       longPressFiredRef.current = true;
-      if (product.isActive === false || product.currentStock <= 0) return;
+      if (product.isActive === false || Number(product.availableForSale ?? product.exhibitionStock ?? 0) <= 0) return;
       onQuantityEdit?.(product);
     }, LONG_PRESS_MS);
   };
@@ -264,7 +264,7 @@ const PosCategoryPicker = ({
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
               {filtered.map((product) => {
-                const out = product.currentStock <= 0;
+                const out = Number(product.availableForSale ?? product.exhibitionStock ?? 0) <= 0;
                 const inactive = product.isActive === false;
                 const disabled = out || inactive;
                 const inCart = cartQtyById.get(product.id);
@@ -397,7 +397,7 @@ const PosCategoryPicker = ({
 
                         {out && (
                           <span style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444' }}>
-                            SIN STOCK
+                            SIN PISO
                           </span>
                         )}
                       </div>

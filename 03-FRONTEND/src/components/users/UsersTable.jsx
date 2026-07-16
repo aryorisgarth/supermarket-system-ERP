@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, Loader2, Edit, UserX, Trash2, Circle } from 'lucide-react';
 import BackendPagination from '../ui/BackendPagination';
+import { formatRoleLabel } from '../../utils/securityLabels';
 
 const getRoleBadge = (role) => {
   const styles = {
@@ -12,7 +13,7 @@ const getRoleBadge = (role) => {
   };
   return (
     <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-widest ${styles[role] || 'bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)] border-[var(--app-border)]'}`}>
-      {role?.replace('_', ' ') || 'S/R'}
+      {formatRoleLabel(role) || 'S/R'}
     </span>
   );
 };
@@ -101,7 +102,14 @@ const UsersTable = ({
                       {user.email}
                     </td>
                     <td className="px-6 py-4">
-                      {getRoleBadge(user.role?.name)}
+                      <div className="space-y-1">
+                        {getRoleBadge(user.role?.name)}
+                        {(user.directPermissions?.length || 0) > 0 && (
+                          <p className="text-[10px] font-semibold text-[var(--app-primary)]">
+                            +{user.directPermissions.length} permiso{user.directPermissions.length === 1 ? '' : 's'} adicional{user.directPermissions.length === 1 ? '' : 'es'}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       {getStatusBadge(user.isActive)}

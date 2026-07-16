@@ -23,7 +23,7 @@ export const generateInventoryReportPDF = (products) => {
   doc.setTextColor(...TEXT_COLOR);
   doc.text(`Generado: ${new Date().toLocaleString('es-NI')}`, 14, 27);
 
-  const totalCost = products.reduce((acc, p) => acc + (Number(p.purchasePrice || 0) * Number(p.currentStock || 0)), 0);
+  const totalCost = products.reduce((acc, p) => acc + (Number(p.averageCost ?? p.purchasePrice ?? 0) * Number(p.currentStock || 0)), 0);
   const totalValue = products.reduce((acc, p) => acc + (Number(p.salePrice || 0) * Number(p.currentStock || 0)), 0);
   const totalItems = products.reduce((acc, p) => acc + Number(p.currentStock || 0), 0);
 
@@ -55,7 +55,7 @@ export const generateInventoryReportPDF = (products) => {
   const rows = products.map((p) => {
     const stock = Number(p.currentStock || 0);
     const price = Number(p.salePrice || 0);
-    const cost = Number(p.purchasePrice || 0);
+    const cost = Number(p.averageCost ?? p.purchasePrice ?? 0);
     const total = stock * price;
 
     return {

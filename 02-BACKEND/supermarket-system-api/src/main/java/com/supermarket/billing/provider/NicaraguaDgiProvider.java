@@ -25,7 +25,7 @@ public class NicaraguaDgiProvider implements ElectronicInvoiceProvider {
 	public ElectronicInvoiceResult authorize(Sale sale, String issuerTaxId, String receiverTaxId) {
 		try {
 			int year = sale.getSaleDate() != null ? sale.getSaleDate().getYear() : java.time.LocalDateTime.now().getYear();
-			String authNumber = String.format("NI-DGI-%d-%s", year, sale.getInvoiceNumber());
+			String authNumber = String.format("NI-DGI-TEST-%d-%s", year, sale.getInvoiceNumber());
 
 			
 			String raw = issuerTaxId + "|" + sale.getInvoiceNumber() + "|"

@@ -8,14 +8,14 @@ const SupplierFilters = ({
   hasActiveFilters
 }) => {
   return (
-    <div className="bg-white dark:bg-surface-dark p-4 rounded-xl border border-border-light dark:border-border-light-dark shadow-enterprise dark:shadow-enterprise-dark">
+    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
       <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
         <div className="relative w-full lg:flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input 
             type="text" 
             placeholder="Buscar por nombre, contacto o email..." 
-            className="w-full pl-11 pr-4 py-2.5 bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white dark:focus:bg-surface-dark transition-all font-bold text-text-primary dark:text-text-primary-dark text-xs shadow-sm"
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-medium text-slate-800 dark:text-slate-100 text-sm shadow-inner"
             value={searchTerm}
             onChange={onSearchChange}
           />
@@ -26,7 +26,7 @@ const SupplierFilters = ({
           {hasActiveFilters && (
             <button 
               onClick={onClearFilters}
-              className="text-xs font-bold text-text-secondary hover:text-primary bg-surface dark:bg-surface-dark hover:bg-primary/10 px-4 py-2.5 rounded-lg transition-all w-full sm:w-auto cursor-pointer border border-border-light dark:border-border-light-dark hover:border-primary"
+              className="text-sm font-bold text-slate-500 hover:text-violet-600 bg-white dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-900/30 px-5 py-3 rounded-xl transition-all w-full sm:w-auto cursor-pointer border border-slate-200 dark:border-slate-700 hover:border-violet-200 dark:hover:border-violet-800"
             >
               Resetear
             </button>

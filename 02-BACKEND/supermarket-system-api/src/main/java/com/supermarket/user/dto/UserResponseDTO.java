@@ -12,6 +12,7 @@ public record UserResponseDTO(
 	Boolean isActive,
 	RoleResponseDTO role,
 	List<String> permissions,
+	List<String> directPermissions,
 	LocalDateTime lastLogin,
 	LocalDateTime createdAt
 ) {

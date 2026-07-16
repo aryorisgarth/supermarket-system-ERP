@@ -176,9 +176,12 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
           items: section.items.filter((item) => {
             const permissions = Array.isArray(item.permissions) ? item.permissions : [];
             const roleAllowed = item.roles ? item.roles.includes(roleName) : true;
+            const allowPermissionOverride = item.allowPermissionOverride === true;
             
             if (permissions.length > 0) {
-              return roleAllowed && AuthService.hasAnyPermission(permissions);
+              return allowPermissionOverride
+                ? AuthService.hasAnyPermission(permissions)
+                : roleAllowed && AuthService.hasAnyPermission(permissions);
             }
             
             return roleAllowed;

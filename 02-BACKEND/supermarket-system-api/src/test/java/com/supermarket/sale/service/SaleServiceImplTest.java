@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,6 +44,8 @@ import com.supermarket.sale.repository.CreditNoteLineRepository;
 import com.supermarket.sale.repository.CreditNoteRepository;
 import com.supermarket.sale.repository.SaleRepository;
 import com.supermarket.product.repository.ProductUomConversionRepository;
+import com.supermarket.product.repository.ProductLocationRepository;
+import com.supermarket.product.service.ProductCostService;
 import com.supermarket.security.LoggedUser;
 import com.supermarket.tax.entity.TaxCategory;
 import com.supermarket.user.entity.User;
@@ -72,6 +75,9 @@ class SaleServiceImplTest {
 	@Mock private TransactionTemplate transactionTemplate;
 	@Mock private PromotionService promotionService;
 	@Mock private SaleBatchAllocator saleBatchAllocator;
+	@Mock private ProductCostService productCostService;
+	@Mock private ProductLocationRepository productLocationRepository;
+	@Mock private com.supermarket.sale.repository.CouponRepository couponRepository;
 
 	@InjectMocks
 	private SaleServiceImpl saleService;
@@ -105,6 +111,7 @@ class SaleServiceImplTest {
 		session = new CashRegisterSession();
 		session.setId(1L);
 		session.setOpeningBalance(new BigDecimal("50.0000"));
+		session.setOpenedAt(LocalDateTime.now());
 
 		LoggedUser loggedUser = new LoggedUser(1L, seller.getEmail(), "", true, List.of());
 		SecurityContextHolder.getContext().setAuthentication(
@@ -118,6 +125,9 @@ class SaleServiceImplTest {
 		lenient().when(promotionService.bestPromotion(any(), any(), any())).thenReturn(Optional.empty());
 		lenient().when(saleBatchAllocator.allocatePortions(any(), any(), any(), any()))
 				.thenAnswer(inv -> List.of(new SaleBatchAllocator.Portion(null, inv.getArgument(2), inv.getArgument(2))));
+		lenient().when(productLocationRepository.sumExhibitionStockByProductId(any()))
+				.thenReturn(new BigDecimal("100.0000"));
+		lenient().when(productCostService.resolveOperationalCost(any())).thenReturn(new BigDecimal("5.0000"));
 	}
 
 	@Test
@@ -130,6 +140,7 @@ class SaleServiceImplTest {
 						new SalePaymentRequestDTO(
 								PaymentMethod.CASH,
 								new BigDecimal("15.00"),
+								null,
 								null
 						)
 				),
@@ -153,6 +164,7 @@ class SaleServiceImplTest {
 		SalePaymentRequestDTO payment = new SalePaymentRequestDTO(
 				PaymentMethod.CASH,
 				new BigDecimal("5.00"),
+				null,
 				null);
 
 		SaleRequestDTO req = new SaleRequestDTO(null, "FAC-002", List.of(payment), List.of(line));
@@ -180,6 +192,7 @@ class SaleServiceImplTest {
 		SalePaymentRequestDTO payment = new SalePaymentRequestDTO(
 				PaymentMethod.CASH,
 				new BigDecimal("100.00"),
+				null,
 				null);
 
 		SaleRequestDTO req = new SaleRequestDTO(null, "FAC-003", List.of(payment), List.of(line));
@@ -188,10 +201,12 @@ class SaleServiceImplTest {
 		when(userRepository.findById(anyLong())).thenReturn(Optional.of(seller));
 		when(cashRegisterService.getActiveSessionEntity(anyLong())).thenReturn(session);
 		when(productRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(product));
+		when(productLocationRepository.sumExhibitionStockByProductId(1L)).thenReturn(new BigDecimal("0.5000"));
 
 		ConflictException ex = assertThrows(ConflictException.class,
 				() -> saleService.create(req));
 		assertEquals(HttpStatus.CONFLICT, ex.getStatus());
+		assertTrue(ex.getMessage().toLowerCase().contains("exhibición") || ex.getMessage().toLowerCase().contains("insufficient"));
 	}
 
 	@Test
@@ -204,6 +219,7 @@ class SaleServiceImplTest {
 		SalePaymentRequestDTO payment = new SalePaymentRequestDTO(
 				PaymentMethod.CARD,
 				new BigDecimal("50.00"),
+				null,
 				null);
 
 		SaleRequestDTO req = new SaleRequestDTO(null, "FAC-004", List.of(payment), List.of(line));

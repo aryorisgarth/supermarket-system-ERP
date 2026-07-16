@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,6 +54,13 @@ public class PurchaseOrderController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(purchaseOrderService.create(request));
 	}
 
+	@PutMapping("/{id}")
+	public ResponseEntity<PurchaseOrderResponseDTO> updateDraft(
+			@PathVariable Long id,
+			@Valid @RequestBody PurchaseOrderRequestDTO request) {
+		return ResponseEntity.ok(purchaseOrderService.updateDraft(id, request));
+	}
+
 	@PostMapping("/{id}/order")
 	public ResponseEntity<PurchaseOrderResponseDTO> markOrdered(@PathVariable Long id) {
 		return ResponseEntity.ok(purchaseOrderService.markOrdered(id));
@@ -82,5 +90,10 @@ public class PurchaseOrderController {
 	@PostMapping("/{id}/cancel")
 	public ResponseEntity<PurchaseOrderResponseDTO> cancel(@PathVariable Long id) {
 		return ResponseEntity.ok(purchaseOrderService.cancel(id));
+	}
+
+	@PostMapping("/{id}/close")
+	public ResponseEntity<PurchaseOrderResponseDTO> closeIncomplete(@PathVariable Long id) {
+		return ResponseEntity.ok(purchaseOrderService.closeIncomplete(id));
 	}
 }

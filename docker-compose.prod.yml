@@ -1,0 +1,113 @@
+# =============================================================================
+# PRODUCCIÓN — AWS EC2
+# Uso:  docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+# Requisitos en el host EC2:
+#   - MySQL instalado en el host (puerto 3306), NO en Docker
+#   - Frontend: npm run build previo (usa Dockerfile.prod con carpeta dist/)
+#   - Archivo .env.prod con secretos reales (no commitear)
+# =============================================================================
+services:
+  # MySQL corre en el host EC2 (no en este compose).
+  # La API llega a él vía host.docker.internal:3306
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: supermarket-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Persistencia Keycloak en MySQL del host (descomentar si se usa BD dedicada):
+      # KC_DB: mysql
+      # KC_DB_URL: jdbc:mysql://host.docker.internal:3306/keycloak?createDatabaseIfNotExist=true
+      # KC_DB_USERNAME: keycloak
+      # KC_DB_PASSWORD: ${DB_PASSWORD}
+      KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_RELATIVE_PATH: "/auth"
+    command: start-dev
+    depends_on: []
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    networks:
+      - supermarket-net
+
+  api:
+    build:
+      context: ./02-BACKEND/supermarket-system-api
+      dockerfile: Dockerfile
+    container_name: supermarket-api
+    depends_on:
+      keycloak:
+        condition: service_started
+    networks:
+      - supermarket-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      KEYCLOAK_CLIENT_ID: supermarket-app
+      KEYCLOAK_REALM: supermarket
+      KEYCLOAK_ADMIN_CLIENT_ID: supermarket-admin-client
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
+      KEYCLOAK_ADMIN_SERVER_URL: http://keycloak:8080
+      DB_URL: jdbc:mysql://host.docker.internal:3306/supermarket_system?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Managua
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD}
+      DDL_AUTO: validate
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
+      BILLING_COUNTRY: NI
+      PAYMENT_CURRENCY: NIO
+      ISSUER_TAX_ID: J0310000000001
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:3030,http://localhost:5173,http://127.0.0.1:3030
+      SEED_ENABLED: "true"
+      ELECTRONIC_INVOICE_ENABLED: "true"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/auth/realms/supermarket/protocol/openid-connect/certs
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/auth/realms/supermarket
+      PAYMENT_GATEWAY_PROVIDER: ${PAYMENT_GATEWAY_PROVIDER}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
+
+  frontend:
+    build:
+      context: ./03-FRONTEND
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: /api
+        VITE_KEYCLOAK_URL: /auth
+    container_name: supermarket-frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - supermarket-net
+    ports:
+      - "80:80"
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://127.0.0.1/" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  supermarket-net:
+    driver: bridge
+
+volumes:
+  keycloak_data:

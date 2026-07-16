@@ -20,6 +20,8 @@ public interface PurchaseOrderService {
 
 	PurchaseOrderResponseDTO create(PurchaseOrderRequestDTO request);
 
+	PurchaseOrderResponseDTO updateDraft(Long id, PurchaseOrderRequestDTO request);
+
 	PurchaseOrderResponseDTO markOrdered(Long id);
 
 	PurchaseOrderResponseDTO receive(Long id);
@@ -29,6 +31,8 @@ public interface PurchaseOrderService {
 	PurchaseOrderResponseDTO claim(Long id);
 
 	PurchaseOrderResponseDTO assign(Long id, Long userId);
+
+	PurchaseOrderResponseDTO closeIncomplete(Long id);
 
 	PurchaseOrderResponseDTO cancel(Long id);
 }

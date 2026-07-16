@@ -20,6 +20,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.supermarket.product.dto.ProductRequestDTO;
 import com.supermarket.product.dto.ProductResponseDTO;
+import com.supermarket.product.dto.UpdateSalePriceRequestDTO;
 import com.supermarket.product.service.ProductService;
 
 import org.springframework.data.domain.Page;
@@ -105,6 +106,12 @@ public class ProductController {
 	public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable Long id,
 			@Valid @RequestBody ProductRequestDTO request) {
 		return ResponseEntity.ok(productService.update(id, request));
+	}
+
+	@PostMapping("/{id}/sale-price")
+	public ResponseEntity<ProductResponseDTO> updateSalePrice(@PathVariable Long id,
+			@Valid @RequestBody UpdateSalePriceRequestDTO request) {
+		return ResponseEntity.ok(productService.updateSalePrice(id, request));
 	}
 
 	@PutMapping("/{id}/toggle-status")

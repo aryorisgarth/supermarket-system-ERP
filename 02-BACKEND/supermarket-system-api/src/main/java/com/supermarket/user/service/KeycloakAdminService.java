@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -164,8 +165,15 @@ public class KeycloakAdminService {
 		String token = getAccessToken();
 
 		try {
+			String uri = UriComponentsBuilder
+					.fromHttpUrl(serverUrl + "/admin/realms/" + realm + "/users")
+					.queryParam("username", email)
+					.queryParam("exact", true)
+					.build()
+					.toUriString();
+
 			List<Map<String, Object>> users = restClient.get()
-					.uri(serverUrl + "/admin/realms/" + realm + "/users?email=" + email)
+					.uri(uri)
 					.header("Authorization", "Bearer " + token)
 					.retrieve()
 					.body(List.class);
@@ -174,10 +182,44 @@ public class KeycloakAdminService {
 				return java.util.Optional.empty();
 			}
 
-			Map<String, Object> user = users.get(0);
-			return java.util.Optional.ofNullable((String) user.get("id"));
+			return users.stream()
+					.filter(user -> email.equalsIgnoreCase((String) user.get("email")))
+					.map(user -> (String) user.get("id"))
+					.filter(java.util.Objects::nonNull)
+					.findFirst()
+					.or(() -> java.util.Optional.ofNullable((String) users.get(0).get("id")));
 		} catch (HttpClientErrorException e) {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to query user by email in Keycloak: " + e.getResponseBodyAsString(), e);
+		}
+	}
+
+	public void updateUserEnabled(String userId, boolean enabled) {
+		String token = getAccessToken();
+
+		try {
+			Map<String, Object> userRepresentation = restClient.get()
+					.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId)
+					.header("Authorization", "Bearer " + token)
+					.retrieve()
+					.body(Map.class);
+
+			if (userRepresentation == null || userRepresentation.isEmpty()) {
+				throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+						"Keycloak did not return user data for status update");
+			}
+
+			userRepresentation.put("enabled", enabled);
+
+			restClient.put()
+					.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId)
+					.header("Authorization", "Bearer " + token)
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(userRepresentation)
+					.retrieve()
+					.toBodilessEntity();
+		} catch (HttpClientErrorException e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to update user status in Keycloak: " + e.getResponseBodyAsString(), e);
 		}
 	}
 

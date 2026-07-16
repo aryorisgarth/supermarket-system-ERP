@@ -20,6 +20,7 @@ export const usePurchaseForm = ({ onSuccess }) => {
   const [supplierProducts, setSupplierProducts] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [editingOrderId, setEditingOrderId] = useState(null);
 
   const loadSupplierCatalog = useCallback(async (nextSupplierId) => {
     if (!nextSupplierId) {
@@ -36,6 +37,7 @@ export const usePurchaseForm = ({ onSuccess }) => {
   }, []);
 
   const openCreate = useCallback((initialSupplier) => {
+    setEditingOrderId(null);
     setSupplierId(initialSupplier || '');
     setNotes('');
     setItems([emptyLine()]);
@@ -44,6 +46,44 @@ export const usePurchaseForm = ({ onSuccess }) => {
       loadSupplierCatalog(initialSupplier);
     }
   }, [loadSupplierCatalog]);
+
+  const openEdit = useCallback(async (orderSummary) => {
+    try {
+      const order = await PurchaseOrderService.getById(orderSummary.id);
+      if (order.status !== 'DRAFT') {
+        Swal.fire('No editable', 'Solo se pueden editar órdenes en borrador.', 'warning');
+        return;
+      }
+      const nextSupplierId = String(order.supplierId || '');
+      setEditingOrderId(order.id);
+      setSupplierId(nextSupplierId);
+      setNotes(order.notes || '');
+      const catalog = await ProductService.getBySupplier(Number(nextSupplierId));
+      const products = normalizeProductList(Array.isArray(catalog) ? catalog : catalog?.content || []);
+      setSupplierProducts(products);
+
+      const mappedItems = (order.items || []).map((item) => {
+        const product = products.find((p) => String(p.id) === String(item.product?.id));
+        const packs = product?.purchasePacks || [];
+        const pack =
+          packs.find((p) => p.label === item.packLabel) ||
+          packs.find((p) => Number(p.factor) === Number(item.unitsPerPack)) ||
+          packs[0];
+        return {
+          productId: String(item.product?.id || ''),
+          productSearch: item.product?.name || product?.name || '',
+          purchasePackId: pack?.id ? String(pack.id) : '',
+          quantityInPacks: String(item.quantityInPacks ?? item.quantityOrdered ?? '1'),
+          costPerPack: String(item.costPerPack ?? item.unitCost ?? ''),
+        };
+      });
+      setItems(mappedItems.length ? mappedItems : [emptyLine()]);
+      setShowModal(true);
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', getApiErrorMessage(error, 'No se pudo cargar la orden para editar.'), 'error');
+    }
+  }, []);
 
   const handleSupplierChange = useCallback((nextSupplierId) => {
     setSupplierId(nextSupplierId);
@@ -79,32 +119,45 @@ export const usePurchaseForm = ({ onSuccess }) => {
       return;
     }
 
+    const payload = {
+      supplierId: Number(supplierId),
+      notes,
+      items: validItems.map((item) => {
+        const product = findProduct(item.productId);
+        const selectedPack = findPack(product, item.purchasePackId);
+        const equivalentConversion = product?.uomConversions?.find(
+          (c) => c.label === selectedPack?.label
+        );
+        return {
+          productId: Number(item.productId),
+          purchasePackId: Number(item.purchasePackId),
+          uomConversionId: equivalentConversion ? equivalentConversion.id : null,
+          quantityInPacks: Number(item.quantityInPacks),
+          costPerPack: Number(item.costPerPack),
+        };
+      }),
+    };
+
     try {
       setSaving(true);
-      await PurchaseOrderService.create({
-        supplierId: Number(supplierId),
-        notes,
-        items: validItems.map((item) => {
-          const product = findProduct(item.productId);
-          const selectedPack = findPack(product, item.purchasePackId);
-          const equivalentConversion = product?.uomConversions?.find(
-            (c) => c.label === selectedPack?.label
-          );
-          return {
-            productId: Number(item.productId),
-            purchasePackId: Number(item.purchasePackId),
-            uomConversionId: equivalentConversion ? equivalentConversion.id : null,
-            quantityInPacks: Number(item.quantityInPacks),
-            costPerPack: Number(item.costPerPack),
-          };
-        }),
-      });
+      const wasEditing = Boolean(editingOrderId);
+      if (editingOrderId) {
+        await PurchaseOrderService.updateDraft(editingOrderId, payload);
+      } else {
+        await PurchaseOrderService.create(payload);
+      }
       setShowModal(false);
+      setEditingOrderId(null);
       if (onSuccess) await onSuccess();
-      Swal.fire({ icon: 'success', title: 'Compra creada', timer: 1400, showConfirmButton: false });
+      Swal.fire({
+        icon: 'success',
+        title: wasEditing ? 'Compra actualizada' : 'Compra creada',
+        timer: 1400,
+        showConfirmButton: false,
+      });
     } catch (error) {
       console.error(error);
-      Swal.fire('Error', getApiErrorMessage(error, 'No se pudo crear la compra.'), 'error');
+      Swal.fire('Error', getApiErrorMessage(error, 'No se pudo guardar la compra.'), 'error');
     } finally {
       setSaving(false);
     }
@@ -114,6 +167,8 @@ export const usePurchaseForm = ({ onSuccess }) => {
     showModal,
     setShowModal,
     openCreate,
+    openEdit,
+    editingOrderId,
     formProps: {
       supplierId,
       notes,
@@ -124,6 +179,7 @@ export const usePurchaseForm = ({ onSuccess }) => {
       supplierProducts,
       onSupplierChange: handleSupplierChange,
       onSubmit: saveOrder,
-    }
+      isEditing: Boolean(editingOrderId),
+    },
   };
 };

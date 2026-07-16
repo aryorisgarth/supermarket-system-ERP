@@ -10,5 +10,6 @@ import jakarta.validation.constraints.NotNull;
 public record SalePaymentRequestDTO(
 		@NotNull PaymentMethod method,
 		@NotNull @DecimalMin(value = "0.0", inclusive = false) BigDecimal amount,
-		String couponCode) {
+		String couponCode,
+		String reference) {
 }

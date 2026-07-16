@@ -32,7 +32,9 @@ import com.supermarket.inventory.service.InventoryLedger;
 import com.supermarket.product.entity.Product;
 import com.supermarket.product.entity.ProductUomConversion;
 import com.supermarket.product.repository.ProductRepository;
+import com.supermarket.product.repository.ProductLocationRepository;
 import com.supermarket.product.repository.ProductUomConversionRepository;
+import com.supermarket.product.service.ProductCostService;
 import com.supermarket.promotion.dto.AppliedPromotionDTO;
 import com.supermarket.promotion.service.PromotionService;
 import com.supermarket.productbatch.entity.ProductBatch;
@@ -98,6 +100,8 @@ public class SaleServiceImpl implements SaleService {
 	private final TransactionTemplate transactionTemplate;
 	private final ProductUomConversionRepository productUomConversionRepository;
 	private final SaleBatchAllocator saleBatchAllocator;
+	private final ProductCostService productCostService;
+	private final ProductLocationRepository productLocationRepository;
 
 	@Override
 	public Page<SaleSummaryResponseDTO> findAll(String search, Long userId, SaleStatus status, LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable) {
@@ -131,6 +135,7 @@ public class SaleServiceImpl implements SaleService {
 					.orElseThrow(() -> new UnauthorizedException("User not found"));
 
 			CashRegisterSession session = cashRegisterService.getActiveSessionEntity(sellerId);
+			assertSessionIsOperational(session);
 
 			Customer customer = null;
 			if (request.customerId() != null) {
@@ -340,6 +345,7 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		CashRegisterSession session = cashRegisterService.getActiveSessionEntity(actorId);
+		assertSessionIsOperational(session);
 		boolean hadPriorRefund = !creditNoteRepository.findBySaleIdOrderByCreatedAtDesc(saleId).isEmpty();
 		Map<Long, BigDecimal> returnedByDetail = returnedQuantityMap(saleId);
 		Map<Long, SaleDetail> detailsById = new HashMap<>();
@@ -480,6 +486,16 @@ public class SaleServiceImpl implements SaleService {
 		return String.format("NC-%06d", next);
 	}
 
+	private void assertSessionIsOperational(CashRegisterSession session) {
+		if (session == null || session.getOpenedAt() == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No open cash register session found");
+		}
+		if (session.getOpenedAt().toLocalDate().isBefore(LocalDate.now())) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"El turno de caja pertenece a un día anterior. Debe cerrarse antes de continuar.");
+		}
+	}
+
 	
 	private BigDecimal resolveLineDiscount(Long productId, BigDecimal quantity, Long uomConversionId, BigDecimal requestedDiscount, BigDecimal lineGross) {
 		BigDecimal promoDiscount = promotionService.bestPromotion(productId, quantity, uomConversionId)
@@ -500,7 +516,7 @@ public class SaleServiceImpl implements SaleService {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tiene permiso para aplicar descuentos");
 		}
 
-		if (!SecurityUtils.hasAuthority("ADMIN_DISCOUNT")) {
+		if (!SecurityUtils.hasAuthority("SALE_CANCEL") && !SecurityUtils.hasAuthority("FINANCE_MANAGE")) {
 			BigDecimal maxDiscount = lineGross.multiply(new BigDecimal("0.05"));
 			if (requested.compareTo(maxDiscount) > 0) {
 				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El descuento excede el límite del 5% permitido para su rol. Requiere autorización superior.");
@@ -547,9 +563,7 @@ public class SaleServiceImpl implements SaleService {
 				}
 			}
 
-			BigDecimal unitCost = product.getPurchasePrice() != null
-					? product.getPurchasePrice().multiply(factor)
-					: BigDecimal.ZERO;
+			BigDecimal unitCost = productCostService.resolveOperationalCost(product).multiply(factor);
 			BigDecimal taxApplied = product.getTaxCategory().getPercentage();
 			BigDecimal lineGross = unitPrice.multiply(line.quantity());
 			BigDecimal discount = resolveLineDiscount(line.productId(), line.quantity(), line.uomConversionId(), line.discountAmount(), lineGross);
@@ -565,8 +579,20 @@ public class SaleServiceImpl implements SaleService {
 
 			BigDecimal quantityBase = line.quantity().multiply(factor);
 
+			BigDecimal exhibitionStock = productLocationRepository.sumExhibitionStockByProductId(product.getId());
+			if (exhibitionStock == null) {
+				exhibitionStock = BigDecimal.ZERO;
+			}
+			if (exhibitionStock.compareTo(quantityBase) < 0) {
+				throw new ConflictException(
+						"Stock de exhibición insuficiente para " + product.getBarcode()
+								+ ". Requerido: " + quantityBase
+								+ ", Disponible en piso: " + exhibitionStock
+								+ ". Traslada mercadería desde bodega antes de vender.");
+			}
 			if (product.getCurrentStock().compareTo(quantityBase) < 0) {
-				throw new ConflictException("Insufficient stock for product " + product.getBarcode() + ". Requerido: " + quantityBase + ", Disponible: " + product.getCurrentStock());
+				throw new ConflictException("Insufficient stock for product " + product.getBarcode()
+						+ ". Requerido: " + quantityBase + ", Disponible: " + product.getCurrentStock());
 			}
 
 			List<SaleBatchAllocator.Portion> portions = saleBatchAllocator.allocatePortions(product, line, quantityBase, factor);
@@ -625,6 +651,7 @@ public class SaleServiceImpl implements SaleService {
 			SalePayment sp = new SalePayment();
 			sp.setPaymentMethod(p.method());
 			sp.setAmount(p.amount());
+			sp.setExternalReference(p.reference());
 			if (p.method() == PaymentMethod.COUPON) {
 				sp.setCoupon(applyCouponPayment(p));
 			} else if (p.method() == PaymentMethod.POINTS) {

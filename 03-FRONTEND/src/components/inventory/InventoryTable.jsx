@@ -98,7 +98,7 @@ const InventoryTable = ({
                   </td>
 
                   <td className="text-right font-medium text-gray-600 tabular-nums text-sm">
-                    {formatMoney(product.purchasePrice)}
+                    {formatMoney(product.averageCost ?? product.purchasePrice)}
                   </td>
 
                   <td className="text-right font-bold text-gray-900 tabular-nums text-[15px]">

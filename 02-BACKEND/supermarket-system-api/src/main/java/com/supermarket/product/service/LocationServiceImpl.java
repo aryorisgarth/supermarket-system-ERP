@@ -16,9 +16,12 @@ import com.supermarket.product.entity.ProductLocation;
 import com.supermarket.product.repository.LocationRepository;
 import com.supermarket.product.repository.ProductLocationRepository;
 import com.supermarket.product.repository.ProductRepository;
-import com.supermarket.alerts.service.SystemAlertService;
 import com.supermarket.exception.ResourceNotFoundException;
 import com.supermarket.exception.ConflictException;
+import com.supermarket.inventory.service.InventoryLedger;
+import com.supermarket.security.SecurityUtils;
+import com.supermarket.user.entity.User;
+import com.supermarket.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,7 +32,8 @@ public class LocationServiceImpl implements LocationService {
 	private final LocationRepository locationRepository;
 	private final ProductLocationRepository productLocationRepository;
 	private final ProductRepository productRepository;
-	private final SystemAlertService systemAlertService;
+	private final InventoryLedger inventoryLedger;
+	private final UserRepository userRepository;
 
 	@Override
 	public List<LocationResponseDTO> findAll() {
@@ -123,27 +127,7 @@ public class LocationServiceImpl implements LocationService {
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 		Location loc = locationRepository.findById(locationId)
 				.orElseThrow(() -> new ResourceNotFoundException("Location not found"));
-
-		ProductLocation pl = productLocationRepository.findByProductIdAndLocationId(productId, locationId)
-				.orElseGet(() -> {
-					ProductLocation newPl = new ProductLocation();
-					newPl.setProduct(product);
-					newPl.setLocation(loc);
-					newPl.setCreatedAt(LocalDateTime.now());
-					return newPl;
-				});
-
-		pl.setStock(stock);
-		pl.setUpdatedAt(LocalDateTime.now());
-		productLocationRepository.save(pl);
-
-		BigDecimal totalStock = productLocationRepository.findByProductId(productId).stream()
-				.map(ProductLocation::getStock)
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-		product.setCurrentStock(totalStock);
-		productRepository.save(product);
-
-		checkAndManageAlerts(product, loc, stock);
+		inventoryLedger.recordLocationStockOverride(currentUser(), product, loc, stock);
 	}
 
 	@Override
@@ -158,71 +142,12 @@ public class LocationServiceImpl implements LocationService {
 				.orElseThrow(() -> new ResourceNotFoundException("Source location not found"));
 		Location toLoc = locationRepository.findById(toLocationId)
 				.orElseThrow(() -> new ResourceNotFoundException("Target location not found"));
-
-		ProductLocation fromPL = productLocationRepository.findByProductIdAndLocationId(productId, fromLocationId)
-				.orElseThrow(() -> new ConflictException("No stock record in source location"));
-
-		if (fromPL.getStock().compareTo(quantity) < 0) {
-			throw new ConflictException("Insufficient stock in source location");
-		}
-
-		fromPL.setStock(fromPL.getStock().subtract(quantity));
-		fromPL.setUpdatedAt(LocalDateTime.now());
-		productLocationRepository.save(fromPL);
-
-		ProductLocation toPL = productLocationRepository.findByProductIdAndLocationId(productId, toLocationId)
-				.orElseGet(() -> {
-					ProductLocation pl = new ProductLocation();
-					pl.setProduct(product);
-					pl.setLocation(toLoc);
-					pl.setStock(BigDecimal.ZERO);
-					pl.setCreatedAt(LocalDateTime.now());
-					return pl;
-				});
-
-		toPL.setStock(toPL.getStock().add(quantity));
-		toPL.setUpdatedAt(LocalDateTime.now());
-		productLocationRepository.save(toPL);
-
-		checkAndManageAlerts(product, fromLoc, fromPL.getStock());
-		checkAndManageAlerts(product, toLoc, toPL.getStock());
+		inventoryLedger.recordLocationTransfer(currentUser(), product, fromLoc, toLoc, quantity);
 	}
 
-	private void checkAndManageAlerts(Product product, Location location, BigDecimal currentStock) {
-		if (Boolean.TRUE.equals(location.getIsPisoVenta())) {
-			String zeroKey = "EXHIBITION_ZERO_STOCK:" + product.getId();
-			String lowKey = "EXHIBITION_LOW_STOCK:" + product.getId();
-
-			if (currentStock.compareTo(BigDecimal.ZERO) <= 0) {
-				systemAlertService.upsertActive(
-						zeroKey,
-						"INVENTORY",
-						"CRITICAL",
-						"Stock Exhibición Agotado",
-						product.getName() + " tiene stock de exhibición en cero o negativo (" + currentStock + "). Reabastecer de inmediato.",
-						"Inventario",
-						product.getId(),
-						"/inventario"
-				);
-			} else {
-				systemAlertService.resolveAlert(zeroKey);
-			}
-
-			if (currentStock.compareTo(product.getMinStockExhibicion()) < 0) {
-				systemAlertService.upsertActive(
-						lowKey,
-						"INVENTORY",
-						"WARNING",
-						"Reabastecer Exhibición",
-						product.getName() + " tiene " + currentStock + " unidades en exhibición. Límite de reabastecimiento: " + product.getMinStockExhibicion() + ".",
-						"Inventario",
-						product.getId(),
-						"/inventario"
-				);
-			} else {
-				systemAlertService.resolveAlert(lowKey);
-			}
-		}
+	private User currentUser() {
+		return userRepository.findById(SecurityUtils.currentUserId())
+				.orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
 	}
 
 	private LocationResponseDTO toResponse(Location loc) {
@@ -247,9 +172,12 @@ public class LocationServiceImpl implements LocationService {
 	}
 
 	private ProductLocationResponseDTO toProductLocationResponse(ProductLocation pl) {
+		Product product = pl.getProduct();
 		return new ProductLocationResponseDTO(
 				pl.getId(),
-				pl.getProduct().getId(),
+				product.getId(),
+				product.getName(),
+				product.getBarcode(),
 				pl.getLocation().getId(),
 				pl.getLocation().getWarehouse(),
 				pl.getLocation().getAisle(),

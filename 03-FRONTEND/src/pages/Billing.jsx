@@ -7,8 +7,10 @@ import CashRegisterOpenGate from '../components/CashRegisterOpenGate';
 import PosLineEntryBar from '../components/billing/PosLineEntryBar';
 import PosCategoryPicker from '../components/billing/PosCategoryPicker';
 import PosQuickCodesPanel from '../components/billing/PosQuickCodesPanel';
+import StripePaymentModal from '../components/billing/StripePaymentModal';
 import { useBilling } from '../hooks/useBilling';
 import { ChevronDown, Layers, Tag } from 'lucide-react';
+import { formatMoney } from '../utils/formatMoney';
 
 const Billing = () => {
   const [showQuickCodes, setShowQuickCodes] = useState(false);
@@ -23,18 +25,20 @@ const Billing = () => {
     showReceipt, receiptData, showPrintButton, showQuickAccess, canApplyDiscount,
     subtotal, discountTotal, tax, total, taxRate, billingConfig, entryBarProduct,
     transferBank, transferRef, paymentAccounts,
+    stripeClientSecret, showStripeModal,
     products,
 
     
     setSearchQuery, setEntryQty, setSelectedCustomer, setPayments, setPaymentMethod, setAmountReceived, 
     setCouponCode, setIsMultiPayment, setShowQuickAccess, setShowReceipt, setShowCategoryProductsModal,
-    setTransferBank, setTransferRef,
+    setTransferBank, setTransferRef, setShowStripeModal,
 
     
     handleSearch, handleKeyDown, handleCategoryClick, selectCartLine, removeFromCart, handleSetLineDiscount,
     handleCancelCurrentPurchase, confirmEntry, clearEntry, handleValidateCoupon, handleCheckout,
     handlePrintReceipt, handleReprintTicket, handleEditSale, handleCancelSale,
-    handleCategoryQuickAdd, handleCategoryQuantityEdit, getDynamicCountryLabel, paymentMethod
+    handleCategoryQuickAdd, handleCategoryQuantityEdit, getDynamicCountryLabel, paymentMethod,
+    handleStripePaymentSuccess
   } = useBilling();
 
   
@@ -414,6 +418,15 @@ const Billing = () => {
           taxRate={taxRate}
           onClose={() => setShowReceipt(false)}
           onPrint={() => window.print()}
+        />
+
+        <StripePaymentModal
+          show={showStripeModal}
+          onClose={() => setShowStripeModal(false)}
+          clientSecret={stripeClientSecret}
+          onPaymentSuccess={handleStripePaymentSuccess}
+          total={total}
+          formatMoney={formatMoney}
         />
       </div>
     </CashRegisterOpenGate>

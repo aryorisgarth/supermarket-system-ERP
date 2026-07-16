@@ -36,7 +36,7 @@ const InventoryMobileList = ({
           <div>
             <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Compra</p>
             <p className="font-bold text-[var(--app-text-soft)]">
-              {formatMoney(product.purchasePrice)}
+              {formatMoney(product.averageCost ?? product.purchasePrice)}
             </p>
           </div>
           <div>

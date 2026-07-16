@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.supermarket.product.dto.ProductRequestDTO;
 import com.supermarket.product.dto.ProductResponseDTO;
+import com.supermarket.product.dto.UpdateSalePriceRequestDTO;
 
 public interface ProductService {
 
@@ -32,6 +33,8 @@ public interface ProductService {
 	ProductResponseDTO create(ProductRequestDTO request);
 
 	ProductResponseDTO update(Long id, ProductRequestDTO request);
+
+	ProductResponseDTO updateSalePrice(Long id, UpdateSalePriceRequestDTO request);
 
 	void deleteById(Long id);
 

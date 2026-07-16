@@ -28,6 +28,7 @@ import com.supermarket.product.entity.Product;
 import com.supermarket.product.entity.ProductUomConversion;
 import com.supermarket.product.repository.ProductRepository;
 import com.supermarket.product.repository.ProductUomConversionRepository;
+import com.supermarket.product.service.ProductCostService;
 import com.supermarket.productbatch.entity.ProductBatch;
 import com.supermarket.productbatch.repository.ProductBatchRepository;
 import com.supermarket.security.SecurityUtils;
@@ -50,6 +51,7 @@ public class InventoryCountServiceImpl implements InventoryCountService {
 	private final SystemAlertService systemAlertService;
 	private final ProductUomConversionRepository productUomConversionRepository;
 	private final ProductBatchRepository productBatchRepository;
+	private final ProductCostService productCostService;
 
 	@Override
 	public Page<InventoryCountSessionResponseDTO> findPage(InventoryCountStatus status, Pageable pageable) {
@@ -244,7 +246,7 @@ public class InventoryCountServiceImpl implements InventoryCountService {
 				session.getId(),
 				line.getId(),
 				"INVENTORY_COUNT",
-				product.getPurchasePrice(),
+				productCostService.resolveOperationalCost(product),
 				line.getUomConversion(),
 				uomQty,
 				"Ajuste por conteo " + session.getSessionCode());

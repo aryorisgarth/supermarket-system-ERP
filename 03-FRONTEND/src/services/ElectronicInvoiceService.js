@@ -35,7 +35,7 @@ export const buildInvoiceView = (ei, sale) => {
     cuf,
     verificationUrl,
     issuedAt: ei.authorizedAt || ei.createdAt,
-    environment: ei.countryCode === 'NI' ? 'TEST' : ei.countryCode,
+    environment: 'TEST',
     status: ei.status,
     emitter: {
       name: 'Supermercado Demo S.A.',

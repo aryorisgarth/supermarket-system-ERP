@@ -2,6 +2,7 @@ package com.supermarket.user.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -14,6 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.supermarket.role.entity.Role;
 import com.supermarket.role.repository.RoleRepository;
+import com.supermarket.permission.entity.Permission;
+import com.supermarket.permission.repository.PermissionRepository;
 import com.supermarket.user.dto.UserRequestDTO;
 import com.supermarket.user.dto.UserResponseDTO;
 import com.supermarket.user.entity.User;
@@ -22,9 +25,11 @@ import com.supermarket.user.repository.UserRepository;
 import com.supermarket.user.util.PasswordGenerator;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
@@ -34,6 +39,7 @@ public class UserServiceImpl implements UserService {
 	private final PasswordEncoder passwordEncoder;
 	private final KeycloakAdminService keycloakAdminService;
 	private final EmailService emailService;
+	private final PermissionRepository permissionRepository;
 
 	@Override
 	public List<UserResponseDTO> findAll() {
@@ -97,6 +103,7 @@ public class UserServiceImpl implements UserService {
 		User user = userMapper.toEntity(request);
 		user.setPassword(passwordEncoder.encode("KEYCLOAK_MANAGED_USER"));
 		user.setRole(role);
+		user.setDirectPermissions(resolveDirectPermissions(request.getDirectPermissions(), role));
 		user.setCreatedAt(LocalDateTime.now());
 		
 		User saved = userRepository.save(user);
@@ -134,6 +141,7 @@ public class UserServiceImpl implements UserService {
 		}
 
 		user.setRole(role);
+		user.setDirectPermissions(resolveDirectPermissions(request.getDirectPermissions(), role));
 
 		User saved = userRepository.save(user);
 		return userMapper.toResponse(saved);
@@ -160,8 +168,20 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 		
-		user.setIsActive(!user.getIsActive());
+		boolean newStatus = !user.getIsActive();
+		user.setIsActive(newStatus);
 		userRepository.save(user);
+		try {
+			java.util.Optional<String> kcUserId = keycloakAdminService.findUserIdByEmail(user.getEmail());
+			if (kcUserId.isPresent()) {
+				keycloakAdminService.updateUserEnabled(kcUserId.get(), newStatus);
+			} else {
+				log.warn("Keycloak user not found for email {} while toggling status to {}", user.getEmail(), newStatus);
+			}
+		} catch (RuntimeException ex) {
+			log.warn("Keycloak sync failed for user {} while toggling status to {}. Local status updated anyway.",
+					user.getEmail(), newStatus, ex);
+		}
 	}
 
 	private static void normalize(UserRequestDTO request) {
@@ -171,5 +191,26 @@ public class UserServiceImpl implements UserService {
 		}
 		request.setEmail(request.getEmail().trim().toLowerCase());
 		request.setRoleName(request.getRoleName().trim());
+	}
+
+	private Set<Permission> resolveDirectPermissions(List<String> directPermissionCodes, Role role) {
+		List<String> codes = directPermissionCodes == null
+				? List.of()
+				: directPermissionCodes.stream()
+						.filter(code -> code != null && !code.isBlank())
+						.map(String::trim)
+						.distinct()
+						.toList();
+		if (codes.isEmpty()) {
+			return new java.util.HashSet<>();
+		}
+		Set<String> inheritedCodes = role.getPermissions() == null
+				? Set.of()
+				: role.getPermissions().stream()
+						.map(Permission::getCode)
+						.collect(java.util.stream.Collectors.toSet());
+		return permissionRepository.findByCodeIn(codes).stream()
+				.filter(permission -> !inheritedCodes.contains(permission.getCode()))
+				.collect(java.util.stream.Collectors.toCollection(java.util.HashSet::new));
 	}
 }

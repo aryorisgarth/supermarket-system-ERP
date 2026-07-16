@@ -88,10 +88,10 @@ const LocationDetailsDrawer = ({
                   >
                     <div className="min-w-0 flex-1 pr-2">
                       <p className="text-[11px] font-bold text-[var(--app-text)] line-clamp-2 leading-snug">
-                        {p.productName || 'Producto'}
+                        {p.productName || `Producto #${p.productId || p.id}`}
                       </p>
                       <span className="inline-block font-mono text-[9px] text-[var(--app-text-muted)] mt-1">
-                        SKU: {p.locationCode || 'N/A'}
+                        Código: {p.productBarcode || 'N/A'}
                       </span>
                     </div>
                     <div className="text-right shrink-0">

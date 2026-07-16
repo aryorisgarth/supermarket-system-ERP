@@ -14,6 +14,8 @@ import api from './api';
 import { getEffectivePermissions, normalizeRoleName } from '../utils/rolePermissions';
 
 const USER_STORAGE_KEY = 'user';
+const AUTH_NOTICE_KEY = 'auth_notice';
+const INACTIVE_ACCOUNT_NOTICE = 'Tu cuenta está desactivada. Contacta al administrador para reactivarla.';
 
 const normalizeRole = normalizeRoleName;
 
@@ -40,8 +42,66 @@ const storeUser = (user) => {
   return user;
 };
 
+const clearStoredSession = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem(USER_STORAGE_KEY);
+  localStorage.removeItem('kc_token');
+  localStorage.removeItem('kc_refreshToken');
+  localStorage.removeItem('kc_idToken');
+};
+
+const getBackendToken = async () => {
+  const liveToken = await getValidToken();
+  if (liveToken) {
+    return liveToken;
+  }
+  return localStorage.getItem('kc_token');
+};
+
+const storeAuthNotice = (message) => {
+  if (!message) return;
+  sessionStorage.setItem(AUTH_NOTICE_KEY, message);
+};
+
+const parseResponsePayload = async (response) => {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+};
+
+const resolveErrorMessage = (payload) =>
+  payload?.message ||
+  payload?.detail ||
+  (typeof payload === 'string' ? payload : null) ||
+  null;
+
+const isInactiveAccountMessage = (message) =>
+  typeof message === 'string' && /inactive|inactiva|inactivo/i.test(message);
+
+const isKeycloakLookupFailure = (message) =>
+  typeof message === 'string' && /Failed to query user by email in Keycloak/i.test(message);
+
+const handleInactiveAccount = async (message = INACTIVE_ACCOUNT_NOTICE) => {
+  storeAuthNotice(message);
+  clearStoredSession();
+
+  if (isKeycloakAuthenticated()) {
+    try {
+      await doLogout({ redirectUri: `${window.location.origin}/login` });
+    } catch (error) {
+      console.warn('No se pudo cerrar la sesión de Keycloak para usuario inactivo:', error);
+    }
+  }
+
+  throw new Error('ACCOUNT_INACTIVE');
+};
+
 const syncUserFromBackend = async () => {
-  const token = await getValidToken();
+  const token = await getBackendToken();
   if (!token) return null;
 
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -55,12 +115,27 @@ const syncUserFromBackend = async () => {
     });
 
     if (!response.ok) {
+      const errorPayload = await parseResponsePayload(response);
+      const message = resolveErrorMessage(errorPayload);
+      if (response.status === 403 && isInactiveAccountMessage(message)) {
+        return handleInactiveAccount(message || INACTIVE_ACCOUNT_NOTICE);
+      }
+      if (response.status === 500 && isKeycloakLookupFailure(message)) {
+        return handleInactiveAccount(INACTIVE_ACCOUNT_NOTICE);
+      }
+      if (response.status === 401) {
+        clearStoredSession();
+        throw new Error('SESSION_INVALID');
+      }
       return storeUser(buildUserFromToken());
     }
 
     const user = await response.json();
     return storeUser(user || buildUserFromToken());
   } catch (error) {
+    if (error?.message === 'ACCOUNT_INACTIVE' || error?.message === 'SESSION_INVALID') {
+      throw error;
+    }
     console.warn('No se pudo sincronizar el usuario autenticado:', error);
     return storeUser(buildUserFromToken());
   }
@@ -118,11 +193,7 @@ const AuthService = {
   logout: async () => {
     const idToken = localStorage.getItem('kc_idToken');
 
-    localStorage.removeItem('token');
-    localStorage.removeItem(USER_STORAGE_KEY);
-    localStorage.removeItem('kc_token');
-    localStorage.removeItem('kc_refreshToken');
-    localStorage.removeItem('kc_idToken');
+    clearStoredSession();
 
     if (isKeycloakAuthenticated()) {
       try {
@@ -173,6 +244,13 @@ const AuthService = {
   getToken: () => getKeycloak()?.token || null,
   getValidToken,
   refreshCurrentUser: () => syncUserFromBackend(),
+  consumeAuthNotice: () => {
+    const message = sessionStorage.getItem(AUTH_NOTICE_KEY);
+    if (message) {
+      sessionStorage.removeItem(AUTH_NOTICE_KEY);
+    }
+    return message;
+  },
 
   
   changePassword: async (currentPassword, newPassword) => {

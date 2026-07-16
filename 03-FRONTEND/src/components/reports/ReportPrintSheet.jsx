@@ -53,6 +53,7 @@ const movementLabel = {
   ADJUSTMENT: 'Ajuste',
   RETURN: 'Devolución',
   EXPIRED: 'Merma',
+  TRANSFER: 'Traslado',
 };
 
 const paymentLabel = {

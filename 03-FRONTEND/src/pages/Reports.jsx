@@ -27,6 +27,7 @@ const movementLabel = {
   ADJUSTMENT: 'Ajuste',
   RETURN: 'Devolución',
   EXPIRED: 'Merma / vencido',
+  TRANSFER: 'Traslado ubicaciones',
 };
 
 const getReportCatalog = (reportsData) => [
@@ -49,9 +50,10 @@ const Reports = () => {
 
   const todayStr = new Date().toISOString().split('T')[0];
   const firstDayOfYearStr = `${new Date().getFullYear()}-01-01`;
+  const [dateFrom, setDateFrom] = useState(firstDayOfYearStr);
+  const [dateTo, setDateTo] = useState(todayStr);
 
-  
-  const reportsData = useReportsData(firstDayOfYearStr, todayStr);
+  const reportsData = useReportsData(dateFrom, dateTo);
   const goalsData = useCommercialGoals(activeTab);
 
   const handlePrintReport = useCallback((sections) => {
@@ -82,12 +84,12 @@ const Reports = () => {
           icon={Download}
           onClick={() =>
             reportsData.handleDownloadExcel(
-              `/reports/inventory-kardex/excel?from=${firstDayOfYearStr}&to=${todayStr}`,
-              'kardex_inventario.xlsx'
+              `/reports/inventory-kardex/excel?from=${dateFrom}&to=${dateTo}`,
+              'movimientos_inventario.xlsx'
             )
           }
         >
-          Kardex
+          Movimientos
         </Button>
         <Button
           variant="secondary"
@@ -102,7 +104,7 @@ const Reports = () => {
           icon={Download}
           onClick={() =>
             reportsData.handleDownloadExcel(
-              `/reports/sales-by-user/excel?from=${firstDayOfYearStr}&to=${todayStr}`,
+              `/reports/sales-by-user/excel?from=${dateFrom}&to=${dateTo}`,
               'ventas_por_cajero.xlsx'
             )
           }
@@ -114,7 +116,7 @@ const Reports = () => {
           icon={Download}
           onClick={() =>
             reportsData.handleDownloadExcel(
-              `/reports/sales-by-brand/excel?from=${firstDayOfYearStr}&to=${todayStr}`,
+              `/reports/sales-by-brand/excel?from=${dateFrom}&to=${dateTo}`,
               'ventas_por_marca.xlsx'
             )
           }
@@ -126,7 +128,7 @@ const Reports = () => {
           icon={Download}
           onClick={() =>
             reportsData.handleDownloadExcel(
-              `/reports/purchases-by-brand/excel?from=${firstDayOfYearStr}&to=${todayStr}`,
+              `/reports/purchases-by-brand/excel?from=${dateFrom}&to=${dateTo}`,
               'compras_por_marca.xlsx'
             )
           }
@@ -182,6 +184,54 @@ const Reports = () => {
 
       {activeTab === 'METRICS' ? (
         <div className="space-y-8">
+          <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
+            <label className="flex flex-col gap-1 text-xs font-bold text-[var(--app-text-muted)]">
+              Desde
+              <input
+                type="date"
+                className="ui-input"
+                value={dateFrom}
+                max={dateTo}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-bold text-[var(--app-text-muted)]">
+              Hasta
+              <input
+                type="date"
+                className="ui-input"
+                value={dateTo}
+                min={dateFrom}
+                max={todayStr}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </label>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                setDateFrom(firstDayOfYearStr);
+                setDateTo(todayStr);
+              }}
+            >
+              Año actual
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                const d = new Date();
+                const monthStart = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+                setDateFrom(monthStart);
+                setDateTo(todayStr);
+              }}
+            >
+              Mes actual
+            </Button>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <ReportMetricCard
               title="Ingresos Totales"
@@ -221,8 +271,8 @@ const Reports = () => {
 
       <ReportPrintSheet
         sections={printSections}
-        periodFrom={firstDayOfYearStr}
-        periodTo={todayStr}
+        periodFrom={dateFrom}
+        periodTo={dateTo}
         {...reportsData}
         goals={goalsData.goals}
       />

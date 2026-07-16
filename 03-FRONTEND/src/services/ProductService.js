@@ -39,6 +39,11 @@ const ProductService = {
     return response.data;
   },
 
+  updateSalePrice: async (id, payload) => {
+    const response = await api.post(`/products/${id}/sale-price`, payload);
+    return response.data;
+  },
+
   
   delete: async (id) => {
     const response = await api.delete(`/products/${id}`);

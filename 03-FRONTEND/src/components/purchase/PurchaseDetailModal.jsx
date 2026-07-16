@@ -30,13 +30,14 @@ const PurchaseDetailModal = ({ order, onClose, money }) => {
                   item.packLabel ? `${item.quantityInPacks} ${item.packLabel}` : `${item.quantityOrdered} UN`,
                   item.quantityOrdered,
                   item.quantityReceived,
+                  item.quantityRejected || 0,
                   money(item.unitCost),
                   money(item.lineTotal)
                 ]);
 
                 doc.autoTable({
                   startY: 35,
-                  head: [['Producto', 'Compra', 'Uds. Inv.', 'Recibido', 'Costo/Ud', 'Total']],
+                  head: [['Producto', 'Compra', 'Uds. Inv.', 'Recibido', 'Rechazado', 'Costo/Ud', 'Total']],
                   body: tableData,
                   theme: 'striped',
                   styles: { fontSize: 8 },
@@ -69,6 +70,7 @@ const PurchaseDetailModal = ({ order, onClose, money }) => {
                 <th className="pb-3">Compra</th>
                 <th className="pb-3 text-center">Uds. inventario</th>
                 <th className="pb-3 text-center">Recibido</th>
+                <th className="pb-3 text-center">Rechazado</th>
                 <th className="pb-3 text-right">Costo/ud</th>
                 <th className="pb-3 text-right">Total</th>
               </tr>
@@ -86,6 +88,7 @@ const PurchaseDetailModal = ({ order, onClose, money }) => {
                   </td>
                   <td className="py-3 text-center font-bold text-[var(--app-text-soft)]">{item.quantityOrdered}</td>
                   <td className="py-3 text-center font-bold text-[var(--app-text-soft)]">{item.quantityReceived}</td>
+                  <td className="py-3 text-center font-bold text-amber-700">{item.quantityRejected || 0}</td>
                   <td className="py-3 text-right font-bold text-[var(--app-text-soft)]">{money(item.unitCost)}</td>
                   <td className="py-3 text-right font-bold text-[var(--app-text)]">{money(item.lineTotal)}</td>
                 </tr>

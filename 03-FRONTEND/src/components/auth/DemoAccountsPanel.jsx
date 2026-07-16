@@ -27,7 +27,7 @@ const DemoAccountsPanel = ({ showDemo, setShowDemo, onSelectAccount }) => {
 					className="mt-4 overflow-hidden rounded-2.5xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4"
 				>
 					<p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
-						Selecciona un rol para autocompletar credenciales
+						Cuentas demo (SEED_ENABLED). Catálogo y datos de prueba — no usar en producción.
 					</p>
 					<div className="grid grid-cols-2 gap-2.5">
 						{DEMO_ACCOUNTS.map((acc) => {

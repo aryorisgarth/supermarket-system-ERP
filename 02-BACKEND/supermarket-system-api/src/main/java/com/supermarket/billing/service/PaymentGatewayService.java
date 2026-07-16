@@ -38,6 +38,7 @@ public class PaymentGatewayService {
 	private final StripePaymentGatewayProvider stripePaymentGatewayProvider;
 	private final VisanetPaymentGatewayProvider visanetPaymentGatewayProvider;
 	private final PaymentAccountService paymentAccountService;
+	private final StripeService stripeService;
 
 	@Transactional
 	public List<PaymentGatewayTransactionResponseDTO> captureForSale(Sale sale, List<SalePayment> payments) {
@@ -53,11 +54,6 @@ public class PaymentGatewayService {
 			if (payment.getPaymentMethod() != PaymentMethod.CARD) {
 				continue;
 			}
-
-			var auth = gateway.authorize(
-					billingProperties.paymentGateway().provider(),
-					payment.getAmount(),
-					currency);
 
 			PaymentGatewayTransaction tx = new PaymentGatewayTransaction();
 			PaymentAccount account = paymentAccountService.resolveDefaultAccount();
@@ -80,16 +76,65 @@ public class PaymentGatewayService {
 				tx.setNetAmount(payment.getAmount());
 			}
 
-			if (auth.approved()) {
-				tx.setStatus(PaymentGatewayStatus.APPROVED);
-				tx.setExternalReference(auth.externalReference());
-				tx.setRawResponse(auth.rawResponse());
+			if (payment.getExternalReference() != null
+					&& !payment.getExternalReference().isBlank()) {
+				String ref = payment.getExternalReference().trim();
+				String provider = billingProperties.paymentGateway().provider();
+				boolean mockMode = provider == null || "MOCK".equalsIgnoreCase(provider);
+
+				if (ref.startsWith("pi_")) {
+					if (!stripeService.isConfiguredForLiveVerification()) {
+						if (!mockMode) {
+							throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
+									"Stripe no está configurado para verificar el pago");
+						}
+						// Modo MOCK + key dummy: se acepta solo para demos locales
+						tx.setProviderCode("STRIPE");
+						tx.setStatus(PaymentGatewayStatus.APPROVED);
+						tx.setExternalReference(ref);
+						tx.setRawResponse("{\"source\":\"mock_unverified_stripe_intent\"}");
+					} else {
+						try {
+							var intent = stripeService.verifySucceededPaymentIntent(ref, payment.getAmount());
+							tx.setProviderCode("STRIPE");
+							tx.setStatus(PaymentGatewayStatus.APPROVED);
+							tx.setExternalReference(intent.getId());
+							tx.setRawResponse("{\"source\":\"stripe_verified\",\"status\":\"" + intent.getStatus() + "\"}");
+						} catch (Exception e) {
+							tx.setProviderCode("STRIPE");
+							tx.setStatus(PaymentGatewayStatus.DECLINED);
+							tx.setExternalReference(ref);
+							tx.setRawResponse("{\"error\":\"" + e.getMessage().replace("\"", "'") + "\"}");
+							transactionRepository.save(tx);
+							throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
+									"Pago Stripe no verificado: " + e.getMessage());
+						}
+					}
+				} else if (mockMode && ref.toUpperCase().startsWith("MOCK-")) {
+					tx.setProviderCode("MOCK");
+					tx.setStatus(PaymentGatewayStatus.APPROVED);
+					tx.setExternalReference(ref);
+					tx.setRawResponse("{\"source\":\"mock_reference\"}");
+				} else {
+					throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
+							"Referencia de pago con tarjeta inválida o no verificable");
+				}
 			} else {
-				tx.setStatus(PaymentGatewayStatus.DECLINED);
-				tx.setRawResponse("{\"error\":\"" + auth.errorMessage() + "\"}");
-				transactionRepository.save(tx);
-				throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
-						"Pago con tarjeta rechazado: " + auth.errorMessage());
+				var auth = gateway.authorize(
+						billingProperties.paymentGateway().provider(),
+						payment.getAmount(),
+						currency);
+				if (auth.approved()) {
+					tx.setStatus(PaymentGatewayStatus.APPROVED);
+					tx.setExternalReference(auth.externalReference());
+					tx.setRawResponse(auth.rawResponse());
+				} else {
+					tx.setStatus(PaymentGatewayStatus.DECLINED);
+					tx.setRawResponse("{\"error\":\"" + auth.errorMessage() + "\"}");
+					transactionRepository.save(tx);
+					throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
+							"Pago con tarjeta rechazado: " + auth.errorMessage());
+				}
 			}
 
 			transactionRepository.save(tx);
@@ -121,6 +166,7 @@ public class PaymentGatewayService {
 		}
 
 		tx.setSettlementStatus(SettlementStatus.SETTLED);
+		tx.setSettledAt(LocalDateTime.now());
 		return toDto(transactionRepository.save(tx));
 	}
 

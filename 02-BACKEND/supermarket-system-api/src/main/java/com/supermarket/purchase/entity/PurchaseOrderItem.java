@@ -37,6 +37,9 @@ public class PurchaseOrderItem {
 	@Column(name = "quantity_received", nullable = false, precision = 12, scale = 4)
 	private BigDecimal quantityReceived = BigDecimal.ZERO;
 
+	@Column(name = "quantity_rejected", nullable = false, precision = 12, scale = 4)
+	private BigDecimal quantityRejected = BigDecimal.ZERO;
+
 	@Column(name = "unit_cost", nullable = false, precision = 12, scale = 4)
 	private BigDecimal unitCost;
 

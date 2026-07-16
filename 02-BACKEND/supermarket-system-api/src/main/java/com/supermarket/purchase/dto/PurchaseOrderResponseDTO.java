@@ -21,5 +21,6 @@ public record PurchaseOrderResponseDTO(
 		LocalDateTime receivedAt,
 		LocalDateTime createdAt,
 		LocalDateTime updatedAt,
-		List<PurchaseOrderItemResponseDTO> items) {
+		List<PurchaseOrderItemResponseDTO> items,
+		List<PurchaseReceiptImpactDTO> receiptImpacts) {
 }

@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -51,4 +52,7 @@ public class SalePayment {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "coupon_id", foreignKey = @jakarta.persistence.ForeignKey(name = "fk_sale_payments_coupons"))
 	private Coupon coupon;
+
+	@Transient
+	private String externalReference;
 }

@@ -163,17 +163,17 @@ const Suppliers = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
-            <Building2 className="text-primary shrink-0" size={26} />
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
+            <Building2 className="text-violet-600 shrink-0" size={26} />
             Gestión de Proveedores
           </h1>
-          <p className="text-text-secondary dark:text-text-secondary-dark text-sm font-medium">
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
             Directorio de proveedores y contactos comerciales.
           </p>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-5 py-3 rounded-xl transition-all shadow-enterprise font-bold hover:shadow-enterprise-lg hover:scale-[1.02] duration-250 w-full md:w-auto justify-center cursor-pointer text-sm"
+          className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-indigo-600 hover:to-violet-600 text-white px-5 py-3 rounded-xl transition-all shadow-enterprise font-bold hover:shadow-enterprise-lg hover:-translate-y-0.5 duration-200 w-full md:w-auto justify-center cursor-pointer text-sm border-0"
         >
           <Plus size={18} /> Nuevo Proveedor
         </button>

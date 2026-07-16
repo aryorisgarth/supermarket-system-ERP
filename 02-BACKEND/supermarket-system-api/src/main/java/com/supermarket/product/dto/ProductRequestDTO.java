@@ -3,6 +3,8 @@ package com.supermarket.product.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.supermarket.product.model.ProductPricingPolicy;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -69,4 +71,9 @@ public class ProductRequestDTO {
 	private Long brandId;
 
 	private BigDecimal minStockExhibicion;
+
+	@DecimalMin(value = "0.0", inclusive = true)
+	private BigDecimal minMarginPercent;
+
+	private ProductPricingPolicy pricingPolicy;
 }

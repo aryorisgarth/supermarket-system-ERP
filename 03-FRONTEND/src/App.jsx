@@ -24,6 +24,7 @@ import {
   LazyReports,
   LazyMaintenance,
   LazyAuditLogs,
+  LazyHistory,
   LazySettings,
   LazyAdminBillingControl,
   LazyFinance,
@@ -38,6 +39,7 @@ import {
   LazyWarehouseProducts,
   LazyWarehouseCountList,
   LazyWarehouseCountSession,
+  LazyWarehouseTransfer,
   LazyNotificationRules,
   LazyBrands,
   LazyLocations,
@@ -86,7 +88,7 @@ const RootRoute = () => {
   return <Navigate to={defaultPath} replace />;
 };
 
-const ProtectedRoute = ({ children, allowedRoles, allowedPermissions }) => {
+const ProtectedRoute = ({ children, allowedRoles, allowedPermissions, allowPermissionOverride = false }) => {
   if (!AuthService.isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
@@ -94,15 +96,16 @@ const ProtectedRoute = ({ children, allowedRoles, allowedPermissions }) => {
   if (allowedRoles || allowedPermissions) {
     const user = AuthService.getCurrentUser();
     const roleName = normalizeRoleName(user?.role?.name);
+    const roleAllowed = allowedRoles && allowedRoles.length > 0
+      ? allowedRoles.some((role) => normalizeRoleName(role) === roleName)
+      : true;
     
     if (allowedPermissions && allowedPermissions.length > 0) {
-      // Si la ruta requiere permisos específicos, el acceso se determina SOLO por los permisos.
-      if (!AuthService.hasAnyPermission(allowedPermissions)) {
+      const permissionAllowed = AuthService.hasAnyPermission(allowedPermissions);
+      if (!permissionAllowed || (!allowPermissionOverride && !roleAllowed)) {
         return <Navigate to={getDefaultPathForRole(roleName)} replace />;
       }
     } else if (allowedRoles && allowedRoles.length > 0) {
-      // Si no hay permisos requeridos, validamos por rol
-      const roleAllowed = allowedRoles.some((role) => normalizeRoleName(role) === roleName);
       if (!roleAllowed) {
         return <Navigate to={getDefaultPathForRole(roleName)} replace />;
       }
@@ -155,31 +158,37 @@ function App() {
             } />
 
             <Route path="/bodega/recepcion" element={
-              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PURCHASE_RECEIVE']}>
+              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PURCHASE_RECEIVE']} allowPermissionOverride>
                 <LazyPage Page={LazyWarehouseReceptionList} />
               </ProtectedRoute>
             } />
 
             <Route path="/bodega/recepcion/:orderId" element={
-              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PURCHASE_RECEIVE']}>
+              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PURCHASE_RECEIVE']} allowPermissionOverride>
                 <LazyPage Page={LazyWarehouseReceiveOrder} />
               </ProtectedRoute>
             } />
 
+            <Route path="/bodega/traslado" element={
+              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['WAREHOUSE_LOCATION', 'INVENTORY_ADJUST', 'PURCHASE_RECEIVE']} allowPermissionOverride>
+                <LazyPage Page={LazyWarehouseTransfer} />
+              </ProtectedRoute>
+            } />
+
             <Route path="/bodega/productos" element={
-              <ProtectedRoute allowedRoles={['BODEGUERO']} allowedPermissions={['INVENTORY_VIEW']}>
+              <ProtectedRoute allowedRoles={['BODEGUERO']} allowedPermissions={['INVENTORY_VIEW']} allowPermissionOverride>
                 <LazyPage Page={LazyWarehouseProducts} />
               </ProtectedRoute>
             } />
 
             <Route path="/bodega/conteo" element={
-              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_COUNT', 'INVENTORY_ADJUST']}>
+              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_COUNT', 'INVENTORY_ADJUST']} allowPermissionOverride>
                 <LazyPage Page={LazyWarehouseCountList} />
               </ProtectedRoute>
             } />
 
             <Route path="/bodega/conteo/:sessionId" element={
-              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_COUNT', 'INVENTORY_ADJUST']}>
+              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_COUNT', 'INVENTORY_ADJUST']} allowPermissionOverride>
                 <LazyPage Page={LazyWarehouseCountSession} />
               </ProtectedRoute>
             } />
@@ -187,61 +196,61 @@ function App() {
             <Route path="/" element={<RootRoute />} />
             
             <Route path="/inventario" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']} allowPermissionOverride>
                 <LazyPage Page={LazyInventory} />
               </ProtectedRoute>
             } />
 
             <Route path="/lotes" element={
-              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST', 'BATCH_MANAGE']}>
+              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST', 'BATCH_MANAGE']} allowPermissionOverride>
                 <LazyPage Page={LazyBatchManagement} />
               </ProtectedRoute>
             } />
 
             <Route path="/promociones" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PROMO_MANAGE']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PROMO_MANAGE']} allowPermissionOverride>
                 <LazyPage Page={LazyPromotions} />
               </ProtectedRoute>
             } />
 
             <Route path="/facturas-electronicas" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['EINVOICE_VIEW']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['EINVOICE_VIEW']} allowPermissionOverride>
                 <LazyPage Page={LazyElectronicInvoices} />
               </ProtectedRoute>
             } />
 
             <Route path="/proveedores" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PURCHASE_MANAGE', 'PURCHASE_RECEIVE']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PURCHASE_MANAGE', 'PURCHASE_RECEIVE']} allowPermissionOverride>
                 <LazyPage Page={LazySuppliers} />
               </ProtectedRoute>
             } />
 
             <Route path="/compras" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PURCHASE_MANAGE', 'PURCHASE_RECEIVE']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['PURCHASE_MANAGE', 'PURCHASE_RECEIVE']} allowPermissionOverride>
                 <LazyPage Page={LazyPurchases} />
               </ProtectedRoute>
             } />
 
             <Route path="/categorias" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']} allowPermissionOverride>
                 <LazyPage Page={LazyCategories} />
               </ProtectedRoute>
             } />
 
             <Route path="/marcas" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']} allowPermissionOverride>
                 <LazyPage Page={LazyBrands} />
               </ProtectedRoute>
             } />
 
             <Route path="/ubicaciones" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'BODEGUERO']} allowedPermissions={['INVENTORY_ADJUST', 'WAREHOUSE_LOCATION']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'BODEGUERO']} allowedPermissions={['INVENTORY_ADJUST', 'WAREHOUSE_LOCATION']} allowPermissionOverride>
                 <LazyPage Page={LazyLocations} />
               </ProtectedRoute>
             } />
 
             <Route path="/facturacion" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CAJERO']} allowedPermissions={['SALE_CREATE']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CAJERO']} allowedPermissions={['SALE_CREATE']} allowPermissionOverride>
                 <LazyPage Page={LazyBilling} />
               </ProtectedRoute>
             } />
@@ -253,37 +262,47 @@ function App() {
             } />
             
             <Route path="/reportes" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CONSULTOR']} allowedPermissions={['REPORT_VIEW']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CONSULTOR']} allowedPermissions={['REPORT_VIEW']} allowPermissionOverride>
                 <LazyPage Page={LazyReports} />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/historico" element={
+              <ProtectedRoute
+                allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CONSULTOR']}
+                allowedPermissions={['REPORT_VIEW', 'INVENTORY_VIEW', 'PURCHASE_MANAGE', 'PURCHASE_RECEIVE']}
+                allowPermissionOverride
+              >
+                <LazyPage Page={LazyHistory} />
               </ProtectedRoute>
             } />
             
             <Route path="/usuarios" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['USER_MANAGE']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['USER_MANAGE']} allowPermissionOverride>
                 <LazyPage Page={LazyUsers} />
               </ProtectedRoute>
             } />
 
             <Route path="/mantenimiento" element={
-              <ProtectedRoute allowedRoles={['ADMIN_INGENIERO']} allowedPermissions={['MAINTENANCE_MANAGE']}>
+              <ProtectedRoute allowedRoles={['ADMIN_INGENIERO']} allowedPermissions={['MAINTENANCE_MANAGE']} allowPermissionOverride>
                 <LazyPage Page={LazyMaintenance} />
               </ProtectedRoute>
             } />
 
             <Route path="/auditoria" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['AUDIT_VIEW']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['AUDIT_VIEW']} allowPermissionOverride>
                 <LazyPage Page={LazyAuditLogs} />
               </ProtectedRoute>
             } />
 
             <Route path="/configuracion" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['USER_MANAGE']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['USER_MANAGE']} allowPermissionOverride>
                 <LazyPage Page={LazySettings} />
               </ProtectedRoute>
             } />
 
             <Route path="/configuracion-alertas" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['USER_MANAGE']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['USER_MANAGE']} allowPermissionOverride>
                 <LazyPage Page={LazyNotificationRules} />
               </ProtectedRoute>
             } />
@@ -295,19 +314,19 @@ function App() {
             } />
 
             <Route path="/control-ventas" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['SALE_CANCEL']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['SALE_CANCEL']} allowPermissionOverride>
                 <LazyPage Page={LazyAdminBillingControl} />
               </ProtectedRoute>
             } />
 
             <Route path="/finanzas" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['FINANCE_VIEW', 'FINANCE_MANAGE']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO']} allowedPermissions={['FINANCE_VIEW', 'FINANCE_MANAGE']} allowPermissionOverride>
                 <LazyPage Page={LazyFinance} />
               </ProtectedRoute>
             } />
 
             <Route path="/control-cajas" element={
-              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['CASH_OPEN', 'CASH_MOVE', 'CASH_CLOSE']}>
+              <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['CASH_OPEN', 'CASH_MOVE', 'CASH_CLOSE']} allowPermissionOverride>
                 <LazyPage Page={LazyCashRegisterControl} />
               </ProtectedRoute>
             } />
@@ -319,7 +338,7 @@ function App() {
             } />
 
             <Route path="/alertas" element={
-              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['REPORT_VIEW']}>
+              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['REPORT_VIEW']} allowPermissionOverride>
                 <LazyPage Page={LazySystemAlerts} />
               </ProtectedRoute>
             } />

@@ -88,6 +88,7 @@ export const usePurchaseList = ({ reload }) => {
     try {
       if (action === 'order') await PurchaseOrderService.markOrdered(order.id);
       if (action === 'cancel') await PurchaseOrderService.cancel(order.id);
+      if (action === 'close') await PurchaseOrderService.closeIncomplete(order.id);
       await refreshAll();
       Swal.fire({ icon: 'success', title: 'Actualizado', timer: 1200, showConfirmButton: false });
     } catch (error) {

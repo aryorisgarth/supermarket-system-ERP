@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.supermarket.category.dto.CategoryResponseDTO;
+import com.supermarket.product.model.ProductPricingPolicy;
 import com.supermarket.supplier.dto.SupplierResponseDTO;
 import com.supermarket.tax.dto.TaxCategoryResponseDTO;
 import com.supermarket.brand.dto.BrandResponseDTO;
@@ -17,6 +18,7 @@ public record ProductResponseDTO(
 	BigDecimal purchasePrice,
 	BigDecimal salePrice,
 	BigDecimal currentStock,
+	BigDecimal exhibitionStock,
 	BigDecimal minimumStock,
 	TaxCategoryResponseDTO taxCategory,
 	Boolean isActive,
@@ -32,6 +34,11 @@ public record ProductResponseDTO(
 	BigDecimal minStockExhibicion,
 	LocalDateTime createdAt,
 	LocalDateTime updatedAt,
-	BigDecimal prefilledQuantity
+	BigDecimal prefilledQuantity,
+	BigDecimal lastPurchaseCost,
+	BigDecimal averageCost,
+	BigDecimal minMarginPercent,
+	ProductPricingPolicy pricingPolicy,
+	BigDecimal currentMarginPercent
 ) {
 }

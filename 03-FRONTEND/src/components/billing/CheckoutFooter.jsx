@@ -1,6 +1,7 @@
 import React from 'react';
 import { Wallet, Printer, Edit, XCircle } from 'lucide-react';
 import Button from '../ui/Button';
+import AuthService from '../../services/AuthService';
 
 const CheckoutFooter = ({
   canCheckout,
@@ -16,6 +17,8 @@ const CheckoutFooter = ({
   onEditSale,
   onCancelSale,
 }) => {
+  const canManagePostSale = AuthService.hasPermission('SALE_CANCEL');
+
   return (
     <footer className="bg-transparent border-t border-slate-200 dark:border-slate-800 p-4 space-y-3 relative z-10">
       <button
@@ -66,7 +69,7 @@ const CheckoutFooter = ({
       </div>
 
       <div className="border-t border-slate-200 dark:border-slate-800 pt-3 mt-1">
-        <div className="grid grid-cols-3 gap-2">
+        <div className={`grid gap-2 ${canManagePostSale ? 'grid-cols-3' : 'grid-cols-1'}`}>
           <Button
             type="button"
             variant="ghost"
@@ -77,26 +80,30 @@ const CheckoutFooter = ({
           >
             Reimprimir
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            icon={Edit}
-            onClick={onEditSale}
-            className="rounded-xl h-11 text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200"
-          >
-            Editar
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            icon={XCircle}
-            onClick={onCancelSale}
-            className="rounded-xl h-11 text-xs font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100"
-          >
-            Anular
-          </Button>
+          {canManagePostSale && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              icon={Edit}
+              onClick={onEditSale}
+              className="rounded-xl h-11 text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200"
+            >
+              Editar
+            </Button>
+          )}
+          {canManagePostSale && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              icon={XCircle}
+              onClick={onCancelSale}
+              className="rounded-xl h-11 text-xs font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100"
+            >
+              Anular
+            </Button>
+          )}
         </div>
       </div>
     </footer>

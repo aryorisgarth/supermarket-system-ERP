@@ -109,11 +109,17 @@ public class SecurityConfiguration {
 						.requestMatchers("/api/maintenance/**").hasRole("ADMIN_INGENIERO")
 						
 						.requestMatchers("/api/purchase-orders/*/receive").hasAuthority("PURCHASE_RECEIVE")
+						.requestMatchers("/api/purchase-orders/*/claim").hasAuthority("PURCHASE_RECEIVE")
+						.requestMatchers("/api/purchase-orders/*/assign").hasAuthority("PURCHASE_MANAGE")
 						.requestMatchers(HttpMethod.GET, "/api/purchase-orders", "/api/purchase-orders/*")
 								.access(anyRoleOrAuthority(
 										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
 										new String[] {"PURCHASE_MANAGE", "PURCHASE_RECEIVE"}))
 						.requestMatchers("/api/purchase-orders/**").hasAuthority("PURCHASE_MANAGE")
+						.requestMatchers(HttpMethod.POST, "/api/inventory-counts/*/assign")
+								.hasAuthority("INVENTORY_ADJUST")
+						.requestMatchers(HttpMethod.POST, "/api/inventory-counts/*/claim")
+								.hasAuthority("INVENTORY_COUNT")
 						.requestMatchers(HttpMethod.POST, "/api/inventory-counts/*/approve")
 								.hasAuthority("INVENTORY_ADJUST")
 						.requestMatchers(HttpMethod.GET, "/api/inventory-counts", "/api/inventory-counts/*")
@@ -153,10 +159,19 @@ public class SecurityConfiguration {
 								.access(anyRoleOrAuthority(
 										new String[] {"ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR", "BODEGUERO"},
 										new String[] {"REPORT_VIEW"}))
+						.requestMatchers(HttpMethod.GET, "/api/reports/inventory/kardex", "/api/reports/inventory/kardex/excel")
+								.access(anyRoleOrAuthority(
+										new String[] {"ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR", "CONSULTOR", "BODEGUERO"},
+										new String[] {"REPORT_VIEW", "INVENTORY_VIEW", "INVENTORY_ADJUST"}))
 						.requestMatchers("/api/reports/**")
 								.access(anyRoleOrAuthority(
 										new String[] {"ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR", "CONSULTOR"},
 										new String[] {"REPORT_VIEW"}))
+						.requestMatchers(HttpMethod.GET, "/api/history/**")
+								.access(anyRoleOrAuthority(
+										new String[] {"ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR", "CONSULTOR", "BODEGUERO"},
+										new String[] {"REPORT_VIEW", "INVENTORY_VIEW", "PURCHASE_MANAGE", "PURCHASE_RECEIVE"}))
+						.requestMatchers("/api/audit-logs/**").hasAuthority("AUDIT_VIEW")
 						.requestMatchers("/api/users/**", "/api/roles/**", "/api/permissions/**")
 								.hasAuthority("USER_MANAGE")
 						
@@ -166,6 +181,10 @@ public class SecurityConfiguration {
 								.access(anyRoleOrAuthority(
 										new String[] {"ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR", "CAJERO"},
 										new String[] {"FINANCE_VIEW", "SALE_CREATE"}))
+						.requestMatchers(HttpMethod.POST, "/api/payments/**")
+								.hasAuthority("SALE_CREATE")
+						.requestMatchers(HttpMethod.GET, "/api/coupons/code/*")
+								.hasAuthority("SALE_CREATE")
 						.requestMatchers(HttpMethod.GET, "/api/billing/payment-transactions")
 								.hasAuthority("FINANCE_VIEW")
 						.requestMatchers("/api/billing/payment-accounts/**", "/api/billing/payment-transactions")

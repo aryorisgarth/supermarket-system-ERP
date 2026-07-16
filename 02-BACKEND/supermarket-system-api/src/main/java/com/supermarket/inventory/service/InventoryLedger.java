@@ -62,7 +62,7 @@ public class InventoryLedger {
 		BigDecimal previousStock = product.getCurrentStock();
 		BigDecimal delta = quantity.multiply(BigDecimal.valueOf(factor));
 		BigDecimal newStock = previousStock.add(delta);
-		if (newStock.compareTo(BigDecimal.ZERO) < 0 && movementType != InventoryMovementType.SALE) {
+		if (newStock.compareTo(BigDecimal.ZERO) < 0) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Insufficient product stock");
 		}
 		product.setCurrentStock(newStock);
@@ -71,7 +71,7 @@ public class InventoryLedger {
 
 		if (batch != null) {
 			BigDecimal newBatchQty = batch.getCurrentQuantity().add(delta);
-			if (newBatchQty.compareTo(BigDecimal.ZERO) < 0 && movementType != InventoryMovementType.SALE) {
+			if (newBatchQty.compareTo(BigDecimal.ZERO) < 0) {
 				throw new ResponseStatusException(HttpStatus.CONFLICT, "Insufficient batch quantity");
 			}
 			batch.setCurrentQuantity(newBatchQty);
@@ -80,33 +80,39 @@ public class InventoryLedger {
 
 		Location targetLoc = null;
 		if (movementType == InventoryMovementType.SALE) {
-			// Buscar ubicaciones de piso de venta asociadas a este producto
 			java.util.List<ProductLocation> productExhibitions = productLocationRepository.findByProductId(product.getId()).stream()
 					.filter(pl -> pl.getLocation() != null && Boolean.TRUE.equals(pl.getLocation().getIsPisoVenta()))
+					.filter(pl -> pl.getStock() != null && pl.getStock().compareTo(BigDecimal.ZERO) > 0)
+					.sorted((a, b) -> b.getStock().compareTo(a.getStock()))
 					.toList();
 
-			if (!productExhibitions.isEmpty()) {
-				// Buscar la primera que tenga stock disponible (mayor que cero)
-				targetLoc = productExhibitions.stream()
-						.filter(pl -> pl.getStock() != null && pl.getStock().compareTo(BigDecimal.ZERO) > 0)
-						.map(ProductLocation::getLocation)
-						.findFirst()
-						.orElseGet(() -> productExhibitions.get(0).getLocation());
-			} else {
-				// Si no tiene asignada ninguna ubicación de tipo piso de venta, buscar la primera de la BD
-				targetLoc = locationRepository.findByIsPisoVenta(true).stream().findFirst().orElseGet(() -> {
-					Location l = new Location();
-					l.setWarehouse("Tienda");
-					l.setAisle("Principal");
-					l.setShelf("Exhibición");
-					l.setLevel("Góndola");
-					l.setLocationCode("EXH-DEFAULT");
-					l.setIsPisoVenta(true);
-					l.setCreatedAt(LocalDateTime.now());
-					l.setUpdatedAt(LocalDateTime.now());
-					return locationRepository.save(l);
-				});
+			BigDecimal exhibitionAvailable = productExhibitions.stream()
+					.map(ProductLocation::getStock)
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
+			if (exhibitionAvailable.compareTo(quantity) < 0) {
+				throw new ResponseStatusException(HttpStatus.CONFLICT,
+						"Insufficient exhibition stock for product " + product.getBarcode());
 			}
+
+			BigDecimal remaining = quantity;
+			Location lastTouched = null;
+			for (ProductLocation exhibitionPl : productExhibitions) {
+				if (remaining.compareTo(BigDecimal.ZERO) <= 0) {
+					break;
+				}
+				BigDecimal take = exhibitionPl.getStock().min(remaining);
+				exhibitionPl.setStock(exhibitionPl.getStock().subtract(take));
+				exhibitionPl.setUpdatedAt(LocalDateTime.now());
+				productLocationRepository.save(exhibitionPl);
+				remaining = remaining.subtract(take);
+				lastTouched = exhibitionPl.getLocation();
+				refreshExhibitionAlerts(product, exhibitionPl.getLocation(), exhibitionPl.getStock());
+			}
+			if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+				throw new ResponseStatusException(HttpStatus.CONFLICT,
+						"Insufficient exhibition stock for product " + product.getBarcode());
+			}
+			targetLoc = lastTouched;
 		} else {
 			Location customLoc = null;
 			if (batch != null && batch.getWarehouseZone() != null && !batch.getWarehouseZone().isBlank()) {
@@ -128,55 +134,28 @@ public class InventoryLedger {
 					return locationRepository.save(l);
 				});
 			}
-		}
 
-		final Location finalLoc = targetLoc;
-		ProductLocation pl = productLocationRepository.findByProductIdAndLocationId(product.getId(), targetLoc.getId())
-				.orElseGet(() -> {
-					ProductLocation newPl = new ProductLocation();
-					newPl.setProduct(product);
-					newPl.setLocation(finalLoc);
-					newPl.setStock(BigDecimal.ZERO);
-					newPl.setCreatedAt(LocalDateTime.now());
-					return newPl;
-				});
+			final Location finalLoc = targetLoc;
+			ProductLocation pl = productLocationRepository.findByProductIdAndLocationId(product.getId(), targetLoc.getId())
+					.orElseGet(() -> {
+						ProductLocation newPl = new ProductLocation();
+						newPl.setProduct(product);
+						newPl.setLocation(finalLoc);
+						newPl.setStock(BigDecimal.ZERO);
+						newPl.setCreatedAt(LocalDateTime.now());
+						return newPl;
+					});
 
-		pl.setStock(pl.getStock().add(delta));
-		pl.setUpdatedAt(LocalDateTime.now());
-		productLocationRepository.save(pl);
+			pl.setStock(pl.getStock().add(delta));
+			pl.setUpdatedAt(LocalDateTime.now());
+			productLocationRepository.save(pl);
+			refreshExhibitionAlerts(product, targetLoc, pl.getStock());
 
-		if (Boolean.TRUE.equals(targetLoc.getIsPisoVenta())) {
-			String zeroKey = "EXHIBITION_ZERO_STOCK:" + product.getId();
-			String lowKey = "EXHIBITION_LOW_STOCK:" + product.getId();
-
-			if (pl.getStock().compareTo(BigDecimal.ZERO) <= 0) {
-				systemAlertService.upsertActive(
-						zeroKey,
-						"INVENTORY",
-						"CRITICAL",
-						"Stock Exhibición Agotado",
-						product.getName() + " tiene stock de exhibición en cero o negativo (" + pl.getStock() + "). Reabastecer de inmediato.",
-						"Inventario",
-						product.getId(),
-						"/inventario"
-				);
-			} else {
-				systemAlertService.resolveAlert(zeroKey);
-			}
-
-			if (pl.getStock().compareTo(product.getMinStockExhibicion()) < 0) {
-				systemAlertService.upsertActive(
-						lowKey,
-						"INVENTORY",
-						"WARNING",
-						"Reabastecer Exhibición",
-						product.getName() + " tiene " + pl.getStock() + " unidades en exhibición. Límite de reabastecimiento: " + product.getMinStockExhibicion() + ".",
-						"Inventario",
-						product.getId(),
-						"/inventario"
-				);
-			} else {
-				systemAlertService.resolveAlert(lowKey);
+			// Asegura zona de lote = código de ubicación para FEFO en traslados
+			if (batch != null && (batch.getWarehouseZone() == null || batch.getWarehouseZone().isBlank())
+					&& targetLoc.getLocationCode() != null) {
+				batch.setWarehouseZone(targetLoc.getLocationCode());
+				productBatchRepository.save(batch);
 			}
 		}
 
@@ -210,5 +189,258 @@ public class InventoryLedger {
 		}
 
 		inventoryMovementRepository.save(movement);
+	}
+
+	/**
+	 * Traslado entre ubicaciones: no cambia el stock total del producto, pero deja traza en Kardex.
+	 */
+	@Transactional
+	public void recordLocationTransfer(User user, Product product, Location fromLoc, Location toLoc, BigDecimal quantity) {
+		if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transfer quantity must be positive");
+		}
+		if (fromLoc.getId().equals(toLoc.getId())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source and target location must differ");
+		}
+
+		ProductLocation fromPL = productLocationRepository.findByProductIdAndLocationId(product.getId(), fromLoc.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "No stock record in source location"));
+		if (fromPL.getStock().compareTo(quantity) < 0) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Insufficient stock in source location");
+		}
+
+		fromPL.setStock(fromPL.getStock().subtract(quantity));
+		fromPL.setUpdatedAt(LocalDateTime.now());
+		productLocationRepository.save(fromPL);
+
+		ProductLocation toPL = productLocationRepository.findByProductIdAndLocationId(product.getId(), toLoc.getId())
+				.orElseGet(() -> {
+					ProductLocation pl = new ProductLocation();
+					pl.setProduct(product);
+					pl.setLocation(toLoc);
+					pl.setStock(BigDecimal.ZERO);
+					pl.setCreatedAt(LocalDateTime.now());
+					return pl;
+				});
+		toPL.setStock(toPL.getStock().add(quantity));
+		toPL.setUpdatedAt(LocalDateTime.now());
+		productLocationRepository.save(toPL);
+
+		transferBatchesFefo(product, fromLoc.getLocationCode(), toLoc.getLocationCode(), quantity);
+
+		BigDecimal stockSnapshot = product.getCurrentStock() != null ? product.getCurrentStock() : BigDecimal.ZERO;
+		String notes = "Traslado " + fromLoc.getLocationCode() + " → " + toLoc.getLocationCode()
+				+ " (" + quantity.stripTrailingZeros().toPlainString() + " u)";
+
+		InventoryMovement movement = new InventoryMovement();
+		movement.setProduct(product);
+		movement.setUser(user);
+		movement.setMovementType(InventoryMovementType.TRANSFER);
+		movement.setQuantity(quantity);
+		movement.setFactor((byte) 1);
+		movement.setReferenceId(toLoc.getId());
+		movement.setReferenceLineId(fromLoc.getId());
+		movement.setSourceType("LOCATION_TRANSFER");
+		movement.setPreviousStock(stockSnapshot);
+		movement.setNewStock(stockSnapshot);
+		movement.setUnitCost(resolveUnitCost(product));
+		movement.setTotalCost(null);
+		movement.setNotes(notes);
+		movement.setCreatedAt(LocalDateTime.now());
+		movement.setUomLabel("UN");
+		movement.setUomFactor(BigDecimal.ONE);
+		movement.setUomQuantity(quantity);
+		inventoryMovementRepository.save(movement);
+
+		refreshExhibitionAlerts(product, fromLoc, fromPL.getStock());
+		refreshExhibitionAlerts(product, toLoc, toPL.getStock());
+	}
+
+	/**
+	 * Ajuste directo de stock en una ubicación: recalcula el total del producto y registra ADJUSTMENT en Kardex.
+	 */
+	@Transactional
+	public void recordLocationStockOverride(User user, Product product, Location location, BigDecimal newLocationStock) {
+		if (newLocationStock == null || newLocationStock.compareTo(BigDecimal.ZERO) < 0) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Location stock cannot be negative");
+		}
+
+		ProductLocation pl = productLocationRepository.findByProductIdAndLocationId(product.getId(), location.getId())
+				.orElseGet(() -> {
+					ProductLocation created = new ProductLocation();
+					created.setProduct(product);
+					created.setLocation(location);
+					created.setStock(BigDecimal.ZERO);
+					created.setCreatedAt(LocalDateTime.now());
+					return created;
+				});
+
+		BigDecimal previousLocationStock = pl.getStock() != null ? pl.getStock() : BigDecimal.ZERO;
+		pl.setStock(newLocationStock);
+		pl.setUpdatedAt(LocalDateTime.now());
+		productLocationRepository.save(pl);
+
+		BigDecimal previousProductStock = product.getCurrentStock() != null ? product.getCurrentStock() : BigDecimal.ZERO;
+		BigDecimal newProductStock = productLocationRepository.findByProductId(product.getId()).stream()
+				.map(ProductLocation::getStock)
+				.filter(s -> s != null)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		product.setCurrentStock(newProductStock);
+		product.setUpdatedAt(LocalDateTime.now());
+		productRepository.save(product);
+
+		BigDecimal delta = newProductStock.subtract(previousProductStock);
+		if (delta.compareTo(BigDecimal.ZERO) != 0) {
+			byte factor = delta.signum() > 0 ? (byte) 1 : (byte) -1;
+			InventoryMovement movement = new InventoryMovement();
+			movement.setProduct(product);
+			movement.setUser(user);
+			movement.setMovementType(InventoryMovementType.ADJUSTMENT);
+			movement.setQuantity(delta.abs());
+			movement.setFactor(factor);
+			movement.setReferenceId(location.getId());
+			movement.setSourceType("LOCATION_STOCK_SET");
+			movement.setPreviousStock(previousProductStock);
+			movement.setNewStock(newProductStock);
+			movement.setUnitCost(resolveUnitCost(product));
+			movement.setTotalCost(resolveUnitCost(product).multiply(delta.abs()));
+			movement.setNotes("Ajuste ubicación " + location.getLocationCode() + ": "
+					+ previousLocationStock.stripTrailingZeros().toPlainString()
+					+ " → " + newLocationStock.stripTrailingZeros().toPlainString());
+			movement.setCreatedAt(LocalDateTime.now());
+			movement.setUomLabel("UN");
+			movement.setUomFactor(BigDecimal.ONE);
+			movement.setUomQuantity(delta.abs());
+			inventoryMovementRepository.save(movement);
+		}
+
+		refreshExhibitionAlerts(product, location, newLocationStock);
+	}
+
+	/**
+	 * Mueve cantidad de lotes FEFO (vencimiento más próximo primero) entre zonas de ubicación.
+	 * Si no hay lotes asociados a la zona origen, no falla: el stock por ubicación ya se movió.
+	 */
+	private void transferBatchesFefo(Product product, String fromZone, String toZone, BigDecimal quantity) {
+		if (fromZone == null || fromZone.isBlank() || toZone == null || toZone.isBlank()) {
+			return;
+		}
+		String from = fromZone.trim();
+		String to = toZone.trim();
+		if (from.equalsIgnoreCase(to)) {
+			return;
+		}
+
+		java.util.List<ProductBatch> sourceBatches = productBatchRepository
+				.findByProductIdOrderByExpirationDateAsc(product.getId())
+				.stream()
+				.filter(b -> b.getWarehouseZone() != null && from.equalsIgnoreCase(b.getWarehouseZone().trim()))
+				.filter(b -> b.getCurrentQuantity() != null && b.getCurrentQuantity().compareTo(BigDecimal.ZERO) > 0)
+				.toList();
+		if (sourceBatches.isEmpty()) {
+			return;
+		}
+
+		BigDecimal remaining = quantity;
+		for (ProductBatch batch : sourceBatches) {
+			if (remaining.compareTo(BigDecimal.ZERO) <= 0) {
+				break;
+			}
+			BigDecimal available = batch.getCurrentQuantity();
+			BigDecimal take = remaining.min(available);
+			if (take.compareTo(BigDecimal.ZERO) <= 0) {
+				continue;
+			}
+
+			if (take.compareTo(available) == 0) {
+				batch.setWarehouseZone(to);
+				productBatchRepository.save(batch);
+			} else {
+				batch.setCurrentQuantity(available.subtract(take));
+				productBatchRepository.save(batch);
+
+				ProductBatch split = new ProductBatch();
+				split.setProduct(product);
+				split.setBatchCode(uniqueTransferBatchCode(batch.getBatchCode(), to));
+				split.setInitialQuantity(take);
+				split.setCurrentQuantity(take);
+				split.setEntryDate(batch.getEntryDate());
+				split.setExpirationDate(batch.getExpirationDate());
+				split.setPurchaseOrderItemId(batch.getPurchaseOrderItemId());
+				split.setWarehouseZone(to);
+				split.setQcNotes(batch.getQcNotes());
+				split.setCreatedAt(LocalDateTime.now());
+				productBatchRepository.save(split);
+			}
+			remaining = remaining.subtract(take);
+		}
+	}
+
+	private String uniqueTransferBatchCode(String originalCode, String toZone) {
+		String base = (originalCode == null || originalCode.isBlank() ? "XFER" : originalCode.trim())
+				+ "-" + (toZone == null ? "Z" : toZone.trim().replaceAll("\\s+", "")).toUpperCase();
+		if (base.length() > 40) {
+			base = base.substring(0, 40);
+		}
+		String candidate = base;
+		int suffix = 1;
+		while (productBatchRepository.existsByBatchCodeIgnoreCase(candidate)) {
+			String suffixPart = "-" + suffix++;
+			int maxBase = Math.max(1, 50 - suffixPart.length());
+			candidate = (base.length() > maxBase ? base.substring(0, maxBase) : base) + suffixPart;
+		}
+		return candidate;
+	}
+
+	private BigDecimal resolveUnitCost(Product product) {
+		if (product.getAverageCost() != null && product.getAverageCost().compareTo(BigDecimal.ZERO) > 0) {
+			return product.getAverageCost();
+		}
+		if (product.getLastPurchaseCost() != null && product.getLastPurchaseCost().compareTo(BigDecimal.ZERO) > 0) {
+			return product.getLastPurchaseCost();
+		}
+		return product.getPurchasePrice() != null ? product.getPurchasePrice() : BigDecimal.ZERO;
+	}
+
+	private void refreshExhibitionAlerts(Product product, Location location, BigDecimal currentStock) {
+		if (!Boolean.TRUE.equals(location.getIsPisoVenta())) {
+			return;
+		}
+		String zeroKey = "EXHIBITION_ZERO_STOCK:" + product.getId();
+		String lowKey = "EXHIBITION_LOW_STOCK:" + product.getId();
+		BigDecimal stock = currentStock != null ? currentStock : BigDecimal.ZERO;
+
+		if (stock.compareTo(BigDecimal.ZERO) <= 0) {
+			systemAlertService.upsertActive(
+					zeroKey,
+					"INVENTORY",
+					"CRITICAL",
+					"Stock Exhibición Agotado",
+					product.getName() + " tiene stock de exhibición en cero o negativo (" + stock + "). Reabastecer de inmediato.",
+					"Inventario",
+					product.getId(),
+					"/inventario");
+		} else {
+			systemAlertService.resolveAlert(zeroKey);
+		}
+
+		BigDecimal minExhibition = product.getMinStockExhibicion() != null
+				? product.getMinStockExhibicion()
+				: BigDecimal.ZERO;
+		if (stock.compareTo(minExhibition) < 0) {
+			systemAlertService.upsertActive(
+					lowKey,
+					"INVENTORY",
+					"WARNING",
+					"Reabastecer Exhibición",
+					product.getName() + " tiene " + stock + " unidades en exhibición. Límite de reabastecimiento: "
+							+ minExhibition + ".",
+					"Inventario",
+					product.getId(),
+					"/inventario");
+		} else {
+			systemAlertService.resolveAlert(lowKey);
+		}
 	}
 }

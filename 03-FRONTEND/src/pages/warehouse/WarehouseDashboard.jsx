@@ -24,6 +24,7 @@ import InventoryCountService from '../../services/InventoryCountService';
 import useBarcodeScan from '../../hooks/useBarcodeScan';
 import { formatMoney } from '../../utils/formatMoney';
 import InventoryGuideModal from '../../components/warehouse/InventoryGuideModal';
+import WarehouseFlowStrip from '../../components/warehouse/WarehouseFlowStrip';
 
 const money = formatMoney;
 
@@ -98,7 +99,7 @@ const WarehouseDashboard = () => {
       <PageHeader
         eyebrow="Bodega"
         title={`Hola, ${user?.fullName?.split(' ')[0] || 'Bodeguero'}`}
-        description="Recepción de mercadería, control de lotes y seguimiento de vencimientos. El stock del POS se actualiza cuando apruebas recepciones y conteos."
+        description="Recibe mercadería en bodega, trasládala al piso para vender y cuenta el stock total. El POS solo vende lo que esté en ubicaciones de exhibición."
         actions={(
           <div className="flex gap-2">
             <Button type="button" variant="secondary" icon={BookOpen} onClick={() => setShowGuideModal(true)}>
@@ -111,6 +112,8 @@ const WarehouseDashboard = () => {
         )}
         meta={<Badge tone="blue">{roleLabel}</Badge>}
       />
+
+      <WarehouseFlowStrip activeStep={2} />
 
       {canApproveCounts && pendingCountSessions > 0 && (
         <div className="rounded-xl border border-amber-500/30 bg-[var(--app-warning-soft)] px-4 py-3">
@@ -153,19 +156,19 @@ const WarehouseDashboard = () => {
         <ol className="mt-3 space-y-3 text-sm text-[var(--app-text-soft)]">
           <li className="flex gap-3">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--app-primary-soft)] text-xs font-bold text-[var(--app-primary)]">1</span>
-            <span><strong className="text-[var(--app-text)]">Recepción:</strong> escaneas la OC de compra, registras lote, vencimiento, zona y QC. El stock sube en kardex automáticamente.</span>
+            <span><strong className="text-[var(--app-text)]">Recepción:</strong> tomas la OC, escaneas, registras lote/vencimiento y zona de bodega. El stock entra a almacén (aún no vende el POS).</span>
           </li>
           <li className="flex gap-3">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--app-primary-soft)] text-xs font-bold text-[var(--app-primary)]">2</span>
-            <span><strong className="text-[var(--app-text)]">Consulta / escaneo:</strong> verifica existencias y códigos de barras sin modificar precios ni catálogo.</span>
+            <span><strong className="text-[var(--app-text)]">Traslado a piso:</strong> mueves mercadería de bodega a exhibición. Ahí sí queda disponible para facturación.</span>
           </li>
           <li className="flex gap-3">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--app-primary-soft)] text-xs font-bold text-[var(--app-primary)]">3</span>
-            <span><strong className="text-[var(--app-text)]">Conteo cíclico:</strong> cuentas físicamente; el supervisor aprueba y el sistema ajusta diferencias.</span>
+            <span><strong className="text-[var(--app-text)]">Conteo cíclico:</strong> cuentas el stock total del producto; el supervisor aprueba y el sistema ajusta diferencias.</span>
           </li>
           <li className="flex gap-3">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--app-primary-soft)] text-xs font-bold text-[var(--app-primary)]">4</span>
-            <span><strong className="text-[var(--app-text)]">Lotes vencidos:</strong> revisa alertas en Analítica → Alertas; aplica baja desde Lotes y vencimientos.</span>
+            <span><strong className="text-[var(--app-text)]">Lotes vencidos:</strong> revisa alertas y aplica bajas desde Lotes y vencimientos.</span>
           </li>
         </ol>
       </Card>
@@ -203,7 +206,7 @@ const WarehouseDashboard = () => {
               <p className="text-xs text-[var(--app-text-muted)]">No hay recepciones pendientes.</p>
             )}
             {pendingOrders.slice(0, 5).map((order) => {
-              const isMine = order.receivedBy?.id === user?.id;
+              const isMine = user?.id != null && String(order.receivedBy?.id) === String(user.id);
               const isTaken = !!order.receivedBy && !isMine;
 
               return (
@@ -255,6 +258,11 @@ const WarehouseDashboard = () => {
                   </Button>
                 </Link>
               )}
+              <Link to="/bodega/traslado">
+                <Button type="button" variant="secondary" className="w-full" icon={Truck}>
+                  Traslado a piso de venta
+                </Button>
+              </Link>
               <Link to="/bodega/conteo">
                 <Button type="button" variant="secondary" className="w-full" icon={ClipboardCheck}>
                   Conteo cíclico

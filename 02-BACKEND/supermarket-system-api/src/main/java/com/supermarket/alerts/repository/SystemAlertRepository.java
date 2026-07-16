@@ -37,4 +37,23 @@ public interface SystemAlertRepository extends JpaRepository<SystemAlert, Long> 
 			Pageable pageable);
 
 	long countByStatus(String status);
+
+	@Query("""
+			SELECT COUNT(a) FROM SystemAlert a
+			WHERE a.status = :status
+			AND a.type = :type
+			AND a.createdAt >= :start AND a.createdAt < :end
+			""")
+	long countByStatusAndTypeAndCreatedAtBetween(
+			@Param("status") String status,
+			@Param("type") String type,
+			@Param("start") java.time.LocalDateTime start,
+			@Param("end") java.time.LocalDateTime end);
+
+	@Query("""
+			SELECT COUNT(a) FROM SystemAlert a
+			WHERE a.status = :status
+			AND a.type = :type
+			""")
+	long countByStatusAndType(@Param("status") String status, @Param("type") String type);
 }

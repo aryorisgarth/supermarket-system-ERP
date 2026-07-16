@@ -142,7 +142,7 @@ const normalizeRole = (role = '') => {
 };
 
 const resolveApplicationRole = (roles = []) =>
-  ['ADMIN_INGENIERO', 'ADMINISTRADOR', 'SUPERVISOR', 'CAJERO', 'CONSULTOR'].find((role) => roles.includes(role)) || null;
+  ['ADMIN_INGENIERO', 'ADMINISTRADOR', 'SUPERVISOR', 'BODEGUERO', 'CAJERO', 'CONSULTOR'].find((role) => roles.includes(role)) || null;
 
 
 export const initAuth = initKeycloak;

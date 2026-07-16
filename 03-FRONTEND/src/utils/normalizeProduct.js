@@ -30,7 +30,18 @@ export function normalizeProduct(raw) {
     description: raw.description ?? raw.descripcion ?? '',
     salePrice,
     purchasePrice: Number(raw.purchasePrice ?? raw.purchase_price ?? 0),
+    lastPurchaseCost: Number(raw.lastPurchaseCost ?? raw.last_purchase_cost ?? raw.purchasePrice ?? raw.purchase_price ?? 0),
+    averageCost: Number(raw.averageCost ?? raw.average_cost ?? raw.purchasePrice ?? raw.purchase_price ?? 0),
+    minMarginPercent: Number(raw.minMarginPercent ?? raw.min_margin_percent ?? 20),
+    pricingPolicy: raw.pricingPolicy ?? raw.pricing_policy ?? 'MANUAL',
+    currentMarginPercent:
+      raw.currentMarginPercent ?? raw.current_margin_percent ?? null,
     currentStock: Number(raw.currentStock ?? raw.current_stock ?? 0),
+    exhibitionStock: Number(raw.exhibitionStock ?? raw.exhibition_stock ?? 0),
+    // POS vende solo stock de piso/exhibición
+    availableForSale: Number(
+      raw.exhibitionStock ?? raw.exhibition_stock ?? raw.availableForSale ?? raw.available_for_sale ?? 0,
+    ),
     minimumStock: Number(raw.minimumStock ?? raw.minimum_stock ?? 0),
     isActive: raw.isActive ?? raw.is_active ?? true,
     category,

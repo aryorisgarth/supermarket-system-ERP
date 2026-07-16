@@ -117,10 +117,10 @@ const InventoryCatalogGridView = ({
             <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[var(--app-border)]/60">
               <div className="bg-[var(--app-bg-subtle)]/40 p-3 rounded-2xl border border-[var(--app-border)]/50">
                 <span className="block text-[9px] font-bold uppercase tracking-widest text-[var(--app-text-muted)] mb-1">
-                  Costo de Compra
+                  Costo Promedio
                 </span>
                 <span className="text-sm font-bold text-[var(--app-text-soft)] tabular-nums">
-                  {formatMoney(product.purchasePrice)}
+                  {formatMoney(product.averageCost ?? product.purchasePrice)}
                 </span>
               </div>
               <div className="bg-emerald-500/5 p-3 rounded-2xl border border-emerald-500/10">

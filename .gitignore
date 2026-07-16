@@ -66,6 +66,7 @@ yarn-error.log*
 # Archivos de entorno sensibles
 .env
 .env.local
+.env.prod
 .env.development.local
 .env.test.local
 .env.production.local

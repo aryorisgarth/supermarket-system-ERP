@@ -9,6 +9,8 @@ import com.supermarket.brand.entity.Brand;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +28,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import com.supermarket.category.entity.Category;
+import com.supermarket.product.model.ProductPricingPolicy;
 import com.supermarket.supplier.entity.Supplier;
 import com.supermarket.tax.entity.TaxCategory;
 
@@ -58,6 +61,26 @@ public class Product {
 	@DecimalMin(value = "0.0", inclusive = false)
 	@Column(nullable = false, precision = 12, scale = 4)
 	private BigDecimal purchasePrice;
+
+	@NotNull
+	@DecimalMin(value = "0.0", inclusive = false)
+	@Column(name = "last_purchase_cost", nullable = false, precision = 12, scale = 4)
+	private BigDecimal lastPurchaseCost;
+
+	@NotNull
+	@DecimalMin(value = "0.0", inclusive = false)
+	@Column(name = "average_cost", nullable = false, precision = 12, scale = 4)
+	private BigDecimal averageCost;
+
+	@NotNull
+	@DecimalMin(value = "0.0", inclusive = true)
+	@Column(name = "min_margin_percent", nullable = false, precision = 8, scale = 4)
+	private BigDecimal minMarginPercent = new BigDecimal("20.0000");
+
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	@Column(name = "pricing_policy", nullable = false, length = 30)
+	private ProductPricingPolicy pricingPolicy = ProductPricingPolicy.MANUAL;
 
 	@NotNull
 	@DecimalMin(value = "0.0", inclusive = false)

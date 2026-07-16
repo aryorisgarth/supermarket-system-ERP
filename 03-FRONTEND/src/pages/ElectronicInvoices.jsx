@@ -54,8 +54,13 @@ const ElectronicInvoices = () => {
           </p>
         </div>
         <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 text-amber-700 px-4 py-2 rounded-xl text-xs font-bold">
-          <AlertTriangle size={13} /> Ambiente TEST — Sin validez fiscal real
+          <AlertTriangle size={13} /> Ambiente TEST (simulado) — Sin validez fiscal real ante DGI
         </div>
+      </div>
+
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-800">
+        Las facturas electrónicas de este módulo son <strong>demo / examen</strong>. No se envían a DGI real;
+        el CUF y la autorización son generados localmente para pruebas.
       </div>
 
       

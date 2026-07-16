@@ -22,6 +22,11 @@ const PurchaseOrderService = {
     return response.data;
   },
 
+  updateDraft: async (id, data) => {
+    const response = await api.put(`/purchase-orders/${id}`, data);
+    return response.data;
+  },
+
   markOrdered: async (id) => {
     const response = await api.post(`/purchase-orders/${id}/order`);
     return response.data;
@@ -34,6 +39,11 @@ const PurchaseOrderService = {
 
   cancel: async (id) => {
     const response = await api.post(`/purchase-orders/${id}/cancel`);
+    return response.data;
+  },
+
+  closeIncomplete: async (id) => {
+    const response = await api.post(`/purchase-orders/${id}/close`);
     return response.data;
   },
 

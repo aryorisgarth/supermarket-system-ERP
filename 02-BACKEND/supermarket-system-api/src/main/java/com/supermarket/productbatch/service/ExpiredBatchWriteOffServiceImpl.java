@@ -13,6 +13,7 @@ import com.supermarket.inventory.model.InventoryMovementType;
 import com.supermarket.inventory.service.InventoryLedger;
 import com.supermarket.product.entity.Product;
 import com.supermarket.product.repository.ProductRepository;
+import com.supermarket.product.service.ProductCostService;
 import com.supermarket.productbatch.dto.ExpiredWriteOffResultDTO;
 import com.supermarket.productbatch.entity.ProductBatch;
 import com.supermarket.productbatch.repository.ProductBatchRepository;
@@ -29,6 +30,7 @@ public class ExpiredBatchWriteOffServiceImpl implements ExpiredBatchWriteOffServ
 	private final ProductBatchRepository productBatchRepository;
 	private final ProductRepository productRepository;
 	private final InventoryLedger inventoryLedger;
+	private final ProductCostService productCostService;
 
 	@Override
 	@Transactional
@@ -60,7 +62,7 @@ public class ExpiredBatchWriteOffServiceImpl implements ExpiredBatchWriteOffServ
 					batch.getId(),
 					null,
 					"PRODUCT_BATCH",
-					product.getPurchasePrice(),
+					productCostService.resolveOperationalCost(product),
 					"Baja automatica por vencimiento lote " + batch.getBatchCode());
 
 			batchesProcessed++;

@@ -106,7 +106,7 @@ const InventoryCatalogListView = ({
                 {}
                 <td className="py-5 px-6 text-right tabular-nums">
                   <div className="text-[11px] font-semibold text-[var(--app-text-muted)]">
-                    Costo: <span className="font-bold text-[var(--app-text-soft)]">{formatMoney(product.purchasePrice)}</span>
+                    Costo: <span className="font-bold text-[var(--app-text-soft)]">{formatMoney(product.averageCost ?? product.purchasePrice)}</span>
                   </div>
                   <div className="text-[15px] font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
                     {formatMoney(product.salePrice)}

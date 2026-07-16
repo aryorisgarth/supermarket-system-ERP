@@ -1,5 +1,7 @@
 package com.supermarket.product.mapper;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -13,6 +15,7 @@ import com.supermarket.product.entity.Product;
 import com.supermarket.product.entity.ProductPurchasePack;
 import com.supermarket.product.entity.ProductUomConversion;
 import com.supermarket.product.repository.ProductPurchasePackRepository;
+import com.supermarket.product.repository.ProductLocationRepository;
 import com.supermarket.supplier.dto.SupplierResponseDTO;
 import com.supermarket.tax.dto.TaxCategoryResponseDTO;
 import com.supermarket.brand.dto.BrandResponseDTO;
@@ -24,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class ProductMapper {
 
 	private final ProductPurchasePackRepository productPurchasePackRepository;
+	private final ProductLocationRepository productLocationRepository;
 
 	public Product toEntity(ProductRequestDTO dto) {
 		Product product = new Product();
@@ -81,6 +85,12 @@ public class ProductMapper {
 			);
 		}
 
+		BigDecimal exhibitionStock = BigDecimal.ZERO;
+		if (entity.getId() != null) {
+			BigDecimal summed = productLocationRepository.sumExhibitionStockByProductId(entity.getId());
+			exhibitionStock = summed != null ? summed : BigDecimal.ZERO;
+		}
+
 		return new ProductResponseDTO(
 			entity.getId(),
 			entity.getBarcode(),
@@ -89,6 +99,7 @@ public class ProductMapper {
 			entity.getPurchasePrice(),
 			entity.getSalePrice(),
 			entity.getCurrentStock(),
+			exhibitionStock,
 			entity.getMinimumStock(),
 			taxResponse,
 			entity.getIsActive(),
@@ -104,7 +115,12 @@ public class ProductMapper {
 			entity.getMinStockExhibicion(),
 			entity.getCreatedAt(),
 			entity.getUpdatedAt(),
-			null
+			null,
+			entity.getLastPurchaseCost(),
+			entity.getAverageCost(),
+			entity.getMinMarginPercent(),
+			entity.getPricingPolicy(),
+			calculateCurrentMarginPercent(entity)
 		);
 	}
 
@@ -145,5 +161,25 @@ public class ProductMapper {
 		if (dto.getMinStockExhibicion() != null) {
 			entity.setMinStockExhibicion(dto.getMinStockExhibicion());
 		}
+		if (dto.getMinMarginPercent() != null) {
+			entity.setMinMarginPercent(dto.getMinMarginPercent());
+		}
+		if (dto.getPricingPolicy() != null) {
+			entity.setPricingPolicy(dto.getPricingPolicy());
+		}
+	}
+
+	private BigDecimal calculateCurrentMarginPercent(Product entity) {
+		BigDecimal cost = entity.getAverageCost() != null
+				? entity.getAverageCost()
+				: entity.getLastPurchaseCost() != null ? entity.getLastPurchaseCost() : entity.getPurchasePrice();
+		if (entity.getSalePrice() == null || cost == null || cost.compareTo(BigDecimal.ZERO) <= 0) {
+			return null;
+		}
+		return entity.getSalePrice()
+				.subtract(cost)
+				.divide(cost, 4, RoundingMode.HALF_UP)
+				.multiply(BigDecimal.valueOf(100))
+				.setScale(4, RoundingMode.HALF_UP);
 	}
 }

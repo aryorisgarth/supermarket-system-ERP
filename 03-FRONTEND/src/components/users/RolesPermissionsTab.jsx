@@ -1,5 +1,10 @@
 import React from 'react';
 import { ShieldCheck, Loader2, CheckCircle2 } from 'lucide-react';
+import {
+  formatPermissionDescription,
+  formatPermissionLabel,
+  formatRoleLabel,
+} from '../../utils/securityLabels';
 
 const RolesPermissionsTab = ({
   roles,
@@ -19,8 +24,8 @@ const RolesPermissionsTab = ({
             <ShieldCheck size={22} />
           </span>
           <div>
-            <h3 className="text-sm font-bold text-[var(--app-text)] uppercase tracking-wide">Puestos / Roles</h3>
-            <p className="text-xs font-semibold text-[var(--app-text-muted)]">Elige el rol para editar sus permisos globales.</p>
+            <h3 className="text-sm font-bold text-[var(--app-text)] uppercase tracking-wide">Roles del sistema</h3>
+            <p className="text-xs font-semibold text-[var(--app-text-muted)]">Elige el rol para editar sus permisos globales en espanol y con mayor claridad.</p>
           </div>
         </div>
 
@@ -36,7 +41,7 @@ const RolesPermissionsTab = ({
                   : 'border-[var(--app-border)] bg-[var(--app-bg-subtle)] text-[var(--app-text-soft)] hover:border-[var(--app-primary)]/40'
               }`}
             >
-              <span className="block text-xs font-bold uppercase tracking-widest">{role.name?.replaceAll('_', ' ')}</span>
+              <span className="block text-xs font-bold uppercase tracking-widest">{formatRoleLabel(role.name)}</span>
               <span className="mt-1 block text-[10px] font-bold opacity-75">{role.permissions?.length || 0} permisos asignados</span>
             </button>
           ))}
@@ -47,7 +52,10 @@ const RolesPermissionsTab = ({
         <div className="mb-4 flex items-center justify-between gap-3 border-b border-[var(--app-border)] pb-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">Configurando privilegios de</p>
-            <h4 className="text-lg font-bold text-[var(--app-text)]">{selectedRole?.name?.replaceAll('_', ' ') || 'Seleccione un rol'}</h4>
+            <h4 className="text-lg font-bold text-[var(--app-text)]">{selectedRole ? formatRoleLabel(selectedRole.name) : 'Seleccione un rol'}</h4>
+            <p className="mt-1 text-xs font-semibold text-[var(--app-text-muted)]">
+              Los permisos directos por usuario se configuran en la ficha del empleado y se suman a este rol.
+            </p>
           </div>
           <button
             type="button"
@@ -80,8 +88,8 @@ const RolesPermissionsTab = ({
                   className="mt-1 h-4 w-4 rounded text-[var(--app-primary)] cursor-pointer"
                 />
                 <span className="min-w-0">
-                  <span className="block text-xs font-bold uppercase tracking-wide text-[var(--app-text)]">{permission.code}</span>
-                  <span className="mt-1 block text-xs font-semibold text-[var(--app-text-muted)]">{permission.description || 'Sin descripción'}</span>
+                  <span className="block text-xs font-bold uppercase tracking-wide text-[var(--app-text)]">{formatPermissionLabel(permission.code)}</span>
+                  <span className="mt-1 block text-xs font-semibold text-[var(--app-text-muted)]">{formatPermissionDescription(permission.code, permission.description)}</span>
                 </span>
               </label>
             );

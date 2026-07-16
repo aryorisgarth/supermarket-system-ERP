@@ -1,7 +1,9 @@
 package com.supermarket.security;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,9 +34,19 @@ public class CustomUserDetailsService implements UserDetailsService {
 		}
 		List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 		authorities.add(new SimpleGrantedAuthority(RoleNames.toAuthority(user.getRole().getName())));
-		permissionRepository.findCodesByRoleId(user.getRole().getId()).stream()
+		effectivePermissionCodes(user).stream()
 				.map(SimpleGrantedAuthority::new)
 				.forEach(authorities::add);
 		return new LoggedUser(user.getId(), user.getEmail(), user.getPassword(), true, authorities);
+	}
+
+	private List<String> effectivePermissionCodes(User user) {
+		Set<String> codes = new LinkedHashSet<>(permissionRepository.findCodesByRoleId(user.getRole().getId()));
+		if (user.getDirectPermissions() != null) {
+			user.getDirectPermissions().stream()
+					.map(permission -> permission.getCode())
+					.forEach(codes::add);
+		}
+		return List.copyOf(codes);
 	}
 }

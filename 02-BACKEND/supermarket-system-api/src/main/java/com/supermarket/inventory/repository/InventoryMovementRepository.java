@@ -58,7 +58,7 @@ public interface InventoryMovementRepository extends JpaRepository<InventoryMove
 	@Query(value = """
 			SELECT 
 			  DATE(m.created_at) as flow_date,
-			  SUM(CASE WHEN m.factor > 0 THEN m.quantity ELSE 0 END) as inputs,
+			  SUM(CASE WHEN m.factor > 0 AND m.movement_type <> 'TRANSFER' THEN m.quantity ELSE 0 END) as inputs,
 			  SUM(CASE WHEN m.factor < 0 THEN m.quantity ELSE 0 END) as outputs
 			FROM inventory_movements m
 			WHERE m.created_at >= :from AND m.created_at < :to
@@ -66,4 +66,30 @@ public interface InventoryMovementRepository extends JpaRepository<InventoryMove
 			ORDER BY flow_date ASC
 			""", nativeQuery = true)
 	List<Object[]> inventoryFlowVolumeNative(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+	@Query("""
+			SELECT COALESCE(SUM(m.totalCost), 0)
+			FROM InventoryMovement m
+			WHERE m.createdAt >= :from
+			  AND m.createdAt < :to
+			  AND m.movementType = com.supermarket.inventory.model.InventoryMovementType.ENTRY
+			  AND m.sourceType = 'PURCHASE_ORDER'
+			""")
+	java.math.BigDecimal sumPurchaseReceiptEntriesBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+	@Query(value = """
+			SELECT b.name,
+			       COUNT(DISTINCT m.reference_id) AS purchases_count,
+			       COALESCE(SUM(m.total_cost), 0) AS total
+			FROM inventory_movements m
+			JOIN products p ON p.id = m.product_id
+			JOIN brands b ON b.id = p.brand_id
+			WHERE m.created_at >= :from
+			  AND m.created_at < :to
+			  AND m.movement_type = 'ENTRY'
+			  AND m.source_type = 'PURCHASE_ORDER'
+			GROUP BY b.id, b.name
+			ORDER BY total DESC
+			""", nativeQuery = true)
+	List<Object[]> purchasesByBrandReceiptNative(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

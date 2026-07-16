@@ -28,11 +28,14 @@ import com.supermarket.inventory.service.InventoryLedger;
 import com.supermarket.product.dto.ProductPurchasePackRequestDTO;
 import com.supermarket.product.dto.ProductRequestDTO;
 import com.supermarket.product.dto.ProductResponseDTO;
+import com.supermarket.product.dto.UpdateSalePriceRequestDTO;
 import com.supermarket.product.dto.ProductUomConversionResponseDTO;
 import com.supermarket.product.entity.Product;
 import com.supermarket.product.entity.ProductPurchasePack;
 import com.supermarket.product.entity.ProductUomConversion;
 import com.supermarket.product.mapper.ProductMapper;
+import com.supermarket.producthistory.model.ProductCostHistoryReason;
+import com.supermarket.producthistory.model.ProductSalePriceHistoryReason;
 import com.supermarket.product.repository.ProductPurchasePackRepository;
 import com.supermarket.product.repository.ProductRepository;
 import com.supermarket.product.repository.ProductUomConversionRepository;
@@ -65,6 +68,8 @@ public class ProductServiceImpl implements ProductService {
 	private final BrandRepository brandRepository;
 	private final BarcodeParserService barcodeParserService;
 	private final com.supermarket.scale.service.ScaleConfigService scaleConfigService;
+	private final ProductCostService productCostService;
+	private final ProductPriceService productPriceService;
 
 	@Override
 	public org.springframework.data.domain.Page<ProductResponseDTO> findAll(org.springframework.data.domain.Pageable pageable) {
@@ -143,6 +148,7 @@ public class ProductServiceImpl implements ProductService {
 				response.purchasePrice(),
 				response.salePrice(),
 				response.currentStock(),
+				response.exhibitionStock(),
 				response.minimumStock(),
 				response.taxCategory(),
 				response.isActive(),
@@ -158,7 +164,12 @@ public class ProductServiceImpl implements ProductService {
 				response.minStockExhibicion(),
 				response.createdAt(),
 				response.updatedAt(),
-				finalParsedWeight
+				finalParsedWeight,
+				response.lastPurchaseCost(),
+				response.averageCost(),
+				response.minMarginPercent(),
+				response.pricingPolicy(),
+				response.currentMarginPercent()
 			);
 		}
 
@@ -198,6 +209,7 @@ public class ProductServiceImpl implements ProductService {
 				response.purchasePrice(),
 				response.salePrice(),
 				response.currentStock(),
+				response.exhibitionStock(),
 				response.minimumStock(),
 				response.taxCategory(),
 				response.isActive(),
@@ -213,7 +225,12 @@ public class ProductServiceImpl implements ProductService {
 				response.minStockExhibicion(),
 				response.createdAt(),
 				response.updatedAt(),
-				finalParsedWeight
+				finalParsedWeight,
+				response.lastPurchaseCost(),
+				response.averageCost(),
+				response.minMarginPercent(),
+				response.pricingPolicy(),
+				response.currentMarginPercent()
 			);
 		}
 		return response;
@@ -260,6 +277,8 @@ public class ProductServiceImpl implements ProductService {
 		product.setSupplier(supplier);
 		product.setTaxCategory(taxCategory);
 		product.setBrand(brand);
+		product.setLastPurchaseCost(request.getPurchasePrice());
+		product.setAverageCost(request.getPurchasePrice());
 		
 		if (request.getRequiresBatch() == null) {
 			product.setRequiresBatch(category.getDefaultRequiresBatch() != null ? category.getDefaultRequiresBatch() : false);
@@ -291,8 +310,12 @@ public class ProductServiceImpl implements ProductService {
 			throw new BadRequestException("El precio de venta no puede ser menor al costo de compra");
 		}
 
+		User actor = currentUser();
+
 		Product product = productRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+		BigDecimal previousSalePrice = product.getSalePrice();
+		BigDecimal previousCost = product.getLastPurchaseCost() != null ? product.getLastPurchaseCost() : product.getPurchasePrice();
 
 		String barcode = request.getBarcode();
 		if (!product.getBarcode().equals(barcode) && productRepository.existsByBarcodeAndIdNot(barcode, id)) {
@@ -334,9 +357,36 @@ public class ProductServiceImpl implements ProductService {
 
 		product.setUpdatedAt(LocalDateTime.now());
 
+		if (previousCost == null || previousCost.compareTo(request.getPurchasePrice()) != 0) {
+			productCostService.applyManualCostAdjustment(product, request.getPurchasePrice(),
+					ProductCostHistoryReason.MANUAL_COST_ADJUSTMENT, actor);
+		}
+
+		if (previousSalePrice == null || previousSalePrice.compareTo(request.getSalePrice()) != 0) {
+			productPriceService.updateSalePrice(product, previousSalePrice, request.getSalePrice(),
+					ProductSalePriceHistoryReason.MANUAL_UPDATE, "Cambio desde ficha de producto", actor);
+		}
+
 		Product saved = productRepository.save(product);
 		syncPurchasePacks(saved, request.getPurchasePacks());
 		return productMapper.toResponse(saved);
+	}
+
+	@Override
+	@Transactional
+	public ProductResponseDTO updateSalePrice(Long id, UpdateSalePriceRequestDTO request) {
+		Product product = productRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+		BigDecimal referenceCost = product.getAverageCost() != null ? product.getAverageCost()
+				: product.getLastPurchaseCost() != null ? product.getLastPurchaseCost() : product.getPurchasePrice();
+		if (referenceCost != null && request.newSalePrice().compareTo(referenceCost) < 0) {
+			throw new BadRequestException("El precio de venta no puede ser menor al costo de referencia del producto");
+		}
+		BigDecimal previousSalePrice = product.getSalePrice();
+		productPriceService.updateSalePrice(product, previousSalePrice, request.newSalePrice(), request.reason(),
+				request.notes(), currentUser());
+		product.setUpdatedAt(LocalDateTime.now());
+		return productMapper.toResponse(productRepository.save(product));
 	}
 
 	@Override
@@ -391,7 +441,7 @@ public class ProductServiceImpl implements ProductService {
 		}
 		byte factor = delta.compareTo(BigDecimal.ZERO) > 0 ? (byte) 1 : (byte) -1;
 		inventoryLedger.record(currentUser(), product, null, InventoryMovementType.ADJUSTMENT, delta.abs(),
-				factor, product.getId(), null, "PRODUCT_STOCK_UPDATE", product.getPurchasePrice(), "Manual stock update");
+				factor, product.getId(), null, "PRODUCT_STOCK_UPDATE", productCostService.resolveOperationalCost(product), "Manual stock update");
 	}
 
 	private User currentUser() {

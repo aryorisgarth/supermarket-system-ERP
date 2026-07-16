@@ -56,7 +56,8 @@ const WarehouseCountSession = () => {
       
       const currentUser = AuthService.getCurrentUser();
       if (data.status === 'OPEN') {
-        if (data.countedBy && data.countedBy.id !== currentUser?.id) {
+        const isMine = currentUser?.id != null && String(data.countedBy?.id) === String(currentUser.id);
+        if (data.countedBy && !isMine) {
           Swal.fire('Acceso Denegado', `Este conteo está siendo procesado por ${data.countedBy.fullName || data.countedBy.email}`, 'warning');
           navigate('/bodega/conteo');
           return;

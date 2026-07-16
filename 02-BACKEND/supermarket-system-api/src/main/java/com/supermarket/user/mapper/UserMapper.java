@@ -19,14 +19,21 @@ public class UserMapper {
 	}
 
 	public UserResponseDTO toResponse(User entity) {
-		List<String> permissions = entity.getRole().getPermissions() == null
+		List<String> rolePermissions = entity.getRole().getPermissions() == null
 				? List.of()
 				: entity.getRole().getPermissions().stream().map(permission -> permission.getCode()).sorted().toList();
+		List<String> directPermissions = entity.getDirectPermissions() == null
+				? List.of()
+				: entity.getDirectPermissions().stream().map(permission -> permission.getCode()).sorted().toList();
+		List<String> permissions = java.util.stream.Stream.concat(rolePermissions.stream(), directPermissions.stream())
+				.distinct()
+				.sorted()
+				.toList();
 		RoleResponseDTO roleResponse = new RoleResponseDTO(
 			entity.getRole().getId(),
 			entity.getRole().getName(),
 			entity.getRole().getDescription(),
-			permissions
+			rolePermissions
 		);
 		
 		return new UserResponseDTO(
@@ -36,6 +43,7 @@ public class UserMapper {
 			entity.getIsActive(),
 			roleResponse,
 			permissions,
+			directPermissions,
 			entity.getLastLogin(),
 			entity.getCreatedAt()
 		);
@@ -48,7 +56,6 @@ public class UserMapper {
 			entity.setFullName(dto.getFullName() != null ? dto.getFullName().trim() : "");
 		}
 		entity.setEmail(dto.getEmail());
-		entity.setPassword(dto.getPassword());
 		entity.setIsActive(dto.getIsActive());
 	}
 }

@@ -49,8 +49,13 @@ export const useBilling = () => {
   const startAddProduct = useCallback((product) => {
     if (!product?.id) return;
     if (cartData.rejectInactiveProduct(product)) return;
-    if (product.currentStock <= 0) {
-      Swal.fire({ icon: 'error', title: 'Sin stock', text: `"${product.name}" no tiene existencias.` });
+    const available = Number(product.availableForSale ?? product.exhibitionStock ?? 0);
+    if (available <= 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Sin stock en piso',
+        text: `"${product.name}" no tiene existencias en exhibición. Traslada desde bodega.`,
+      });
       return;
     }
     setSelectedLineId(null);
@@ -140,8 +145,12 @@ export const useBilling = () => {
             Swal.fire({ icon: 'warning', title: 'Producto Inactivo', text: 'El producto está deshabilitado.' });
             return;
           }
-          if (foundProduct.currentStock <= 0) {
-            Swal.fire({ icon: 'error', title: 'Sin Stock', text: `"${foundProduct.name}" no tiene existencias.` });
+          if (Number(foundProduct.availableForSale ?? foundProduct.exhibitionStock ?? 0) <= 0) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Sin stock en piso',
+              text: `"${foundProduct.name}" no tiene existencias en exhibición. Traslada desde bodega.`,
+            });
             return;
           }
           searchData.setSearchQuery('');
@@ -251,6 +260,8 @@ export const useBilling = () => {
     transferBank: checkoutData.transferBank,
     transferRef: checkoutData.transferRef,
     paymentAccounts,
+    stripeClientSecret: checkoutData.stripeClientSecret,
+    showStripeModal: checkoutData.showStripeModal,
     
     subtotal: cartData.subtotal,
     discountTotal: cartData.discountTotal,
@@ -272,6 +283,8 @@ export const useBilling = () => {
     setTransferRef: checkoutData.setTransferRef,
     setShowReceipt: checkoutData.setShowReceipt,
     setShowCategoryProductsModal: searchData.setShowCategoryProductsModal,
+    setShowStripeModal: checkoutData.setShowStripeModal,
+    handleStripePaymentSuccess: checkoutData.handleStripePaymentSuccess,
     
     handleSearch: searchData.handleSearch,
     handleKeyDown,

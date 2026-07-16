@@ -169,7 +169,9 @@ export const useReportsData = (firstDayOfYearStr, todayStr) => {
 
   const entryMovements = inventoryMovements.filter((item) => ['ENTRY', 'RETURN'].includes(item.movementType));
   const exitMovements = inventoryMovements.filter((item) => ['SALE', 'EXPIRED'].includes(item.movementType));
-  const adjustmentMovements = inventoryMovements.filter((item) => item.movementType === 'ADJUSTMENT');
+  const adjustmentMovements = inventoryMovements.filter((item) =>
+    ['ADJUSTMENT', 'TRANSFER'].includes(item.movementType),
+  );
 
   const entryUnits = entryMovements.reduce((sum, item) => sum + number(item.quantity), 0);
   const exitUnits = exitMovements.reduce((sum, item) => sum + number(item.quantity), 0);

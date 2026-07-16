@@ -29,6 +29,7 @@ import com.supermarket.cashregister.model.SessionStatus;
 import com.supermarket.billing.repository.PaymentGatewayTransactionRepository;
 import com.supermarket.billing.model.SettlementStatus;
 import com.supermarket.alerts.repository.SystemAlertRepository;
+import com.supermarket.inventory.repository.InventoryMovementRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,6 +45,7 @@ public class DailyClosureService {
 	private final CashRegisterSessionRepository cashRegisterSessionRepository;
 	private final PaymentGatewayTransactionRepository paymentGatewayTransactionRepository;
 	private final SystemAlertRepository systemAlertRepository;
+	private final InventoryMovementRepository inventoryMovementRepository;
 
 	public List<DailyClosureResponseDTO> findAll() {
 		return dailyClosureRepository.findAllByOrderByClosureDateDesc().stream()
@@ -113,16 +115,19 @@ public class DailyClosureService {
 		BigDecimal calculatedTotalDifference = totalCashDifference.add(totalCardDifference).add(totalTransferDifference);
 
 		
-		BigDecimal receivedPurchasesAmount = purchaseOrderRepository.sumReceivedPurchasesBetween(start, end);
+		BigDecimal receivedPurchasesAmount = inventoryMovementRepository.sumPurchaseReceiptEntriesBetween(start, end);
 		long pendingPurchasesCount = purchaseOrderRepository.countByStatusAndCreatedAtBetween(PurchaseOrderStatus.ORDERED, start, end);
 		long partialPurchasesCount = purchaseOrderRepository.countByStatusAndCreatedAtBetween(PurchaseOrderStatus.PARTIALLY_RECEIVED, start, end);
 
 		
-		long pendingSettlementsCount = paymentGatewayTransactionRepository.countBySettlementStatus(SettlementStatus.PENDING);
-		BigDecimal pendingSettlementsAmount = paymentGatewayTransactionRepository.sumAmountBySettlementStatus(SettlementStatus.PENDING);
+		long pendingSettlementsCount = paymentGatewayTransactionRepository
+				.countBySettlementStatusAndCreatedAtBetween(SettlementStatus.PENDING, start, end);
+		BigDecimal pendingSettlementsAmount = paymentGatewayTransactionRepository
+				.sumAmountBySettlementStatusAndCreatedAtBetween(SettlementStatus.PENDING, start, end);
 
-		
-		long stockAlertsCount = systemAlertRepository.countByStatus("ACTIVE");
+		// Alertas de inventario activas creadas ese día (no el histórico global)
+		long stockAlertsCount = systemAlertRepository
+				.countByStatusAndTypeAndCreatedAtBetween("ACTIVE", "INVENTORY", start, end);
 
 		DailyClosure closure = new DailyClosure();
 		closure.setClosureDate(date);

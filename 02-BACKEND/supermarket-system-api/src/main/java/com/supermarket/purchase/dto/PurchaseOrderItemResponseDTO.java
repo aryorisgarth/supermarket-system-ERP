@@ -13,6 +13,7 @@ public record PurchaseOrderItemResponseDTO(
 		BigDecimal unitsPerPack,
 		BigDecimal quantityOrdered,
 		BigDecimal quantityReceived,
+		BigDecimal quantityRejected,
 		BigDecimal unitCost,
 		BigDecimal lineTotal) {
 }

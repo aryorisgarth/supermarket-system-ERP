@@ -9,11 +9,23 @@ import PurchaseOrderService from '../../services/PurchaseOrderService';
 import { formatMoney } from '../../utils/formatMoney';
 import { PURCHASE_STATUS_LABELS } from '../../utils/purchaseReceipt';
 import InventoryGuideModal from '../../components/warehouse/InventoryGuideModal';
+import WarehouseFlowStrip from '../../components/warehouse/WarehouseFlowStrip';
 import AuthService from '../../services/AuthService';
 import UserService from '../../services/UserService';
 import Swal from 'sweetalert2';
 
 const money = formatMoney;
+
+const userCanReceivePurchases = (user) => {
+  const permissions = Array.isArray(user?.permissions) ? user.permissions : [];
+  return permissions.includes('PURCHASE_RECEIVE') || user?.role?.name === 'ADMINISTRADOR';
+};
+
+const userCanReassignPurchases = (user) => {
+  const permissions = Array.isArray(user?.permissions) ? user.permissions : [];
+  const roleName = user?.role?.name || '';
+  return permissions.includes('PURCHASE_MANAGE') || roleName.includes('ADMIN');
+};
 
 const OrderRow = ({ order, money }) => {
   const [expanded, setExpanded] = useState(false);
@@ -80,7 +92,7 @@ const OrderRow = ({ order, money }) => {
               >
                 Tomar Tarea <PackageCheck size={14} />
               </button>
-            ) : order.receivedBy.id === AuthService.getCurrentUser()?.id ? (
+            ) : AuthService.getCurrentUser()?.id != null && String(order.receivedBy.id) === String(AuthService.getCurrentUser()?.id) ? (
               <button 
                 onClick={(e) => { e.stopPropagation(); navigate(`/bodega/recepcion/${order.id}`); }}
                 className="px-3 py-1.5 bg-[var(--app-primary)] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 hover:bg-blue-700 transition"
@@ -92,12 +104,12 @@ const OrderRow = ({ order, money }) => {
                 <button disabled className="px-3 py-1.5 bg-gray-200 text-gray-500 text-xs font-bold rounded-lg flex items-center gap-1.5 cursor-not-allowed">
                   En proceso <PackageCheck size={14} />
                 </button>
-                {(AuthService.hasPermission('ADMIN') || AuthService.getCurrentUser()?.role?.name?.includes('ADMIN')) && (
+                {userCanReassignPurchases(AuthService.getCurrentUser()) && (
                   <button 
                     onClick={async (e) => { 
                       e.stopPropagation(); 
                       const allUsers = await UserService.getAll();
-                      const bodegueros = allUsers.filter(u => u.role?.name === 'BODEGUERO' || u.role?.name === 'ADMINISTRADOR');
+                      const bodegueros = allUsers.filter(userCanReceivePurchases);
                       const inputOptions = {};
                       bodegueros.forEach(b => {
                         inputOptions[b.id] = b.fullName || b.email;
@@ -219,7 +231,7 @@ const WarehouseReceptionList = () => {
       <PageHeader
         eyebrow="Bodega"
         title="Recepción de compras"
-        description="Selecciona una orden de compra para registrar la entrada de mercadería con lote y control de calidad."
+        description="Toma una OC y registra la entrada a bodega. Después usa Traslado a piso para que el POS pueda vender."
         actions={
           <Button type="button" variant="secondary" icon={BookOpen} onClick={() => setShowGuideModal(true)}>
             Guía de Recepción
@@ -227,6 +239,8 @@ const WarehouseReceptionList = () => {
         }
         meta={<Badge tone="blue">{filtered.length} pendientes</Badge>}
       />
+
+      <WarehouseFlowStrip activeStep={2} />
 
       <Card>
         <CardHeader icon={ClipboardList} title="Cola de recepción" description="Solo órdenes ordenadas o parcialmente recibidas." />

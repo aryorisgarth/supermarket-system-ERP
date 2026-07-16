@@ -22,6 +22,7 @@ import {
   Bookmark,
   Settings as SettingsIcon,
   Scale,
+  ArrowRightLeft,
 } from 'lucide-react';
 
 export const sections = [
@@ -95,6 +96,7 @@ export const sections = [
         path: '/facturas-electronicas',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['EINVOICE_VIEW'],
+        allowPermissionOverride: true,
         badge: { text: 'DGI', variant: 'new' },
       },
       {
@@ -119,6 +121,7 @@ export const sections = [
         path: '/finanzas',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
         permissions: ['FINANCE_VIEW', 'FINANCE_MANAGE'],
+        allowPermissionOverride: true,
       },
     ],
   },
@@ -131,6 +134,7 @@ export const sections = [
         path: '/inventario',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['INVENTORY_ADJUST'],
+        allowPermissionOverride: true,
       },
       {
         icon: CalendarClock,
@@ -138,6 +142,7 @@ export const sections = [
         path: '/lotes',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['INVENTORY_ADJUST'],
+        allowPermissionOverride: true,
         badge: { text: 'PEPS', variant: 'new' },
       },
       {
@@ -146,6 +151,7 @@ export const sections = [
         path: '/promociones',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['PROMO_MANAGE'],
+        allowPermissionOverride: true,
         badge: { text: 'NUEVO', variant: 'new' },
       },
       {
@@ -154,6 +160,7 @@ export const sections = [
         path: '/compras',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['PURCHASE_MANAGE', 'PURCHASE_RECEIVE'],
+        allowPermissionOverride: true,
         badge: { text: 'NEW', variant: 'new' },
       },
       {
@@ -162,6 +169,7 @@ export const sections = [
         path: '/categorias',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['INVENTORY_ADJUST'],
+        allowPermissionOverride: true,
       },
       {
         icon: Bookmark,
@@ -169,6 +177,7 @@ export const sections = [
         path: '/marcas',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['INVENTORY_ADJUST'],
+        allowPermissionOverride: true,
       },
 
       {
@@ -177,6 +186,7 @@ export const sections = [
         path: '/proveedores',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['PURCHASE_MANAGE', 'PURCHASE_RECEIVE'],
+        allowPermissionOverride: true,
       },
     ],
   },
@@ -196,7 +206,17 @@ export const sections = [
         path: '/bodega/recepcion',
         roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['PURCHASE_RECEIVE'],
+        allowPermissionOverride: true,
         badge: { text: 'SCAN', variant: 'new' },
+      },
+      {
+        icon: ArrowRightLeft,
+        label: 'Traslado a piso',
+        path: '/bodega/traslado',
+        roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
+        permissions: ['WAREHOUSE_LOCATION', 'INVENTORY_ADJUST', 'PURCHASE_RECEIVE'],
+        allowPermissionOverride: true,
+        badge: { text: 'POS', variant: 'live' },
       },
       {
         icon: CalendarClock,
@@ -211,6 +231,7 @@ export const sections = [
         path: '/bodega/productos',
         roles: ['BODEGUERO'],
         permissions: ['INVENTORY_VIEW'],
+        allowPermissionOverride: true,
       },
       {
         icon: ClipboardCheck,
@@ -218,6 +239,7 @@ export const sections = [
         path: '/bodega/conteo',
         roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['INVENTORY_COUNT', 'INVENTORY_ADJUST'],
+        allowPermissionOverride: true,
         badge: { text: 'NEW', variant: 'new' },
       },
       {
@@ -226,6 +248,7 @@ export const sections = [
         path: '/ubicaciones',
         roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['WAREHOUSE_LOCATION', 'INVENTORY_ADJUST'],
+        allowPermissionOverride: true,
       },
     ],
   },
@@ -238,6 +261,16 @@ export const sections = [
         path: '/reportes',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CONSULTOR'],
         permissions: ['REPORT_VIEW'],
+        allowPermissionOverride: true,
+      },
+      {
+        icon: History,
+        label: 'Historico',
+        path: '/historico',
+        roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CONSULTOR'],
+        permissions: ['REPORT_VIEW', 'INVENTORY_VIEW', 'PURCHASE_MANAGE', 'PURCHASE_RECEIVE'],
+        allowPermissionOverride: true,
+        badge: { text: 'TRACE', variant: 'new' },
       },
       {
         icon: BellRing,
@@ -245,6 +278,7 @@ export const sections = [
         path: '/alertas',
         roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['REPORT_VIEW'],
+        allowPermissionOverride: true,
         badge: { text: 'IA', variant: 'new' },
       },
       {
@@ -253,6 +287,7 @@ export const sections = [
         path: '/auditoria',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
         permissions: ['AUDIT_VIEW'],
+        allowPermissionOverride: true,
       },
     ],
   },
@@ -271,6 +306,7 @@ export const sections = [
         path: '/usuarios',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
         permissions: ['USER_MANAGE'],
+        allowPermissionOverride: true,
       },
       {
         icon: SettingsIcon,
@@ -278,6 +314,7 @@ export const sections = [
         path: '/configuracion',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
         permissions: ['USER_MANAGE'],
+        allowPermissionOverride: true,
       },
       {
         icon: BellRing,
@@ -285,6 +322,7 @@ export const sections = [
         path: '/configuracion-alertas',
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO'],
         permissions: ['USER_MANAGE'],
+        allowPermissionOverride: true,
       },
       {
         icon: Scale,
@@ -298,6 +336,7 @@ export const sections = [
         path: '/mantenimiento',
         roles: ['ADMIN_INGENIERO'],
         permissions: ['MAINTENANCE_MANAGE'],
+        allowPermissionOverride: true,
       },
     ],
   },

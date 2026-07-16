@@ -19,6 +19,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.supermarket.inventory.model.InventoryMovementType;
 import com.supermarket.inventory.service.InventoryLedger;
+import com.supermarket.product.service.ProductCostService;
+import com.supermarket.product.service.ProductCostUpdateResult;
 import com.supermarket.product.dto.ProductSummaryDTO;
 import com.supermarket.product.entity.Product;
 import com.supermarket.product.entity.ProductPurchasePack;
@@ -32,6 +34,7 @@ import com.supermarket.purchase.dto.PurchaseOrderItemRequestDTO;
 import com.supermarket.purchase.dto.PurchaseOrderItemResponseDTO;
 import com.supermarket.purchase.dto.PurchaseOrderRequestDTO;
 import com.supermarket.purchase.dto.PurchaseOrderResponseDTO;
+import com.supermarket.purchase.dto.PurchaseReceiptImpactDTO;
 import com.supermarket.purchase.dto.PurchaseReceiptItemRequestDTO;
 import com.supermarket.purchase.dto.PurchaseReceiptRequestDTO;
 import com.supermarket.purchase.entity.PurchaseOrder;
@@ -60,6 +63,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 	private final UserRepository userRepository;
 	private final InventoryLedger inventoryLedger;
 	private final ProductUomConversionRepository productUomConversionRepository;
+	private final ProductCostService productCostService;
 
 	@Override
 	public List<PurchaseOrderResponseDTO> findAll(PurchaseOrderStatus status) {
@@ -118,6 +122,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 			item.setProduct(product);
 			item.setQuantityOrdered(resolved.quantityOrdered());
 			item.setQuantityReceived(BigDecimal.ZERO);
+			item.setQuantityRejected(BigDecimal.ZERO);
 			item.setUnitCost(resolved.unitCost());
 			item.setLineTotal(resolved.lineTotal());
 			item.setPackLabel(resolved.packLabel());
@@ -130,6 +135,53 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 		}
 
 		order.setSubtotal(subtotal);
+		return toResponse(purchaseOrderRepository.save(order));
+	}
+
+	@Override
+	@Transactional
+	public PurchaseOrderResponseDTO updateDraft(Long id, PurchaseOrderRequestDTO request) {
+		PurchaseOrder order = loadOrder(id);
+		if (order.getStatus() != PurchaseOrderStatus.DRAFT) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Only draft purchase orders can be edited");
+		}
+
+		Supplier supplier = supplierRepository.findById(request.getSupplierId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Supplier not found"));
+
+		order.setSupplier(supplier);
+		order.setNotes(request.getNotes());
+		order.getItems().clear();
+
+		BigDecimal subtotal = BigDecimal.ZERO;
+		for (PurchaseOrderItemRequestDTO line : request.getItems()) {
+			Product product = productRepository.findById(line.getProductId())
+					.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not found"));
+			if (!product.getSupplier().getId().equals(supplier.getId())) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+						"Product " + product.getName() + " does not belong to the selected supplier");
+			}
+
+			ResolvedPurchaseLine resolved = resolveLine(line, product);
+			PurchaseOrderItem item = new PurchaseOrderItem();
+			item.setPurchaseOrder(order);
+			item.setProduct(product);
+			item.setQuantityOrdered(resolved.quantityOrdered());
+			item.setQuantityReceived(BigDecimal.ZERO);
+			item.setQuantityRejected(BigDecimal.ZERO);
+			item.setUnitCost(resolved.unitCost());
+			item.setLineTotal(resolved.lineTotal());
+			item.setPackLabel(resolved.packLabel());
+			item.setQuantityInPacks(resolved.quantityInPacks());
+			item.setCostPerPack(resolved.costPerPack());
+			item.setUnitsPerPack(resolved.unitsPerPack());
+			item.setUomConversion(resolved.uomConversion());
+			order.getItems().add(item);
+			subtotal = subtotal.add(item.getLineTotal());
+		}
+
+		order.setSubtotal(subtotal);
+		order.setUpdatedAt(LocalDateTime.now());
 		return toResponse(purchaseOrderRepository.save(order));
 	}
 
@@ -157,35 +209,50 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 	public PurchaseOrderResponseDTO receive(Long id, PurchaseReceiptRequestDTO request) {
 		PurchaseOrder order = loadOrder(id);
 		if (order.getStatus() != PurchaseOrderStatus.ORDERED
-				&& order.getStatus() != PurchaseOrderStatus.DRAFT
 				&& order.getStatus() != PurchaseOrderStatus.PARTIALLY_RECEIVED) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Purchase order cannot be received in current status");
 		}
 
 		User actor = currentUser();
+		if (order.getReceivedBy() != null && !order.getReceivedBy().getId().equals(actor.getId())
+				&& !SecurityUtils.hasAuthority("PURCHASE_MANAGE")) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "La orden está asignada a otro responsable de recepción");
+		}
+		if (order.getReceivedBy() == null) {
+			order.setReceivedBy(actor);
+		}
 		PurchaseOrder saved = purchaseOrderRepository.save(order);
 		Map<Long, PurchaseReceiptItemRequestDTO> receivedByItemId = request == null
 				? Map.of()
 				: request.getItems().stream()
 						.collect(Collectors.toMap(PurchaseReceiptItemRequestDTO::getItemId, Function.identity()));
-		boolean receivedAny = false;
+		boolean progressAny = false;
+		List<PurchaseReceiptImpactDTO> receiptImpacts = new java.util.ArrayList<>();
 
 		for (PurchaseOrderItem item : saved.getItems()) {
 			PurchaseReceiptItemRequestDTO lineRequest = request == null
 					? null
 					: receivedByItemId.get(item.getId());
 			BigDecimal quantityToReceive = request == null
-					? item.getQuantityOrdered().subtract(item.getQuantityReceived())
+					? pendingQuantity(item)
 					: receivedByItemId.containsKey(item.getId())
-							? receivedByItemId.get(item.getId()).getQuantityReceived()
+							? nz(receivedByItemId.get(item.getId()).getQuantityReceived())
 							: BigDecimal.ZERO;
-			if (quantityToReceive.compareTo(BigDecimal.ZERO) <= 0) {
+			BigDecimal quantityToReject = (lineRequest != null && lineRequest.getQuantityRejected() != null)
+					? lineRequest.getQuantityRejected()
+					: BigDecimal.ZERO;
+
+			if (quantityToReceive.compareTo(BigDecimal.ZERO) < 0 || quantityToReject.compareTo(BigDecimal.ZERO) < 0) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantities cannot be negative");
+			}
+			if (quantityToReceive.compareTo(BigDecimal.ZERO) <= 0 && quantityToReject.compareTo(BigDecimal.ZERO) <= 0) {
 				continue;
 			}
 
-			BigDecimal remaining = item.getQuantityOrdered().subtract(item.getQuantityReceived());
-			if (quantityToReceive.compareTo(remaining) > 0) {
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Received quantity exceeds pending quantity");
+			BigDecimal remaining = pendingQuantity(item);
+			if (quantityToReceive.add(quantityToReject).compareTo(remaining) > 0) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+						"Received + rejected quantity exceeds pending quantity");
 			}
 
 			if (lineRequest != null && lineRequest.getBatchCode() != null && !lineRequest.getBatchCode().isBlank()
@@ -194,24 +261,39 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 						"Expiration date is required when batch code is provided");
 			}
 
-			Product product = productRepository.findByIdForUpdate(item.getProduct().getId())
-					.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
-			product.setPurchasePrice(item.getUnitCost());
+			if (quantityToReceive.compareTo(BigDecimal.ZERO) > 0) {
+				Product product = productRepository.findByIdForUpdate(item.getProduct().getId())
+						.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+				ProductCostUpdateResult costUpdate = productCostService.applyPurchaseReceiptCost(
+						product,
+						saved.getSupplier(),
+						quantityToReceive,
+						item.getUnitCost(),
+						saved.getId(),
+						item.getId(),
+						actor);
 
-			ProductBatch batch = createBatchFromReceipt(lineRequest, item, product, quantityToReceive, saved.getOrderNumber());
-			String receiptNotes = buildReceiptNotes(lineRequest, saved.getOrderNumber());
-			inventoryLedger.record(actor, product, batch, InventoryMovementType.ENTRY, quantityToReceive,
-					(byte) 1, saved.getId(), item.getId(), "PURCHASE_ORDER", item.getUnitCost(), receiptNotes);
-			item.setQuantityReceived(item.getQuantityReceived().add(quantityToReceive));
-			receivedAny = true;
+				ProductBatch batch = createBatchFromReceipt(lineRequest, item, product, quantityToReceive, saved.getOrderNumber());
+				String receiptNotes = buildReceiptNotes(lineRequest, saved.getOrderNumber());
+				inventoryLedger.record(actor, product, batch, InventoryMovementType.ENTRY, quantityToReceive,
+						(byte) 1, saved.getId(), item.getId(), "PURCHASE_ORDER", item.getUnitCost(), receiptNotes);
+				receiptImpacts.add(toReceiptImpact(costUpdate));
+				item.setQuantityReceived(nz(item.getQuantityReceived()).add(quantityToReceive));
+			}
+
+			if (quantityToReject.compareTo(BigDecimal.ZERO) > 0) {
+				item.setQuantityRejected(nz(item.getQuantityRejected()).add(quantityToReject));
+			}
+			progressAny = true;
 		}
 
-		if (!receivedAny) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No quantities were received");
+		if (!progressAny) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No quantities were received or rejected");
 		}
 
 		boolean fullyReceived = saved.getItems().stream()
-				.allMatch(item -> item.getQuantityReceived().compareTo(item.getQuantityOrdered()) >= 0);
+				.allMatch(item -> nz(item.getQuantityReceived()).add(nz(item.getQuantityRejected()))
+						.compareTo(item.getQuantityOrdered()) >= 0);
 
 		saved.setStatus(fullyReceived ? PurchaseOrderStatus.RECEIVED : PurchaseOrderStatus.PARTIALLY_RECEIVED);
 		if (fullyReceived) {
@@ -223,15 +305,50 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 			saved.setNotes(currentNotes + request.getNotes());
 		}
 		saved.setUpdatedAt(LocalDateTime.now());
-		return toResponse(purchaseOrderRepository.save(saved));
+		return toResponse(purchaseOrderRepository.save(saved), true, receiptImpacts);
+	}
+
+	@Override
+	@Transactional
+	public PurchaseOrderResponseDTO closeIncomplete(Long id) {
+		PurchaseOrder order = loadOrder(id);
+		if (order.getStatus() != PurchaseOrderStatus.PARTIALLY_RECEIVED
+				&& order.getStatus() != PurchaseOrderStatus.ORDERED) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Only ordered or partially received purchase orders can be closed incomplete");
+		}
+		boolean hasProgress = order.getItems().stream().anyMatch(item ->
+				nz(item.getQuantityReceived()).compareTo(BigDecimal.ZERO) > 0
+						|| nz(item.getQuantityRejected()).compareTo(BigDecimal.ZERO) > 0);
+		if (!hasProgress && order.getStatus() == PurchaseOrderStatus.ORDERED) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Use cancel for ordered purchase orders without reception progress");
+		}
+		order.setStatus(PurchaseOrderStatus.CLOSED);
+		order.setUpdatedAt(LocalDateTime.now());
+		String note = "Cerrada incompleta";
+		order.setNotes(order.getNotes() == null || order.getNotes().isBlank()
+				? note
+				: order.getNotes() + " | " + note);
+		return toResponse(purchaseOrderRepository.save(order));
+	}
+
+	private BigDecimal pendingQuantity(PurchaseOrderItem item) {
+		return item.getQuantityOrdered()
+				.subtract(nz(item.getQuantityReceived()))
+				.subtract(nz(item.getQuantityRejected()));
+	}
+
+	private BigDecimal nz(BigDecimal value) {
+		return value == null ? BigDecimal.ZERO : value;
 	}
 
 	@Override
 	@Transactional
 	public PurchaseOrderResponseDTO claim(Long id) {
 		PurchaseOrder order = loadOrder(id);
-		if (order.getStatus() != PurchaseOrderStatus.ORDERED) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo las órdenes en estado ORDERED pueden ser tomadas");
+		if (order.getStatus() != PurchaseOrderStatus.ORDERED && order.getStatus() != PurchaseOrderStatus.PARTIALLY_RECEIVED) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo las órdenes ordenadas o parciales pueden ser tomadas");
 		}
 
 		User currentUser = currentUser();
@@ -249,8 +366,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 	@Transactional
 	public PurchaseOrderResponseDTO assign(Long id, Long userId) {
 		PurchaseOrder order = loadOrder(id);
-		if (order.getStatus() != PurchaseOrderStatus.ORDERED) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo las órdenes en estado ORDERED pueden ser asignadas");
+		if (order.getStatus() != PurchaseOrderStatus.ORDERED && order.getStatus() != PurchaseOrderStatus.PARTIALLY_RECEIVED) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo las órdenes ordenadas o parciales pueden ser asignadas");
 		}
 
 		User assignee = userRepository.findById(userId)
@@ -266,7 +383,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 	public PurchaseOrderResponseDTO cancel(Long id) {
 		PurchaseOrder order = loadOrder(id);
 		if (order.getStatus() == PurchaseOrderStatus.RECEIVED
-				|| order.getStatus() == PurchaseOrderStatus.PARTIALLY_RECEIVED) {
+				|| order.getStatus() == PurchaseOrderStatus.PARTIALLY_RECEIVED
+				|| order.getStatus() == PurchaseOrderStatus.CLOSED) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Received purchase orders cannot be cancelled");
 		}
 		order.setStatus(PurchaseOrderStatus.CANCELLED);
@@ -295,10 +413,15 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 	}
 
 	private PurchaseOrderResponseDTO toResponse(PurchaseOrder order) {
-		return toResponse(order, true);
+		return toResponse(order, true, List.of());
 	}
 
 	private PurchaseOrderResponseDTO toResponse(PurchaseOrder order, boolean includeItems) {
+		return toResponse(order, includeItems, List.of());
+	}
+
+	private PurchaseOrderResponseDTO toResponse(PurchaseOrder order, boolean includeItems,
+			List<PurchaseReceiptImpactDTO> receiptImpacts) {
 		return new PurchaseOrderResponseDTO(
 				order.getId(),
 				order.getOrderNumber(),
@@ -315,22 +438,47 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 				order.getUpdatedAt(),
 				includeItems
 						? order.getItems().stream().map(this::toItemResponse).toList()
-						: List.of());
+						: List.of(),
+				receiptImpacts != null ? receiptImpacts : List.of());
 	}
 
 	private PurchaseOrderItemResponseDTO toItemResponse(PurchaseOrderItem item) {
 		Product product = item.getProduct();
 		return new PurchaseOrderItemResponseDTO(
 				item.getId(),
-				new ProductSummaryDTO(product.getId(), product.getBarcode(), product.getName()),
+				new ProductSummaryDTO(
+						product.getId(),
+						product.getBarcode(),
+						product.getName(),
+						product.getRequiresBatch(),
+						product.getRequiresExpiration()),
 				item.getPackLabel(),
 				item.getQuantityInPacks(),
 				item.getCostPerPack(),
 				item.getUnitsPerPack(),
 				item.getQuantityOrdered(),
 				item.getQuantityReceived(),
+				nz(item.getQuantityRejected()),
 				item.getUnitCost(),
 				item.getLineTotal());
+	}
+
+	private PurchaseReceiptImpactDTO toReceiptImpact(ProductCostUpdateResult result) {
+		return new PurchaseReceiptImpactDTO(
+				result.productId(),
+				result.productName(),
+				result.previousLastCost(),
+				result.newLastCost(),
+				result.previousAverageCost(),
+				result.newAverageCost(),
+				result.quantityBefore(),
+				result.quantityReceived(),
+				result.quantityAfter(),
+				result.salePrice(),
+				result.currentMarginPercent(),
+				result.minMarginPercent(),
+				result.suggestedSalePrice(),
+				result.marginAlert());
 	}
 
 	private ResolvedPurchaseLine resolveLine(PurchaseOrderItemRequestDTO line, Product product) {
@@ -367,7 +515,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 			BigDecimal lineTotal = quantityInPacks.multiply(costPerPack);
 
 			
-			ProductUomConversion equivalent = productUomConversionRepository.findAll().stream()
+			ProductUomConversion equivalent = productUomConversionRepository.findByProduct_IdOrderByLabelAsc(product.getId()).stream()
 					.filter(c -> c.getProduct().getId().equals(product.getId()) && c.getLabel().equalsIgnoreCase(pack.getLabel()))
 					.findFirst()
 					.orElse(null);

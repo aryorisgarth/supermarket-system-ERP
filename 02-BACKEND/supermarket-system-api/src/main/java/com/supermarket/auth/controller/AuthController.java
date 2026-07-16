@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.supermarket.auth.dto.ChangePasswordRequestDTO;
 import com.supermarket.auth.dto.LoginRequestDTO;
@@ -137,6 +138,14 @@ public class AuthController {
 
 		Optional<Role> roleOpt = roleRepository.findByNameIgnoreCase(roleName);
 		List<String> permissions = new ArrayList<>();
+		List<String> directPermissions = new ArrayList<>();
+		Optional<User> localUser = email != null ? userRepository.findByEmailWithRole(email) : Optional.empty();
+		localUser.ifPresent(user -> {
+			if (!Boolean.TRUE.equals(user.getIsActive())) {
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User account is inactive");
+			}
+		});
+		Long localUserId = localUser.map(User::getId).orElse(null);
 		if (roleOpt.isPresent()) {
 			Role role = roleOpt.get();
 			if ("ADMIN_INGENIERO".equalsIgnoreCase(role.getName())) {
@@ -145,8 +154,22 @@ public class AuthController {
 				permissions.addAll(permissionRepository.findCodesByRoleId(role.getId()));
 			}
 		}
+		localUser.ifPresent(user -> {
+			if (user.getDirectPermissions() != null) {
+				user.getDirectPermissions().stream()
+						.map(permission -> permission.getCode())
+						.sorted()
+						.forEach(code -> {
+							directPermissions.add(code);
+							if (!permissions.contains(code)) {
+								permissions.add(code);
+							}
+						});
+			}
+		});
 
 		Map<String, Object> response = new HashMap<>();
+		response.put("id", localUserId);
 		response.put("fullName", fullName != null ? fullName : "Usuario Keycloak");
 		response.put("username", username != null ? username : email);
 		response.put("email", email);
@@ -156,6 +179,7 @@ public class AuthController {
 		response.put("role", roleMap);
 
 		response.put("permissions", permissions);
+		response.put("directPermissions", directPermissions);
 
 		return ResponseEntity.ok(response);
 	}
@@ -169,7 +193,7 @@ public class AuthController {
 			addRoles(roles, clientAccess);
 		}
 
-		return List.of("ADMIN_INGENIERO", "ADMINISTRADOR", "SUPERVISOR", "CAJERO", "CONSULTOR").stream()
+		return List.of("ADMIN_INGENIERO", "ADMINISTRADOR", "SUPERVISOR", "BODEGUERO", "CAJERO", "CONSULTOR").stream()
 				.filter(roles::contains)
 				.findFirst()
 				.orElse(null);

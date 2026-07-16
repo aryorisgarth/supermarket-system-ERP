@@ -29,6 +29,8 @@ import PurchaseFormModal from '../components/purchase/PurchaseFormModal';
 import PurchaseFilters from '../components/purchase/PurchaseFilters';
 import { usePurchaseForm } from '../hooks/usePurchaseForm';
 import { usePurchaseList } from '../hooks/usePurchaseList';
+import WarehouseFlowStrip from '../components/warehouse/WarehouseFlowStrip';
+import { ensurePurchaseReceiveAccess } from '../utils/ensurePurchaseReceiveAccess';
 
 const money = formatMoney;
 
@@ -80,14 +82,24 @@ const Purchases = () => {
     showModal,
     setShowModal,
     openCreate,
+    openEdit,
     formProps
   } = usePurchaseForm({ onSuccess: refreshAll });
 
   const canManagePurchases = AuthService.hasPermission('PURCHASE_MANAGE');
   const canReceivePurchases = AuthService.hasPermission('PURCHASE_RECEIVE');
 
-  const openWarehouseReceive = (order) => {
-    navigate(`/bodega/recepcion/${order.id}`, { state: { from: 'purchases' } });
+  const openWarehouseReceive = async (order) => {
+    try {
+      await ensurePurchaseReceiveAccess(order);
+      navigate(`/bodega/recepcion/${order.id}`, { state: { from: 'purchases' } });
+    } catch (error) {
+      Swal.fire({
+        icon: error?.code === 'CLAIMED_BY_OTHER' ? 'warning' : 'error',
+        title: error?.code === 'CLAIMED_BY_OTHER' ? 'Recepción ocupada' : 'No se pudo abrir la recepción',
+        text: getApiErrorMessage(error, error?.message || 'Intenta desde Bodega → Recepción.'),
+      });
+    }
   };
 
   return (
@@ -95,7 +107,7 @@ const Purchases = () => {
       <PageHeader
         eyebrow="Compras"
         title="Ordenes de compra"
-        description="Ordenes al proveedor por empaque (caja/cajilla). La recepcion fisica con escaneo se hace en bodega."
+        description="Aquí se crea y ordena la OC. El botón «Ir a recepción» toma la tarea y abre el escaneo físico en bodega."
         actions={
           canManagePurchases && (
             <div className="flex gap-2">
@@ -120,6 +132,8 @@ const Purchases = () => {
         meta={<Badge tone="blue" className="px-3">{totalItems} ordenes</Badge>}
       />
 
+      <WarehouseFlowStrip activeStep={1} />
+
       <PurchaseMetrics summary={summary} allOrdersCount={allOrders.length} money={money} />
 
       <PurchaseFilters
@@ -142,6 +156,7 @@ const Purchases = () => {
         onSelectOrder={handleSelectOrder}
         onRunAction={runAction}
         onReceiveOrder={openWarehouseReceive}
+        onEditOrder={openEdit}
       />
 
       <BackendPagination

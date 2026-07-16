@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 public record ProductLocationResponseDTO(
 	Long id,
 	Long productId,
+	String productName,
+	String productBarcode,
 	Long locationId,
 	String warehouse,
 	String aisle,

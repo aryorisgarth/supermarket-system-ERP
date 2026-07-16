@@ -71,6 +71,21 @@ const ReportService = {
     const response = await api.get('/reports/inventory-flow-volume', { params: { from, to } });
     return response.data;
   },
+
+  getKardex: async (productId, from, to) => {
+    const response = await api.get('/reports/inventory/kardex', {
+      params: { productId, from, to },
+    });
+    return response.data;
+  },
+
+  downloadKardexExcel: async (productId, from, to) => {
+    const response = await api.get('/reports/inventory/kardex/excel', {
+      params: { productId, from, to },
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 
 export default ReportService;

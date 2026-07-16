@@ -1,15 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { X, Lock, CheckCircle2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, Lock } from 'lucide-react';
 import UserService from '../../services/UserService';
 import Swal from 'sweetalert2';
+import ResponsiveModal from '../ui/ResponsiveModal';
+import AuthService from '../../services/AuthService';
+import {
+  formatPermissionDescription,
+  formatPermissionLabel,
+  formatRoleLabel,
+} from '../../utils/securityLabels';
 
-const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
+const ROLE_FALLBACKS = [
+  { name: 'CAJERO' },
+  { name: 'BODEGUERO' },
+  { name: 'SUPERVISOR' },
+  { name: 'ADMINISTRADOR' },
+  { name: 'ADMIN_INGENIERO' },
+  { name: 'CONSULTOR' },
+];
+
+const UserFormModal = ({
+  isOpen,
+  onClose,
+  isEditMode,
+  user,
+  onSuccess,
+  roles = [],
+  permissions = [],
+}) => {
   const [fullName, setFullName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [roleName, setRoleName] = useState('CAJERO');
   const [isActive, setIsActive] = useState(true);
+  const [directPermissions, setDirectPermissions] = useState([]);
+
+  const availableRoles = roles.length > 0 ? roles : ROLE_FALLBACKS;
+  const selectedRole = useMemo(
+    () => availableRoles.find((role) => role.name === roleName) || null,
+    [availableRoles, roleName]
+  );
+  const inheritedPermissions = useMemo(
+    () => [...new Set(selectedRole?.permissions || [])].sort(),
+    [selectedRole]
+  );
+  const directPermissionOptions = useMemo(
+    () =>
+      permissions
+        .filter((permission) => !inheritedPermissions.includes(permission.code))
+        .sort((a, b) => formatPermissionLabel(a.code).localeCompare(formatPermissionLabel(b.code))),
+    [permissions, inheritedPermissions]
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -26,6 +68,7 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
         setPassword('');
         setRoleName(user.role?.name || 'CAJERO');
         setIsActive(user.isActive !== false);
+        setDirectPermissions([...(user.directPermissions || [])]);
       } else {
         setFullName('');
         setLastName('');
@@ -33,11 +76,26 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
         setPassword('');
         setRoleName('CAJERO');
         setIsActive(true);
+        setDirectPermissions([]);
       }
     }
   }, [isOpen, isEditMode, user]);
 
   if (!isOpen) return null;
+
+  const handleRoleChange = (nextRoleName) => {
+    setRoleName(nextRoleName);
+    const nextInherited = availableRoles.find((role) => role.name === nextRoleName)?.permissions || [];
+    setDirectPermissions((current) => current.filter((code) => !nextInherited.includes(code)));
+  };
+
+  const toggleDirectPermission = (permissionCode) => {
+    setDirectPermissions((current) =>
+      current.includes(permissionCode)
+        ? current.filter((code) => code !== permissionCode)
+        : [...current, permissionCode].sort()
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,7 +110,7 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
       return;
     }
 
-    if ((!isEditMode || password.trim() !== '') && !/^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) {
+    if (isEditMode && password.trim() !== '' && !/^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) {
       Swal.fire('Contraseña débil', 'La contraseña debe tener al menos 8 caracteres, incluir al menos 1 letra mayúscula y 1 número.', 'warning');
       return;
     }
@@ -63,12 +121,16 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
       email,
       roleName,
       isActive,
+      directPermissions: directPermissions.filter((code) => !inheritedPermissions.includes(code)),
       ...(isEditMode && password.trim() !== '' ? { password } : {})
     };
 
     try {
       if (isEditMode && user) {
         await UserService.update(user.id, userData);
+        if (String(AuthService.getCurrentUser()?.id) === String(user.id)) {
+          await AuthService.refreshCurrentUser();
+        }
         Swal.fire({
           icon: 'success',
           title: '¡Usuario actualizado!',
@@ -96,19 +158,19 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-md w-full overflow-hidden">
-        <div className="bg-gradient-to-r from-primary to-primary-dark p-6 text-white flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-bold uppercase tracking-tight">{isEditMode ? 'Modificar Empleado' : 'Nuevo Personal'}</h3>
-            <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mt-1">Configuración de acceso SuperNova</p>
-          </div>
-          <button onClick={onClose} className="hover:bg-white/20 p-2 rounded-xl transition-all cursor-pointer">
-            <X size={20} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-[var(--app-surface)]">
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={Lock}
+      title={isEditMode ? 'Modificar Empleado' : 'Nuevo Personal'}
+      subtitle="Configuración de acceso SuperNova"
+      initialSize="lg"
+      sizeOptions={['md', 'lg', 'xl']}
+      bodyClassName="bg-[var(--app-surface)]"
+      headerClassName="bg-gradient-to-r from-primary to-primary-dark text-white"
+    >
+      <form onSubmit={handleSubmit} className="flex h-full flex-col">
+        <div className="flex-1 space-y-5 overflow-y-auto p-6">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-widest">Nombres</label>
             <input
@@ -179,15 +241,80 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
             <select
               className="w-full px-4 py-3 bg-[var(--app-bg-subtle)] border border-[var(--app-border)] rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold text-xs text-[var(--app-text)] cursor-pointer"
               value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
+              onChange={(e) => handleRoleChange(e.target.value)}
             >
-              <option value="CAJERO">CAJERO OPERATIVO</option>
-              <option value="BODEGUERO">BODEGUERO (INVENTARIO)</option>
-              <option value="SUPERVISOR">SUPERVISOR DE TIENDA</option>
-              <option value="ADMINISTRADOR">ADMINISTRADOR GENERAL</option>
-              <option value="ADMIN_INGENIERO">INGENIERO DE SISTEMAS</option>
-              <option value="CONSULTOR">CONSULTOR EXTERNO</option>
+              {availableRoles.map((role) => (
+                <option key={role.name} value={role.name}>
+                  {formatRoleLabel(role.name).toUpperCase()}
+                </option>
+              ))}
             </select>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
+                Permisos heredados del rol
+              </p>
+              <p className="mt-1 text-xs font-semibold text-[var(--app-text-soft)]">
+                Estos permisos vienen del rol principal y no se quitan desde este formulario.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {inheritedPermissions.length > 0 ? inheritedPermissions.map((permissionCode) => (
+                  <span
+                    key={permissionCode}
+                    className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600"
+                  >
+                    {formatPermissionLabel(permissionCode)}
+                  </span>
+                )) : (
+                  <p className="text-xs font-semibold text-[var(--app-text-muted)]">Este rol no tiene permisos heredados configurados.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
+                Permisos adicionales por usuario
+              </p>
+              <p className="mt-1 text-xs font-semibold text-[var(--app-text-soft)]">
+                Sirven para dar privilegios extra sin cambiar el rol base. Son solo aditivos.
+              </p>
+              <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
+                {directPermissionOptions.length > 0 ? directPermissionOptions.map((permission) => {
+                  const checked = directPermissions.includes(permission.code);
+                  return (
+                    <label
+                      key={permission.code}
+                      className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3 transition ${
+                        checked
+                          ? 'border-[var(--app-primary)] bg-[var(--app-primary-soft)]/20'
+                          : 'border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40 hover:border-[var(--app-primary)]/40'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleDirectPermission(permission.code)}
+                        className="mt-1 h-4 w-4 rounded text-[var(--app-primary)] cursor-pointer"
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-xs font-bold uppercase tracking-wide text-[var(--app-text)]">
+                          {formatPermissionLabel(permission.code)}
+                        </span>
+                        <span className="mt-1 block text-xs font-semibold text-[var(--app-text-muted)]">
+                          {formatPermissionDescription(permission.code, permission.description)}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                }) : (
+                  <p className="text-xs font-semibold text-[var(--app-text-muted)]">
+                    No hay permisos extra disponibles para este rol.
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 py-1">
@@ -202,25 +329,25 @@ const UserFormModal = ({ isOpen, onClose, isEditMode, user, onSuccess }) => {
               Habilitar acceso inmediato al sistema
             </label>
           </div>
+        </div>
 
-          <div className="flex gap-3 pt-4 border-t border-[var(--app-border)]">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-3.5 border border-[var(--app-border)] text-[var(--app-text-soft)] font-bold text-[10px] uppercase tracking-widest rounded-2xl hover:bg-[var(--app-bg-subtle)] transition-all"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="flex-1 py-3.5 bg-primary text-white font-bold text-[10px] uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <CheckCircle2 size={16} strokeWidth={2.5} /> {isEditMode ? 'Actualizar' : 'Registrar'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="flex gap-3 border-t border-[var(--app-border)] bg-[var(--app-bg-subtle)]/50 p-6">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-3.5 border border-[var(--app-border)] text-[var(--app-text-soft)] font-bold text-[10px] uppercase tracking-widest rounded-2xl hover:bg-[var(--app-bg-subtle)] transition-all"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="flex-1 py-3.5 bg-primary text-white font-bold text-[10px] uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <CheckCircle2 size={16} strokeWidth={2.5} /> {isEditMode ? 'Actualizar' : 'Registrar'}
+          </button>
+        </div>
+      </form>
+    </ResponsiveModal>
   );
 };
 

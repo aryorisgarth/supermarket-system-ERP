@@ -14,6 +14,7 @@ export const LazyUsers = lazy(() => import('../pages/Users'));
 export const LazyReports = lazy(() => import('../pages/Reports'));
 export const LazyMaintenance = lazy(() => import('../pages/Maintenance'));
 export const LazyAuditLogs = lazy(() => import('../pages/AuditLogs'));
+export const LazyHistory = lazy(() => import('../pages/History'));
 export const LazySettings = lazy(() => import('../pages/Settings'));
 export const LazyAdminBillingControl = lazy(() => import('../pages/AdminBillingControl'));
 export const LazyFinance = lazy(() => import('../pages/Finance'));
@@ -28,6 +29,7 @@ export const LazyWarehouseReceiveOrder = lazy(() => import('../pages/warehouse/W
 export const LazyWarehouseProducts = lazy(() => import('../pages/warehouse/WarehouseProducts'));
 export const LazyWarehouseCountList = lazy(() => import('../pages/warehouse/WarehouseCountList'));
 export const LazyWarehouseCountSession = lazy(() => import('../pages/warehouse/WarehouseCountSession'));
+export const LazyWarehouseTransfer = lazy(() => import('../pages/warehouse/WarehouseTransfer'));
 export const LazyNotificationRules = lazy(() => import('../pages/NotificationRules'));
 export const LazyBrands = lazy(() => import('../pages/Brands'));
 export const LazyLocations = lazy(() => import('../pages/Locations'));

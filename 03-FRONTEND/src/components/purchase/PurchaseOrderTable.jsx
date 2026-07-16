@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, Send, Truck, Ban } from 'lucide-react';
+import { Loader2, Send, Truck, Ban, Pencil, CheckCircle2 } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import {
@@ -18,6 +18,7 @@ const PurchaseOrderTable = ({
   onSelectOrder,
   onRunAction,
   onReceiveOrder,
+  onEditOrder,
 }) => {
   return (
     <div className="bg-[var(--app-surface)] rounded-xl border border-[var(--app-border)] shadow-sm overflow-hidden animate-fade-in">
@@ -69,7 +70,18 @@ const PurchaseOrderTable = ({
                     {order.createdAt ? new Date(order.createdAt).toLocaleString() : '-'}
                   </td>
                   <td className="p-3.5 pr-6">
-                    <div className="flex justify-center gap-1.5">
+                    <div className="flex justify-center gap-1.5 flex-wrap">
+                      {canManagePurchases && order.status === 'DRAFT' && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          icon={Pencil}
+                          onClick={() => onEditOrder?.(order)}
+                        >
+                          Editar
+                        </Button>
+                      )}
                       {canManagePurchases && order.status === 'DRAFT' && (
                         <Button
                           type="button"
@@ -89,10 +101,21 @@ const PurchaseOrderTable = ({
                           icon={Truck}
                           onClick={() => onReceiveOrder(order)}
                         >
-                          Recibir
+                          Ir a recepción
                         </Button>
                       )}
-                      {canManagePurchases && !['RECEIVED', 'PARTIALLY_RECEIVED', 'CANCELLED'].includes(order.status) && (
+                      {canManagePurchases && order.status === 'PARTIALLY_RECEIVED' && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          icon={CheckCircle2}
+                          onClick={() => onRunAction(order, 'close', 'Cerrar OC incompleta')}
+                        >
+                          Cerrar
+                        </Button>
+                      )}
+                      {canManagePurchases && !['RECEIVED', 'PARTIALLY_RECEIVED', 'CLOSED', 'CANCELLED'].includes(order.status) && (
                         <Button
                           type="button"
                           size="sm"

@@ -21,11 +21,30 @@ const Login = () => {
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		if (AuthService.isAuthenticated()) {
-			AuthService.refreshCurrentUser().then((user) => {
-				const roleName = user?.role?.name || AuthService.getCurrentUser()?.role?.name;
-				navigate(getDefaultPathForRole(roleName), { replace: true });
+		const authNotice = AuthService.consumeAuthNotice?.();
+		if (authNotice) {
+			Swal.fire({
+				icon: 'warning',
+				title: 'Acceso no disponible',
+				text: authNotice,
+				confirmButtonColor: '#0F4C81',
 			});
+		}
+	}, []);
+
+	useEffect(() => {
+		if (AuthService.isAuthenticated()) {
+			AuthService.refreshCurrentUser()
+				.then((user) => {
+					const roleName = user?.role?.name || AuthService.getCurrentUser()?.role?.name;
+					navigate(getDefaultPathForRole(roleName), { replace: true });
+				})
+				.catch((error) => {
+					if (error?.message === 'ACCOUNT_INACTIVE') {
+						return;
+					}
+					console.warn('No se pudo restaurar la sesión desde login:', error);
+				});
 		}
 	}, [navigate]);
 
@@ -61,6 +80,16 @@ const Login = () => {
 				window.location.href = '/';
 			}, 1800);
 		} catch (error) {
+			if (error?.message === 'ACCOUNT_INACTIVE') {
+				const authNotice = AuthService.consumeAuthNotice?.() || 'Tu cuenta está desactivada. Contacta al administrador.';
+				Swal.fire({
+					icon: 'warning',
+					title: 'Usuario desactivado',
+					text: authNotice,
+					confirmButtonColor: '#0F4C81',
+				});
+				return;
+			}
 			if (error.message === 'PASSWORD_CHANGE_REQUIRED') {
 				Swal.fire({
 					icon: 'info',

@@ -21,9 +21,9 @@ const SupplierFormModal = ({
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
       <div className="bg-white dark:bg-surface-dark rounded-3xl shadow-2xl border border-border-light dark:border-border-light-dark max-w-md w-full overflow-hidden">
         
-        <div className="bg-gradient-to-r from-primary to-primary-dark p-5 text-white flex justify-between items-center shadow-sm">
+        <div className="bg-gradient-to-r from-violet-700 to-indigo-700 p-5 text-white flex justify-between items-center shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/10 rounded-lg text-white">
+            <div className="p-2.5 bg-white/15 backdrop-blur-sm rounded-xl text-white shadow-inner">
               <Building2 size={18} />
             </div>
             <div>
@@ -36,10 +36,12 @@ const SupplierFormModal = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all cursor-pointer"
+            className="text-white bg-red-500 hover:bg-red-600 p-1.5 rounded-lg transition-all shadow-sm cursor-pointer"
+            title="Cerrar"
           >
-            <X size={16} />
+            <X size={18} strokeWidth={2.5} />
           </button>
         </div>
 
@@ -121,7 +123,7 @@ const SupplierFormModal = ({
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-lg font-bold text-xs transition-all shadow-enterprise hover:shadow-enterprise-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-indigo-600 hover:to-violet-600 text-white rounded-xl font-bold text-xs transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer border-0"
             >
               {saving ? (
                 <>

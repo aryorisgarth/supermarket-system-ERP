@@ -89,8 +89,8 @@ const WarehouseProducts = () => {
               <p className="font-bold text-[var(--app-primary)]">{lastScanned.currentStock}</p>
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Precio compra</p>
-              <p className="font-bold">{money(lastScanned.purchasePrice)}</p>
+              <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Costo promedio</p>
+              <p className="font-bold">{money(lastScanned.averageCost ?? lastScanned.purchasePrice)}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Categoría</p>

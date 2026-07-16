@@ -73,7 +73,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	@Query("SELECT p FROM Product p WHERE p.id = :id")
 	Optional<Product> findByIdForUpdate(@Param("id") Long id);
 
-	@Query(value = "SELECT COALESCE(SUM(p.current_stock * p.purchase_price), 0) FROM products p WHERE p.is_active = TRUE", nativeQuery = true)
+	@Query(value = "SELECT COALESCE(SUM(p.current_stock * COALESCE(p.average_cost, p.last_purchase_cost, p.purchase_price)), 0) FROM products p WHERE p.is_active = TRUE", nativeQuery = true)
 	BigDecimal sumInventoryPurchaseValue();
 
 	@Query(value = "SELECT COUNT(*) FROM products p WHERE p.current_stock <= p.minimum_stock AND p.is_active = TRUE", nativeQuery = true)
