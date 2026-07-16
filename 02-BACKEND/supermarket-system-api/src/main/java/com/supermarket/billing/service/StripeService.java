@@ -1,11 +1,13 @@
 package com.supermarket.billing.service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Locale;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -21,61 +23,91 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StripeService {
 
-    @Value("${app.billing.payment-gateway.stripe.secret-key}")
-    private String stripeSecretKey;
+	/**
+	 * Monedas frecuentes en el POS que Stripe no acepta como presentment (ej. NIO).
+	 * En esos casos cobramos en USD de prueba (mismo monto numérico).
+	 */
+	private static final Set<String> STRIPE_UNSUPPORTED = Set.of("nio");
 
-    @PostConstruct
-    public void init() {
-        Stripe.apiKey = stripeSecretKey;
-        log.info("Stripe apiKey initialized.");
-    }
+	@Value("${app.billing.payment-gateway.stripe.secret-key}")
+	private String stripeSecretKey;
 
-    public PaymentIntentResponseDTO createPaymentIntent(PaymentIntentRequestDTO request) throws StripeException {
-        // Stripe expects the amount in the smallest currency unit (e.g., cents)
-        // If currency is GTQ (Quetzales) or USD, we multiply by 100
-        long amount = request.getAmount().multiply(new BigDecimal("100")).longValue();
+	@PostConstruct
+	public void init() {
+		if (isConfiguredForLiveVerification()) {
+			Stripe.apiKey = stripeSecretKey;
+			log.info("Stripe apiKey initialized (live/test key present).");
+		} else {
+			log.warn("Stripe secret key missing or dummy — card payments will fail until STRIPE_SECRET_KEY is set.");
+		}
+	}
 
-        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
-                .setAmount(amount)
-                .setCurrency(request.getCurrency().toLowerCase())
-                .setAutomaticPaymentMethods(
-                    PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                        .setEnabled(true)
-                        .build()
-                )
-                .build();
+	public PaymentIntentResponseDTO createPaymentIntent(PaymentIntentRequestDTO request) throws StripeException {
+		if (!isConfiguredForLiveVerification()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"Stripe no está configurado. Define STRIPE_SECRET_KEY (sk_test_...) en el entorno.");
+		}
+		if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El monto del pago debe ser positivo");
+		}
 
-        PaymentIntent paymentIntent = PaymentIntent.create(params);
+		Stripe.apiKey = stripeSecretKey;
 
-        return new PaymentIntentResponseDTO(paymentIntent.getClientSecret(), paymentIntent.getId());
-    }
+		String requested = (request.getCurrency() == null || request.getCurrency().isBlank())
+				? "usd"
+				: request.getCurrency().trim().toLowerCase(Locale.ROOT);
+		String stripeCurrency = STRIPE_UNSUPPORTED.contains(requested) ? "usd" : requested;
+		if (!stripeCurrency.equals(requested)) {
+			log.info("Stripe presentment: {} no soportada → cobrando en usd (monto numérico igual).", requested);
+		}
 
-    /**
-     * Verifica en Stripe que el PaymentIntent exista, esté succeeded y coincida el monto.
-     */
-    public PaymentIntent verifySucceededPaymentIntent(String paymentIntentId, BigDecimal expectedAmount)
-            throws StripeException {
-        if (paymentIntentId == null || paymentIntentId.isBlank()) {
-            throw new IllegalArgumentException("PaymentIntent id is required");
-        }
-        if (stripeSecretKey == null || stripeSecretKey.isBlank() || stripeSecretKey.contains("dummy")) {
-            throw new IllegalStateException("Stripe secret key is not configured for live verification");
-        }
-        Stripe.apiKey = stripeSecretKey;
-        PaymentIntent intent = PaymentIntent.retrieve(paymentIntentId.trim());
-        if (!"succeeded".equalsIgnoreCase(intent.getStatus())) {
-            throw new IllegalStateException("PaymentIntent status is " + intent.getStatus() + ", expected succeeded");
-        }
-        if (expectedAmount != null) {
-            long expectedCents = expectedAmount.multiply(new BigDecimal("100")).longValue();
-            if (intent.getAmount() == null || intent.getAmount() != expectedCents) {
-                throw new IllegalStateException("PaymentIntent amount mismatch");
-            }
-        }
-        return intent;
-    }
+		long amountCents = request.getAmount().multiply(new BigDecimal("100")).longValue();
+		if (amountCents < 50) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"Monto demasiado bajo para Stripe (mínimo ~0.50 en la moneda de cobro)");
+		}
 
-    public boolean isConfiguredForLiveVerification() {
-        return stripeSecretKey != null && !stripeSecretKey.isBlank() && !stripeSecretKey.contains("dummy");
-    }
+		PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+				.setAmount(amountCents)
+				.setCurrency(stripeCurrency)
+				.putMetadata("local_currency", requested)
+				.putMetadata("local_amount", request.getAmount().toPlainString())
+				.setAutomaticPaymentMethods(
+						PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+								.setEnabled(true)
+								.build())
+				.build();
+
+		PaymentIntent paymentIntent = PaymentIntent.create(params);
+		return new PaymentIntentResponseDTO(paymentIntent.getClientSecret(), paymentIntent.getId());
+	}
+
+	public PaymentIntent verifySucceededPaymentIntent(String paymentIntentId, BigDecimal expectedAmount)
+			throws StripeException {
+		if (paymentIntentId == null || paymentIntentId.isBlank()) {
+			throw new IllegalArgumentException("PaymentIntent id is required");
+		}
+		if (!isConfiguredForLiveVerification()) {
+			throw new IllegalStateException("Stripe secret key is not configured for live verification");
+		}
+		Stripe.apiKey = stripeSecretKey;
+		PaymentIntent intent = PaymentIntent.retrieve(paymentIntentId.trim());
+		if (!"succeeded".equalsIgnoreCase(intent.getStatus())) {
+			throw new IllegalStateException("PaymentIntent status is " + intent.getStatus() + ", expected succeeded");
+		}
+		if (expectedAmount != null) {
+			long expectedCents = expectedAmount.multiply(new BigDecimal("100")).longValue();
+			if (intent.getAmount() == null || intent.getAmount() != expectedCents) {
+				throw new IllegalStateException("PaymentIntent amount mismatch");
+			}
+		}
+		return intent;
+	}
+
+	public boolean isConfiguredForLiveVerification() {
+		return stripeSecretKey != null
+				&& !stripeSecretKey.isBlank()
+				&& !stripeSecretKey.contains("dummy")
+				&& stripeSecretKey.startsWith("sk_");
+	}
 }

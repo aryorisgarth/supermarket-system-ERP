@@ -201,43 +201,41 @@ const Finance = () => {
     <div className="animate-fade-in space-y-6">
       <PageHeader
         eyebrow="Finanzas"
-        title="Módulo Financiero"
-        description="Gestiona métodos de cobro, conciliaciones y el flujo de caja corporativo de forma inteligente."
+        title="Módulo financiero"
+        description="Cuentas bancarias, pasarelas (Stripe) y conciliación de cobros con tarjeta del POS."
         actions={
-          <Button icon={Plus} onClick={openCreate} className="bg-blue-600 hover:bg-blue-700 text-white border-none shadow-lg shadow-blue-500/30">
-            Nueva Cuenta Bancaria
+          <Button icon={Plus} onClick={openCreate}>
+            Nueva cuenta bancaria
           </Button>
         }
         meta={
           <div className="flex items-center gap-2">
-            <Badge tone="blue" className="px-3 shadow-sm">{accounts.length} Cuentas</Badge>
-            <Badge tone="blue" className="px-3 shadow-sm">
-              {summary.overdueCount > 0 ? `${summary.overdueCount} Atrasos` : 'Al día'}
+            <Badge tone="blue" className="px-3">{accounts.length} cuentas</Badge>
+            <Badge tone={summary.overdueCount > 0 ? 'amber' : 'blue'} className="px-3">
+              {summary.overdueCount > 0 ? `${summary.overdueCount} atrasos` : 'Al día'}
             </Badge>
           </div>
         }
       />
 
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-px">
+      <div className="ui-tabs-scroll flex gap-1 border-b border-[var(--app-border)]">
         {[
           { id: 'overview', label: 'Resumen', icon: Landmark },
-          { id: 'accounts', label: 'Cuentas y Bancos', icon: Building2 },
-          { id: 'conciliation', label: 'Conciliación', icon: ArrowRightLeft },
+          { id: 'accounts', label: 'Cuentas', icon: Building2 },
+          { id: 'conciliation', label: 'Conciliación (Stripe)', icon: ArrowRightLeft },
         ].map((tab) => (
           <button
             key={tab.id}
+            type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold transition-all relative outline-none ${
+            className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-5 py-3.5 text-xs font-bold uppercase tracking-widest transition-all border-b-2 ${
               activeTab === tab.id
-                ? 'text-blue-600 dark:text-blue-400'
-                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                ? 'border-[var(--app-primary)] text-[var(--app-primary)] bg-[var(--app-primary-soft)]/30'
+                : 'border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-bg-subtle)]'
             }`}
           >
-            <tab.icon size={16} className={activeTab === tab.id ? 'animate-pulse' : ''} />
+            <tab.icon size={14} strokeWidth={2.5} />
             {tab.label}
-            {activeTab === tab.id && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full" />
-            )}
           </button>
         ))}
       </div>
@@ -256,42 +254,29 @@ const Finance = () => {
               <FinanceMetrics summary={summary} transactionsCount={transactions.length} money={money} />
               
               {summary.overdueCount > 0 && (
-                <div className="rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4 text-sm font-bold text-slate-800 dark:text-slate-200 shadow-sm flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-black">
-                      !
-                    </span>
-                    Hay {summary.overdueCount} transacción(es) pendientes con fecha esperada de liquidación vencida.
-                  </div>
-                  <Button variant="secondary" size="sm" onClick={() => setActiveTab('conciliation')}>Ver Detalles</Button>
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-900">
+                  <span>Hay {summary.overdueCount} transacción(es) pendientes con fecha de liquidación vencida.</span>
+                  <Button variant="secondary" size="sm" onClick={() => setActiveTab('conciliation')}>
+                    Ver conciliación
+                  </Button>
                 </div>
               )}
 
               <PaymentGatewaysPanel />
-              
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card className="shadow-md border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300">
-                  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-500/5 blur-2xl group-hover:bg-blue-500/10 transition-all duration-500" />
-                  <CardHeader icon={Landmark} title="Capital Flotante" description="Neto pendiente de depósito a tus cuentas bancarias." />
-                  <div className="p-5 mt-2">
-                    <p className="text-4xl font-black text-blue-600 dark:text-blue-400 tabular-nums tracking-tight">
-                      {money(summary.pendingNet)}
-                    </p>
-                    <p className="mt-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                      De {summary.pending.length} transacciones procesadas
-                    </p>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card className="border border-[var(--app-border)] bg-[var(--app-surface)]">
+                  <CardHeader icon={Landmark} title="Capital flotante" description="Neto pendiente de depósito (incluye Stripe)." />
+                  <div className="mt-2 p-2">
+                    <p className="text-3xl font-bold tabular-nums text-[var(--app-primary)]">{money(summary.pendingNet)}</p>
+                    <p className="mt-1 text-xs text-[var(--app-text-muted)]">{summary.pending.length} transacciones</p>
                   </div>
                 </Card>
-                <Card className="shadow-md border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300">
-                  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-500/5 blur-2xl group-hover:bg-blue-500/10 transition-all duration-500" />
-                  <CardHeader icon={Wallet} title="Capital Liquidado" description="Dinero que ya ingresó exitosamente a tus cuentas." />
-                  <div className="p-5 mt-2">
-                    <p className="text-4xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
-                      {money(summary.settledNet)}
-                    </p>
-                    <p className="mt-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                      Bruto procesado: {money(summary.gross)}
-                    </p>
+                <Card className="border border-[var(--app-border)] bg-[var(--app-surface)]">
+                  <CardHeader icon={Wallet} title="Capital liquidado" description="Ya ingresó a tus cuentas bancarias." />
+                  <div className="mt-2 p-2">
+                    <p className="text-3xl font-bold tabular-nums text-[var(--app-text)]">{money(summary.settledNet)}</p>
+                    <p className="mt-1 text-xs text-[var(--app-text-muted)]">Bruto: {money(summary.gross)}</p>
                   </div>
                 </Card>
               </div>
@@ -312,11 +297,15 @@ const Finance = () => {
                     saving={saving}
                   />
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center bg-slate-50/50 dark:bg-slate-800/20">
-                    <Building2 className="mx-auto mb-4 text-slate-400 opacity-50" size={48} />
-                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Cuentas Bancarias</h3>
-                    <p className="text-xs text-slate-500 mb-6">Vincula las cuentas empresariales a donde las pasarelas o clientes envían fondos.</p>
-                    <Button onClick={openCreate} className="mx-auto" icon={Plus}>Vincular Nueva Cuenta</Button>
+                  <div className="rounded-xl border border-dashed border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40 p-8 text-center">
+                    <Building2 className="mx-auto mb-4 text-[var(--app-text-muted)] opacity-50" size={40} />
+                    <h3 className="mb-2 text-sm font-bold text-[var(--app-text)]">Cuentas bancarias</h3>
+                    <p className="mb-6 text-xs text-[var(--app-text-muted)]">
+                      Vincula las cuentas donde liquidas los cobros de Stripe y otras pasarelas.
+                    </p>
+                    <Button onClick={openCreate} className="mx-auto" icon={Plus}>
+                      Vincular cuenta
+                    </Button>
                   </div>
                 )}
               </div>

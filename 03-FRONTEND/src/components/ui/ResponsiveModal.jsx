@@ -23,6 +23,7 @@ const ResponsiveModal = ({
   title,
   subtitle,
   children,
+  headerActions = null,
   initialSize = 'lg',
   sizeOptions = ['md', 'lg', 'xl', 'full'],
   bodyClassName = '',
@@ -72,6 +73,7 @@ const ResponsiveModal = ({
           </div>
 
           <div className="flex items-center gap-1.5">
+            {headerActions}
             <span className="hidden md:inline-flex rounded-lg bg-white/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white/80">
               {SIZE_LABELS[size] || 'Ajustable'}
             </span>

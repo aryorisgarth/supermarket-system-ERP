@@ -99,6 +99,7 @@ services:
         VITE_KEYCLOAK_URL: /auth
         VITE_KEYCLOAK_REALM: supermarket
         VITE_KEYCLOAK_CLIENT_ID: supermarket-app
+        VITE_STRIPE_PUBLIC_KEY: ${VITE_STRIPE_PUBLIC_KEY:-}
     container_name: supermarket-frontend
     depends_on:
       api:

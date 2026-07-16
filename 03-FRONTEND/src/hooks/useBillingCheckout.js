@@ -168,15 +168,29 @@ export const useBillingCheckout = ({
     const customerName = selectedCustomer ? selectedCustomer.fullName : 'Consumidor Final';
 
     if (!isMultiPayment && paymentMethod === 'CARD') {
+      const publishableKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || '';
+      if (!publishableKey || publishableKey.includes('...') || !publishableKey.startsWith('pk_')) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Stripe no configurado',
+          html: 'Falta <code>VITE_STRIPE_PUBLIC_KEY</code> (pk_test_...) en el frontend.<br/>Sin esa clave el cobro con tarjeta falla con "Invalid request".',
+        });
+        return;
+      }
       try {
         Swal.fire({ title: 'Preparando pago...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         const { clientSecret } = await PaymentService.createPaymentIntent(total);
         setStripeClientSecret(clientSecret);
         Swal.close();
         setShowStripeModal(true);
-        return; // Detenemos aquí, el checkout real sucederá tras el pago exitoso en el modal
+        return;
       } catch (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo inicializar el pago con Stripe' });
+        const msg =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          'No se pudo inicializar el pago con Stripe';
+        Swal.fire({ icon: 'error', title: 'Error', text: msg });
         return;
       }
     }

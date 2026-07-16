@@ -1,10 +1,12 @@
 package com.supermarket.billing.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.stripe.exception.StripeException;
 import com.supermarket.billing.dto.PaymentIntentRequestDTO;
@@ -34,9 +36,12 @@ public class PaymentController {
         try {
             PaymentIntentResponseDTO response = stripeService.createPaymentIntent(request);
             return ResponseEntity.ok(response);
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (StripeException e) {
-            log.error("Error al crear PaymentIntent con Stripe", e);
-            throw new RuntimeException("Error al procesar el pago con la pasarela: " + e.getMessage());
+            log.error("Error al crear PaymentIntent con Stripe: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Stripe rechazó el pago: " + e.getMessage());
         }
     }
 }

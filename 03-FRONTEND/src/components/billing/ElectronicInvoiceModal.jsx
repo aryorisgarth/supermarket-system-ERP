@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  X,
   Printer,
   ShieldCheck,
   FileText,
@@ -10,9 +9,19 @@ import {
   User,
 } from 'lucide-react';
 import { formatMoney } from '../../utils/formatMoney';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const METHOD_LABEL = { CASH: 'Efectivo', CARD: 'Tarjeta', TRANSFER: 'Transferencia', COUPON: 'Cupón', MIXED: 'Mixto' };
-const fmt = (d) => d ? new Date(d).toLocaleString('es-NI', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+const fmt = (d) =>
+  d
+    ? new Date(d).toLocaleString('es-NI', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '—';
 
 const ElectronicInvoiceModal = ({ invoice, onClose }) => {
   const printRef = useRef();
@@ -43,102 +52,108 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
   const isTest = invoice.environment === 'TEST';
 
   return (
-    <div className="fixed inset-0 bg-[var(--app-bg)]/60 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-8 animate-fade-in overflow-y-auto">
-      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-3xl w-full overflow-hidden">
-        
-        <div className="bg-gradient-to-r from-slate-800 to-slate-700 p-5 text-white flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/10 rounded-lg"><FileText size={18} /></div>
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider">Factura Electrónica</h3>
-              <p className="text-white/70 text-[10px] font-medium">Documento tributario simulado — DGI Nicaragua</p>
-            </div>
+    <ResponsiveModal
+      isOpen
+      onClose={onClose}
+      icon={FileText}
+      title="Factura Electrónica"
+      subtitle="Documento tributario simulado — DGI Nicaragua"
+      initialSize="lg"
+      sizeOptions={['md', 'lg', 'xl', 'full']}
+      headerClassName="bg-[var(--app-primary)] text-white"
+      headerActions={
+        <button
+          type="button"
+          onClick={handlePrint}
+          className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/20"
+        >
+          <Printer size={13} /> Imprimir
+        </button>
+      }
+      bodyClassName="p-4 md:p-6"
+    >
+      <div ref={printRef} className="space-y-5 text-[var(--app-text)]">
+        {isTest && (
+          <div className="flex items-center gap-2 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-2.5 text-xs font-bold text-amber-800">
+            <AlertTriangle size={14} /> DOCUMENTO EN AMBIENTE DE PRUEBA — No tiene validez fiscal
           </div>
-          <div className="flex gap-2">
-            <button onClick={handlePrint} className="flex items-center gap-1.5 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer">
-              <Printer size={13} /> Imprimir
-            </button>
-            <button onClick={onClose} className="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all cursor-pointer"><X size={16} /></button>
+        )}
+
+        <div className="grid grid-cols-1 gap-4 border-b border-[var(--app-border)] pb-4 md:grid-cols-3">
+          <div className="space-y-1 md:col-span-2">
+            <div className="mb-2 flex items-center gap-2">
+              <ShieldCheck size={16} className="text-emerald-500" />
+              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+                Autorizada
+              </span>
+            </div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--app-text-muted)]">N° Autorización</p>
+            <p className="font-bold tracking-wider text-[var(--app-text)]">{invoice.authorizationNumber}</p>
+            <p className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--app-text-muted)]">CUF</p>
+            <p className="font-mono text-xs font-bold text-[var(--app-primary)] break-all">{invoice.cuf}</p>
+            <p className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--app-text-muted)]">Código de Control</p>
+            <p className="font-mono text-xs font-bold text-[var(--app-text)]">{invoice.controlCode}</p>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-2">
+            <QRCodeSVG value={invoice.verificationUrl} size={100} bgColor="#ffffff" fgColor="#1e293b" level="M" />
+            <p className="text-center text-[9px] text-[var(--app-text-muted)]">Escanee para verificar</p>
           </div>
         </div>
 
-        
-        <div ref={printRef} className="p-6 space-y-5 text-[var(--app-text)]">
-
-          
-          {isTest && (
-            <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 text-amber-700 px-4 py-2.5 rounded-xl text-xs font-bold">
-              <AlertTriangle size={14} /> DOCUMENTO EN AMBIENTE DE PRUEBA — No tiene validez fiscal
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-1 rounded-xl bg-[var(--app-bg-subtle)]/50 p-4">
+            <div className="mb-2 flex items-center gap-1.5 text-[var(--app-text-muted)]">
+              <Building2 size={13} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Emisor</span>
             </div>
+            <p className="text-sm font-bold">{invoice.emitter?.name}</p>
+            <p className="text-xs text-[var(--app-text-soft)]">RUC: {invoice.emitter?.ruc}</p>
+            <p className="text-xs text-[var(--app-text-soft)]">{invoice.emitter?.address}</p>
+            <p className="text-xs text-[var(--app-text-soft)]">Tel: {invoice.emitter?.phone}</p>
+          </div>
+          <div className="space-y-1 rounded-xl bg-[var(--app-bg-subtle)]/50 p-4">
+            <div className="mb-2 flex items-center gap-1.5 text-[var(--app-text-muted)]">
+              <User size={13} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Receptor</span>
+            </div>
+            <p className="text-sm font-bold">{invoice.receiver?.name}</p>
+            <p className="text-xs text-[var(--app-text-soft)]">ID: {invoice.receiver?.identification}</p>
+            <p className="text-xs text-[var(--app-text-soft)]">{invoice.receiver?.address}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
+          {[['N° Factura', invoice.invoiceNumber], ['Fecha Emisión', fmt(invoice.issuedAt)], ['Tipo', 'FACTURA']].map(
+            ([l, v]) => (
+              <div key={l} className="rounded-xl bg-[var(--app-bg-subtle)]/50 p-3">
+                <p className="mb-1 text-[9px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">{l}</p>
+                <p className="text-xs font-bold break-all">{v}</p>
+              </div>
+            )
           )}
+        </div>
 
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-[var(--app-border)]">
-            <div className="md:col-span-2 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck size={16} className="text-emerald-500" />
-                <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Autorizada</span>
-              </div>
-              <p className="text-[10px] text-[var(--app-text-muted)] font-semibold uppercase tracking-wider">N° Autorización</p>
-              <p className="font-bold text-[var(--app-text)] tracking-wider">{invoice.authorizationNumber}</p>
-              <p className="text-[10px] text-[var(--app-text-muted)] font-semibold uppercase tracking-wider mt-2">CUF</p>
-              <p className="font-mono text-xs font-bold text-primary">{invoice.cuf}</p>
-              <p className="text-[10px] text-[var(--app-text-muted)] font-semibold uppercase tracking-wider mt-2">Código de Control</p>
-              <p className="font-mono text-xs font-bold text-[var(--app-text)]">{invoice.controlCode}</p>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-2">
-              <QRCodeSVG value={invoice.verificationUrl} size={100} bgColor="#ffffff" fgColor="#1e293b" level="M" />
-              <p className="text-[9px] text-[var(--app-text-muted)] text-center">Escanee para verificar</p>
-            </div>
-          </div>
-
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-[var(--app-bg-subtle)]/50 rounded-xl p-4 space-y-1">
-              <div className="flex items-center gap-1.5 mb-2 text-[var(--app-text-muted)]"><Building2 size={13} /><span className="text-[10px] font-bold uppercase tracking-wider">Emisor</span></div>
-              <p className="font-bold text-sm">{invoice.emitter?.name}</p>
-              <p className="text-xs text-[var(--app-text-soft)]">RUC: {invoice.emitter?.ruc}</p>
-              <p className="text-xs text-[var(--app-text-soft)]">{invoice.emitter?.address}</p>
-              <p className="text-xs text-[var(--app-text-soft)]">Tel: {invoice.emitter?.phone}</p>
-              <p className="text-xs text-[var(--app-text-soft)]">{invoice.emitter?.economicActivity}</p>
-            </div>
-            <div className="bg-[var(--app-bg-subtle)]/50 rounded-xl p-4 space-y-1">
-              <div className="flex items-center gap-1.5 mb-2 text-[var(--app-text-muted)]"><User size={13} /><span className="text-[10px] font-bold uppercase tracking-wider">Receptor</span></div>
-              <p className="font-bold text-sm">{invoice.receiver?.name}</p>
-              <p className="text-xs text-[var(--app-text-soft)]">ID: {invoice.receiver?.identification}</p>
-              <p className="text-xs text-[var(--app-text-soft)]">{invoice.receiver?.address}</p>
-              <p className="text-xs text-[var(--app-text-soft)]">Tel: {invoice.receiver?.phone}</p>
-            </div>
-          </div>
-
-          
-          <div className="grid grid-cols-3 gap-3 text-center">
-            {[['N° Factura', invoice.invoiceNumber], ['Fecha Emisión', fmt(invoice.issuedAt)], ['Tipo', 'FACTURA']].map(([l, v]) => (
-              <div key={l} className="bg-[var(--app-bg-subtle)]/50 rounded-xl p-3">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] mb-1">{l}</p>
-                <p className="font-bold text-xs">{v}</p>
-              </div>
-            ))}
-          </div>
-
-          
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)] text-[10px] uppercase tracking-wider">
-                  <th className="text-left px-3 py-2 font-bold">#</th>
-                  <th className="text-left px-3 py-2 font-bold">Descripción</th>
-                  <th className="text-center px-3 py-2 font-bold">Cant.</th>
-                  <th className="text-right px-3 py-2 font-bold">P. Unit.</th>
-                  <th className="text-right px-3 py-2 font-bold">Dto.</th>
-                  <th className="text-right px-3 py-2 font-bold">IVA%</th>
-                  <th className="text-right px-3 py-2 font-bold">IVA</th>
-                  <th className="text-right px-3 py-2 font-bold">Total</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-[var(--app-bg-subtle)] text-[10px] uppercase tracking-wider text-[var(--app-text-muted)]">
+                <th className="px-3 py-2 text-left font-bold">#</th>
+                <th className="px-3 py-2 text-left font-bold">Descripción</th>
+                <th className="px-3 py-2 text-center font-bold">Cant.</th>
+                <th className="px-3 py-2 text-right font-bold">P. Unit.</th>
+                <th className="px-3 py-2 text-right font-bold">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(invoice.lines || []).length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-3 py-8 text-center text-[var(--app-text-muted)]">
+                    Sin detalle de líneas (venta sin ítems cargados).
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {(invoice.lines || []).map(l => (
-                  <tr key={l.lineNumber} className="border-t border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]/30">
+              ) : (
+                (invoice.lines || []).map((l) => (
+                  <tr key={l.lineNumber} className="border-t border-[var(--app-border)]">
                     <td className="px-3 py-2 text-[var(--app-text-muted)]">{l.lineNumber}</td>
                     <td className="px-3 py-2">
                       <p className="font-semibold text-[var(--app-text)]">{l.productName}</p>
@@ -146,57 +161,44 @@ const ElectronicInvoiceModal = ({ invoice, onClose }) => {
                     </td>
                     <td className="px-3 py-2 text-center font-bold">{l.quantity}</td>
                     <td className="px-3 py-2 text-right">{formatMoney(l.unitPrice)}</td>
-                    <td className="px-3 py-2 text-right text-rose-600">{l.discount > 0 ? `-${formatMoney(l.discount)}` : '—'}</td>
-                    <td className="px-3 py-2 text-right">{Number(l.taxRate)}%</td>
-                    <td className="px-3 py-2 text-right">{formatMoney(l.taxAmount)}</td>
                     <td className="px-3 py-2 text-right font-bold">{formatMoney(l.lineTotal)}</td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          
-          <div className="flex justify-end">
-            <div className="min-w-[240px] space-y-1.5">
-              {[
-                ['Subtotal', invoice.subtotal],
-                ['Descuentos', invoice.totalDiscount, true],
-                ['IVA', invoice.totalTax],
-              ].map(([label, value, neg]) => (
-                <div key={label} className="flex justify-between text-xs">
-                  <span className="text-[var(--app-text-soft)]">{label}</span>
-                  <span className={`font-semibold ${neg ? 'text-rose-500' : ''}`}>{neg && value > 0 ? '-' : ''}{formatMoney(value)}</span>
-                </div>
-              ))}
-              <div className="border-t border-[var(--app-border)] pt-2 flex justify-between">
-                <span className="font-bold text-sm">TOTAL</span>
-                <span className="font-bold text-lg text-primary">{formatMoney(invoice.totalAmount)}</span>
-              </div>
-            </div>
-          </div>
-
-          
-          {invoice.payments?.length > 0 && (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] mb-2">Forma de Pago</p>
-              <div className="flex flex-wrap gap-2">
-                {invoice.payments.map((p, i) => (
-                  <span key={i} className="bg-[var(--app-bg-subtle)] border border-[var(--app-border)] text-[var(--app-text)] text-xs px-3 py-1 rounded-full font-semibold">
-                    {METHOD_LABEL[p.method] || p.method}: {formatMoney(p.amount)} {p.currency}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          
-          <p className="text-center text-[10px] text-[var(--app-text-muted)] border-t border-[var(--app-border)] pt-4">
-            Verifique este documento en {invoice.verificationUrl} · Generado por Sistema de Gestión Supermercado
-          </p>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
+
+        <div className="flex justify-end">
+          <div className="min-w-[200px] space-y-1.5">
+            <div className="flex justify-between text-xs">
+              <span className="text-[var(--app-text-soft)]">Subtotal</span>
+              <span className="font-semibold">{formatMoney(invoice.subtotal)}</span>
+            </div>
+            <div className="flex justify-between border-t border-[var(--app-border)] pt-2">
+              <span className="text-sm font-bold">TOTAL</span>
+              <span className="text-lg font-bold text-[var(--app-primary)]">{formatMoney(invoice.totalAmount)}</span>
+            </div>
+          </div>
+        </div>
+
+        {invoice.payments?.length > 0 && (
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Forma de Pago</p>
+            <div className="flex flex-wrap gap-2">
+              {invoice.payments.map((p, i) => (
+                <span
+                  key={i}
+                  className="rounded-full border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-3 py-1 text-xs font-semibold text-[var(--app-text)]"
+                >
+                  {METHOD_LABEL[p.method] || p.method}: {formatMoney(p.amount)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </ResponsiveModal>
   );
 };
 
