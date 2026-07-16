@@ -6,7 +6,7 @@
     <springProperty scope="context" name="springAppName" source="spring.application.name" defaultValue="supermarket-api"/>
     <springProperty scope="context" name="lokiUrl" source="loki.url" defaultValue="http://localhost:3100/loki/api/v1/push"/>
 
-    <!-- Loki solo en perfiles que no sean prod (en EC2 no hay Loki) -->
+    <!-- Perfil distinto de prod: consola + Loki -->
     <springProfile name="!prod">
         <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
             <http>
@@ -22,14 +22,19 @@
                 <sortByTime>true</sortByTime>
             </format>
         </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="LOKI" />
+        </root>
     </springProfile>
 
-    <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <springProfile name="!prod">
-            <appender-ref ref="LOKI" />
-        </springProfile>
-    </root>
+    <!-- Prod EC2: solo consola (sin Loki) -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
 
     <logger name="org.apache.catalina.startup.DigesterFactory" level="ERROR"/>
     <logger name="org.apache.catalina.util.LifecycleBase" level="ERROR"/>
