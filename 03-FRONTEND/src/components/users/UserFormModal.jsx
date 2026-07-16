@@ -9,6 +9,7 @@ import {
   formatPermissionLabel,
   formatRoleLabel,
 } from '../../utils/securityLabels';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const ROLE_FALLBACKS = [
   { name: 'CAJERO' },
@@ -152,8 +153,11 @@ const UserFormModal = ({
       onClose();
     } catch (error) {
       console.error(error);
-      const serverMsg = error.response?.data?.message || 'Verifica los datos de entrada o si el correo ya existe en el sistema.';
-      Swal.fire('Error al guardar', serverMsg, 'error');
+      Swal.fire(
+        'Error al guardar',
+        getApiErrorMessage(error, 'Verifica los datos de entrada o si el correo ya existe en el sistema.'),
+        'error'
+      );
     }
   };
 

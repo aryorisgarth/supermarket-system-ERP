@@ -37,7 +37,7 @@ services:
       KEYCLOAK_REALM: supermarket
       KEYCLOAK_ADMIN_CLIENT_ID: supermarket-admin-client
       KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
-      KEYCLOAK_ADMIN_SERVER_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN_SERVER_URL: http://keycloak:8080/auth
       DB_URL: jdbc:mysql://host.docker.internal:3306/supermarket_system?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Managua
       DB_USERNAME: root
       DB_PASSWORD: ${DB_PASSWORD}

@@ -37,6 +37,10 @@ public class KeycloakAdminService {
 		this.restClient = RestClient.builder().build();
 	}
 
+	private String adminBase() {
+		return serverUrl + "/admin/realms/" + realm;
+	}
+
 	public String getAccessToken() {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("grant_type", "client_credentials");
@@ -64,26 +68,24 @@ public class KeycloakAdminService {
 	public String createUser(String email, String firstName, String lastName, String tempPassword) {
 		String token = getAccessToken();
 
-		Map<String, Object> credentials = Map.of(
-				"type", "password",
-				"value", tempPassword,
-				"temporary", true
-		);
+		Map<String, Object> credentials = new java.util.LinkedHashMap<>();
+		credentials.put("type", "password");
+		credentials.put("value", tempPassword);
+		credentials.put("temporary", true);
 
-		Map<String, Object> userBody = Map.of(
-				"username", email,
-				"email", email,
-				"enabled", true,
-				"emailVerified", true,
-				"firstName", firstName,
-				"lastName", lastName,
-				"credentials", List.of(credentials),
-				"requiredActions", List.of("UPDATE_PASSWORD")
-		);
+		Map<String, Object> userBody = new java.util.LinkedHashMap<>();
+		userBody.put("username", email);
+		userBody.put("email", email);
+		userBody.put("enabled", true);
+		userBody.put("emailVerified", true);
+		userBody.put("firstName", firstName != null ? firstName : "");
+		userBody.put("lastName", lastName != null ? lastName : "");
+		userBody.put("credentials", List.of(credentials));
+		userBody.put("requiredActions", List.of("UPDATE_PASSWORD"));
 
 		try {
 			ResponseEntity<Void> response = restClient.post()
-					.uri(serverUrl + "/admin/realms/" + realm + "/users")
+					.uri(adminBase() + "/users")
 					.header("Authorization", "Bearer " + token)
 					.contentType(MediaType.APPLICATION_JSON)
 					.body(userBody)
@@ -91,21 +93,28 @@ public class KeycloakAdminService {
 					.toBodilessEntity();
 
 			if (response.getStatusCode().value() == 409) {
-				throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists in Keycloak");
+				throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario ya existe en Keycloak");
 			}
 
 			URI location = response.getHeaders().getLocation();
 			if (location == null) {
-				throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Keycloak did not return location header for new user");
+				throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+						"Keycloak no devolvió el ID del usuario creado");
 			}
 
 			String path = location.getPath();
 			return path.substring(path.lastIndexOf('/') + 1);
 		} catch (HttpClientErrorException e) {
 			if (e.getStatusCode() == HttpStatus.CONFLICT) {
-				throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists in Keycloak");
+				throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario ya existe en Keycloak");
 			}
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create user in Keycloak: " + e.getResponseBodyAsString(), e);
+			if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+						"Keycloak rechazó la creación (403). El client admin no tiene roles manage-users. "
+								+ "Ejecuta scripts/keycloak-grant-admin-roles.sh");
+			}
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo crear el usuario en Keycloak: " + e.getStatusCode() + " " + e.getResponseBodyAsString(), e);
 		}
 	}
 
@@ -114,7 +123,7 @@ public class KeycloakAdminService {
 
 		try {
 			Map<String, Object> roleRepresentation = restClient.get()
-					.uri(serverUrl + "/admin/realms/" + realm + "/roles/" + roleName)
+					.uri(adminBase() + "/roles/" + roleName)
 					.header("Authorization", "Bearer " + token)
 					.retrieve()
 					.body(Map.class);
@@ -124,14 +133,19 @@ public class KeycloakAdminService {
 			}
 
 			restClient.post()
-					.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/realm")
+					.uri(adminBase() + "/users/" + userId + "/role-mappings/realm")
 					.header("Authorization", "Bearer " + token)
 					.contentType(MediaType.APPLICATION_JSON)
 					.body(List.of(roleRepresentation))
 					.retrieve()
 					.toBodilessEntity();
 		} catch (HttpClientErrorException e) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to assign role in Keycloak: " + e.getResponseBodyAsString(), e);
+			if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+						"Keycloak rechazó asignar rol (403). Ejecuta scripts/keycloak-grant-admin-roles.sh");
+			}
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo asignar el rol en Keycloak: " + e.getResponseBodyAsString(), e);
 		}
 	}
 
@@ -140,14 +154,14 @@ public class KeycloakAdminService {
 
 		try {
 			List<Map<String, Object>> currentRoles = restClient.get()
-					.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/realm")
+					.uri(adminBase() + "/users/" + userId + "/role-mappings/realm")
 					.header("Authorization", "Bearer " + token)
 					.retrieve()
 					.body(List.class);
 
 			if (currentRoles != null && !currentRoles.isEmpty()) {
 				restClient.method(org.springframework.http.HttpMethod.DELETE)
-						.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/realm")
+						.uri(adminBase() + "/users/" + userId + "/role-mappings/realm")
 						.header("Authorization", "Bearer " + token)
 						.contentType(MediaType.APPLICATION_JSON)
 						.body(currentRoles)
@@ -157,7 +171,8 @@ public class KeycloakAdminService {
 
 			assignRole(userId, newRoleName);
 		} catch (HttpClientErrorException e) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update role in Keycloak: " + e.getResponseBodyAsString(), e);
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo actualizar el rol en Keycloak: " + e.getResponseBodyAsString(), e);
 		}
 	}
 
@@ -166,7 +181,7 @@ public class KeycloakAdminService {
 
 		try {
 			String uri = UriComponentsBuilder
-					.fromHttpUrl(serverUrl + "/admin/realms/" + realm + "/users")
+					.fromHttpUrl(adminBase() + "/users")
 					.queryParam("username", email)
 					.queryParam("exact", true)
 					.build()
@@ -189,7 +204,12 @@ public class KeycloakAdminService {
 					.findFirst()
 					.or(() -> java.util.Optional.ofNullable((String) users.get(0).get("id")));
 		} catch (HttpClientErrorException e) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to query user by email in Keycloak: " + e.getResponseBodyAsString(), e);
+			if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+						"Keycloak rechazó consultar usuarios (403). Ejecuta scripts/keycloak-grant-admin-roles.sh");
+			}
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo consultar el usuario en Keycloak: " + e.getResponseBodyAsString(), e);
 		}
 	}
 
@@ -198,7 +218,7 @@ public class KeycloakAdminService {
 
 		try {
 			Map<String, Object> userRepresentation = restClient.get()
-					.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId)
+					.uri(adminBase() + "/users/" + userId)
 					.header("Authorization", "Bearer " + token)
 					.retrieve()
 					.body(Map.class);
@@ -211,15 +231,15 @@ public class KeycloakAdminService {
 			userRepresentation.put("enabled", enabled);
 
 			restClient.put()
-					.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId)
+					.uri(adminBase() + "/users/" + userId)
 					.header("Authorization", "Bearer " + token)
 					.contentType(MediaType.APPLICATION_JSON)
 					.body(userRepresentation)
 					.retrieve()
 					.toBodilessEntity();
 		} catch (HttpClientErrorException e) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to update user status in Keycloak: " + e.getResponseBodyAsString(), e);
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo actualizar el estado en Keycloak: " + e.getResponseBodyAsString(), e);
 		}
 	}
 
@@ -228,14 +248,15 @@ public class KeycloakAdminService {
 
 		try {
 			restClient.put()
-					.uri(serverUrl + "/admin/realms/" + realm + "/users/" + userId + "/execute-actions-email?client_id=" + appClientId + "&redirect_uri=" + redirectUri)
+					.uri(adminBase() + "/users/" + userId + "/execute-actions-email?client_id=" + appClientId + "&redirect_uri=" + redirectUri)
 					.header("Authorization", "Bearer " + token)
 					.contentType(MediaType.APPLICATION_JSON)
 					.body(List.of("UPDATE_PASSWORD"))
 					.retrieve()
 					.toBodilessEntity();
 		} catch (HttpClientErrorException e) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to trigger execute-actions-email in Keycloak: " + e.getResponseBodyAsString(), e);
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo enviar el correo de restablecimiento desde Keycloak: " + e.getResponseBodyAsString(), e);
 		}
 	}
 }
