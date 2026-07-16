@@ -110,7 +110,7 @@ public class AuthService {
 		userRepository.save(user);
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public void forgotPassword(String email) {
 		String normalizedEmail = email == null ? "" : email.trim();
 		if (normalizedEmail.isEmpty()) {
@@ -118,7 +118,8 @@ public class AuthService {
 		}
 
 		User user = userRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
-		if (user == null || Boolean.FALSE.equals(user.getIsActive())) {
+		if (user == null) {
+			log.info("Recuperación ignorada: correo no registrado");
 			return;
 		}
 
@@ -128,20 +129,37 @@ public class AuthService {
 			return;
 		}
 
-		try {
-			// Enlace oficial de Keycloak (UPDATE_PASSWORD) → abre pantalla de Keycloak
-			keycloakAdminService.triggerPasswordReset(keycloakId, clientId, redirectUri);
-		} catch (Exception keycloakMailError) {
-			log.warn("Keycloak execute-actions-email falló ({}). Fallback: contraseña temporal por SMTP.",
-					keycloakMailError.getMessage());
-			String tempPassword = PasswordGenerator.generate(12);
-			keycloakAdminService.resetPassword(keycloakId, tempPassword, true);
-			boolean sent = emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), tempPassword);
-			if (!sent) {
-				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
-						"No se pudo enviar el correo de recuperación. Configura SMTP en Keycloak o SPRING_MAIL_*.");
-			}
+		// Reactivar si estaba deshabilitado (evita "éxito" silencioso sin correo)
+		if (!Boolean.TRUE.equals(user.getIsActive())) {
+			user.setIsActive(true);
+			userRepository.save(user);
+			log.info("Usuario {} reactivado durante recuperación de contraseña", user.getEmail());
 		}
+		try {
+			keycloakAdminService.updateUserEnabled(keycloakId, true);
+		} catch (Exception e) {
+			log.warn("No se pudo reactivar en Keycloak a {}: {}", user.getEmail(), e.getMessage());
+		}
+
+		String tempPassword = PasswordGenerator.generate(12);
+		keycloakAdminService.resetPassword(keycloakId, tempPassword, true);
+
+		// Entrega fiable por Gmail (SMTP de la API). Keycloak realm SMTP suele fallar en este entorno.
+		boolean sent = emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), tempPassword);
+		if (!sent) {
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo enviar el correo de recuperación. Verifica SPRING_MAIL_USERNAME/PASSWORD.");
+		}
+
+		// Intento adicional: enlace Keycloak (si el realm tiene SMTP). No bloquea si falla.
+		try {
+			keycloakAdminService.triggerPasswordReset(keycloakId, clientId, redirectUri);
+			log.info("También se solicitó enlace Keycloak para {}", user.getEmail());
+		} catch (Exception e) {
+			log.warn("Enlace Keycloak no enviado (SMTP realm vacío o error): {}", e.getMessage());
+		}
+
+		log.info("Correo de recuperación enviado a {}", user.getEmail());
 	}
 
 	private List<String> effectivePermissionCodes(User user) {

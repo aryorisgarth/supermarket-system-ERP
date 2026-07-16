@@ -128,7 +128,7 @@ const Login = () => {
 			Swal.fire({
 				icon: 'success',
 				title: '¡Solicitud Procesada!',
-				text: 'Si el correo electrónico está registrado, recibirás un enlace de restablecimiento de contraseña en los próximos minutos.',
+				text: 'Si el correo está registrado, recibirás un email con una contraseña temporal (revisa spam). Al iniciar sesión Keycloak te pedirá cambiarla.',
 				confirmButtonColor: '#0F4C81',
 			});
 			setIsForgotPasswordMode(false);
