@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -47,6 +48,12 @@ public class AuthService {
 	private final KeycloakAdminService keycloakAdminService;
 	private final EmailService emailService;
 
+	@Value("${app.keycloak.client-id:supermarket-app}")
+	private String clientId;
+
+	@Value("${app.keycloak.redirect-uri:http://localhost/login}")
+	private String redirectUri;
+
 	@Transactional
 	public LoginResponseDTO login(LoginRequestDTO request) {
 		String email = request.email().trim().toLowerCase();
@@ -73,11 +80,11 @@ public class AuthService {
 	public LoginResponseDTO refreshToken(String refreshToken) {
 		RefreshToken token = refreshTokenService.findByToken(refreshToken);
 		RefreshToken verifiedToken = refreshTokenService.verifyExpiration(token);
-		
+
 		User user = verifiedToken.getUser();
 		var permissions = effectivePermissionCodes(user);
 		String newAccessToken = jwtService.createToken(user.getId(), user.getEmail(), user.getRole().getName(), permissions);
-		
+
 		return new LoginResponseDTO(newAccessToken, verifiedToken.getToken(), "Bearer", jwtProperties.expirationMs(), userMapper.toResponse(user));
 	}
 
@@ -112,24 +119,28 @@ public class AuthService {
 
 		User user = userRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
 		if (user == null || Boolean.FALSE.equals(user.getIsActive())) {
-			// Respuesta genérica: no revelar si el correo existe
 			return;
 		}
 
-		String keycloakId = keycloakAdminService.findUserIdByEmail(user.getEmail())
-				.orElse(null);
+		String keycloakId = keycloakAdminService.findUserIdByEmail(user.getEmail()).orElse(null);
 		if (keycloakId == null) {
-			log.warn("Recuperación de contraseña: usuario local {} sin cuenta en Keycloak", user.getEmail());
+			log.warn("Recuperación: usuario local {} sin cuenta en Keycloak", user.getEmail());
 			return;
 		}
 
-		String tempPassword = PasswordGenerator.generate(12);
-		keycloakAdminService.resetPassword(keycloakId, tempPassword, true);
-
-		boolean sent = emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), tempPassword);
-		if (!sent) {
-			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
-					"No se pudo enviar el correo de recuperación. Verifica la configuración SMTP.");
+		try {
+			// Enlace oficial de Keycloak (UPDATE_PASSWORD) → abre pantalla de Keycloak
+			keycloakAdminService.triggerPasswordReset(keycloakId, clientId, redirectUri);
+		} catch (Exception keycloakMailError) {
+			log.warn("Keycloak execute-actions-email falló ({}). Fallback: contraseña temporal por SMTP.",
+					keycloakMailError.getMessage());
+			String tempPassword = PasswordGenerator.generate(12);
+			keycloakAdminService.resetPassword(keycloakId, tempPassword, true);
+			boolean sent = emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), tempPassword);
+			if (!sent) {
+				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+						"No se pudo enviar el correo de recuperación. Configura SMTP en Keycloak o SPRING_MAIL_*.");
+			}
 		}
 	}
 

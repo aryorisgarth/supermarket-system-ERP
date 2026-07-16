@@ -288,9 +288,17 @@ public class KeycloakAdminService {
 	public void triggerPasswordReset(String userId, String appClientId, String redirectUri) {
 		String token = getAccessToken();
 
+		String uri = UriComponentsBuilder
+				.fromHttpUrl(adminBase() + "/users/" + userId + "/execute-actions-email")
+				.queryParam("client_id", appClientId)
+				.queryParam("redirect_uri", redirectUri)
+				.queryParam("lifespan", 43200)
+				.encode()
+				.toUriString();
+
 		try {
 			restClient.put()
-					.uri(adminBase() + "/users/" + userId + "/execute-actions-email?client_id=" + appClientId + "&redirect_uri=" + redirectUri)
+					.uri(uri)
 					.header("Authorization", "Bearer " + token)
 					.contentType(MediaType.APPLICATION_JSON)
 					.body(List.of("UPDATE_PASSWORD"))

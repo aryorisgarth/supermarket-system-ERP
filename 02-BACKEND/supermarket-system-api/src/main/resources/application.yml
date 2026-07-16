@@ -45,7 +45,8 @@ server:
 
 app:
   keycloak:
-    redirect-uri: ${KEYCLOAK_REDIRECT_URI:http://localhost:5173/login}
+    client-id: ${KEYCLOAK_CLIENT_ID:supermarket-app}
+    redirect-uri: ${KEYCLOAK_REDIRECT_URI:http://localhost/login}
     admin:
       server-url: ${KEYCLOAK_ADMIN_SERVER_URL:http://localhost:8080}
       realm: ${KEYCLOAK_REALM:supermarket}
