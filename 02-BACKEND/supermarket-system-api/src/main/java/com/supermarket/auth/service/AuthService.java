@@ -24,13 +24,16 @@ import com.supermarket.permission.repository.PermissionRepository;
 import com.supermarket.user.entity.User;
 import com.supermarket.user.mapper.UserMapper;
 import com.supermarket.user.repository.UserRepository;
+import com.supermarket.user.service.EmailService;
 import com.supermarket.user.service.KeycloakAdminService;
-import org.springframework.beans.factory.annotation.Value;
+import com.supermarket.user.util.PasswordGenerator;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
 	private final AuthenticationManager authenticationManager;
@@ -42,12 +45,7 @@ public class AuthService {
 	private final PermissionRepository permissionRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final KeycloakAdminService keycloakAdminService;
-
-	@Value("${app.keycloak.client-id:supermarket-app}")
-	private String clientId;
-
-	@Value("${app.keycloak.redirect-uri:http://localhost:5173/login}")
-	private String redirectUri;
+	private final EmailService emailService;
 
 	@Transactional
 	public LoginResponseDTO login(LoginRequestDTO request) {
@@ -107,13 +105,32 @@ public class AuthService {
 
 	@Transactional(readOnly = true)
 	public void forgotPassword(String email) {
-		String normalizedEmail = email.trim().toLowerCase();
-		if (!userRepository.existsByEmail(normalizedEmail)) {
+		String normalizedEmail = email == null ? "" : email.trim();
+		if (normalizedEmail.isEmpty()) {
 			return;
 		}
-		keycloakAdminService.findUserIdByEmail(normalizedEmail).ifPresent(userId ->
-				keycloakAdminService.triggerPasswordReset(userId, clientId, redirectUri)
-		);
+
+		User user = userRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
+		if (user == null || Boolean.FALSE.equals(user.getIsActive())) {
+			// Respuesta genérica: no revelar si el correo existe
+			return;
+		}
+
+		String keycloakId = keycloakAdminService.findUserIdByEmail(user.getEmail())
+				.orElse(null);
+		if (keycloakId == null) {
+			log.warn("Recuperación de contraseña: usuario local {} sin cuenta en Keycloak", user.getEmail());
+			return;
+		}
+
+		String tempPassword = PasswordGenerator.generate(12);
+		keycloakAdminService.resetPassword(keycloakId, tempPassword, true);
+
+		boolean sent = emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), tempPassword);
+		if (!sent) {
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo enviar el correo de recuperación. Verifica la configuración SMTP.");
+		}
 	}
 
 	private List<String> effectivePermissionCodes(User user) {

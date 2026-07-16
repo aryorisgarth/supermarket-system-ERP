@@ -26,6 +26,26 @@ public class EmailService {
 	 * @return true si el correo se envió; false si falló (no lanza excepción).
 	 */
 	public boolean sendTemporaryPasswordEmail(String toEmail, String fullName, String tempPassword) {
+		return sendCredentialEmail(
+				toEmail,
+				fullName,
+				tempPassword,
+				"Bienvenido a SuperNova - Tus credenciales de acceso",
+				"Se creó tu cuenta en el ERP SuperNova. Credenciales temporales:"
+		);
+	}
+
+	public boolean sendPasswordResetEmail(String toEmail, String fullName, String tempPassword) {
+		return sendCredentialEmail(
+				toEmail,
+				fullName,
+				tempPassword,
+				"SuperNova - Recuperación de contraseña",
+				"Solicitaste recuperar el acceso. Usa esta contraseña temporal e inicia sesión:"
+		);
+	}
+
+	private boolean sendCredentialEmail(String toEmail, String fullName, String tempPassword, String subject, String intro) {
 		if (!StringUtils.hasText(mailUsername)) {
 			log.warn("SMTP no configurado (spring.mail.username vacío). No se envía correo a {}", toEmail);
 			return false;
@@ -36,19 +56,20 @@ public class EmailService {
 
 			helper.setFrom(mailUsername);
 			helper.setTo(toEmail);
-			helper.setSubject("Bienvenido a SuperNova - Tus credenciales de acceso");
-			helper.setText(buildHtmlTemplate(fullName, toEmail, tempPassword), true);
+			helper.setSubject(subject);
+			helper.setText(buildHtmlTemplate(fullName, toEmail, tempPassword, intro), true);
 
 			mailSender.send(message);
 			return true;
 		} catch (Exception e) {
-			log.error("No se pudo enviar correo de bienvenida a {}: {}", toEmail, e.getMessage());
+			log.error("No se pudo enviar correo a {}: {}", toEmail, e.getMessage());
 			return false;
 		}
 	}
 
-	private String buildHtmlTemplate(String fullName, String email, String password) {
+	private String buildHtmlTemplate(String fullName, String email, String password, String intro) {
 		String safeName = fullName != null ? fullName : "";
+		String safeIntro = intro != null ? intro : "";
 		return """
 			<!DOCTYPE html>
 			<html>
@@ -67,20 +88,23 @@ public class EmailService {
 			</head>
 			<body>
 				<div class="container">
-					<div class="header"><h1>Bienvenido a SuperNova</h1></div>
+					<div class="header"><h1>SuperNova</h1></div>
 					<div class="content">
 						<p>Hola <strong>${fullName}</strong>,</p>
-						<p>Se creó tu cuenta en el ERP SuperNova. Credenciales temporales:</p>
+						<p>${intro}</p>
 						<div class="credentials-box">
 							<div><span class="label">Usuario:</span> ${email}</div>
 							<div style="margin-top:12px"><span class="label">Contraseña:</span> <span class="value">${password}</span></div>
 						</div>
-						<p style="font-size:14px;color:#6b7280">Cambia la contraseña al iniciar sesión por primera vez.</p>
+						<p style="font-size:14px;color:#6b7280">Cambia la contraseña al iniciar sesión.</p>
 					</div>
 					<div class="footer">Mensaje automático del sistema SuperNova.</div>
 				</div>
 			</body>
 			</html>
-			""".replace("${fullName}", safeName).replace("${email}", email).replace("${password}", password);
+			""".replace("${fullName}", safeName)
+				.replace("${intro}", safeIntro)
+				.replace("${email}", email)
+				.replace("${password}", password);
 	}
 }

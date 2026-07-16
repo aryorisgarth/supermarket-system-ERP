@@ -18,6 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	Optional<User> findByEmail(String email);
 
+	Optional<User> findByEmailIgnoreCase(String email);
+
 	@Query("SELECT DISTINCT u FROM User u JOIN FETCH u.role LEFT JOIN FETCH u.directPermissions WHERE LOWER(u.email) = LOWER(:email)")
 	Optional<User> findByEmailWithRole(@Param("email") String email);
 
