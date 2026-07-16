@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
   Clock,
   Barcode,
   Package,
+  Box,
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import PageHeader from '../../components/ui/PageHeader';
@@ -26,7 +27,7 @@ import ProductBatchService from '../../services/ProductBatchService';
 import AuthService from '../../services/AuthService';
 import useBarcodeScan from '../../hooks/useBarcodeScan';
 import { getApiErrorMessage } from '../../utils/apiError';
-
+import { computeBaseUnits, formatPackSummary } from '../../utils/purchaseUnits';
 
 const STATUS_LABELS = {
   OPEN: 'Abierto',
@@ -35,16 +36,23 @@ const STATUS_LABELS = {
   CANCELLED: 'Cancelado',
 };
 
+/** PACK = cantidad en presentación (cajas); BASE = unidades sueltas de inventario */
+const ENTRY_PACK = 'PACK';
+const ENTRY_BASE = 'BASE';
+
 const WarehouseCountSession = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const scanRef = useRef(null);
+  const qtyRef = useRef(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [scanQty, setScanQty] = useState(1);
+  const [entryMode, setEntryMode] = useState(ENTRY_PACK);
+  const [pendingProduct, setPendingProduct] = useState(null);
+  const [pendingBarcode, setPendingBarcode] = useState('');
   const [scanLog, setScanLog] = useState([]);
-  const [lastScan, setLastScan] = useState(null);
 
   const canCount = AuthService.hasPermission('INVENTORY_COUNT');
   const canApprove = AuthService.hasPermission('INVENTORY_ADJUST');
@@ -53,7 +61,7 @@ const WarehouseCountSession = () => {
     setLoading(true);
     try {
       const data = await InventoryCountService.getById(sessionId);
-      
+
       const currentUser = AuthService.getCurrentUser();
       if (data.status === 'OPEN') {
         const isMine = currentUser?.id != null && String(data.countedBy?.id) === String(currentUser.id);
@@ -74,23 +82,87 @@ const WarehouseCountSession = () => {
     } finally {
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [sessionId, navigate]);
 
   useEffect(() => {
     loadSession();
   }, [loadSession]);
 
   useEffect(() => {
-    if (!loading && session?.status === 'OPEN') scanRef.current?.focus();
-  }, [loading, session?.status]);
+    if (!loading && session?.status === 'OPEN' && !pendingProduct) {
+      scanRef.current?.focus();
+    }
+  }, [loading, session?.status, pendingProduct]);
 
-  const handleScan = useCallback(async (product, barcode) => {
-    if (!session || session.status !== 'OPEN') return;
+  useEffect(() => {
+    if (pendingProduct) {
+      qtyRef.current?.focus();
+      qtyRef.current?.select?.();
+    }
+  }, [pendingProduct]);
+
+  const packFactor = Number(pendingProduct?.uomFactor || 1);
+  const packLabel = pendingProduct?.uomLabel || (packFactor > 1 ? 'CAJA' : 'UN');
+  const hasPack = packFactor > 1;
+
+  const preview = useMemo(() => {
     const qty = Math.max(1, Number(scanQty) || 1);
+    if (!pendingProduct) return null;
+    if (entryMode === ENTRY_PACK && hasPack) {
+      const base = computeBaseUnits(qty, packFactor);
+      return {
+        qty,
+        label: packLabel,
+        factor: packFactor,
+        baseUnits: base,
+        summary: formatPackSummary(qty, packLabel, packFactor),
+        hint: `Estás contando ${qty} ${packLabel}${qty === 1 ? '' : 's'} (= ${base} unidades base)`,
+      };
+    }
+    return {
+      qty,
+      label: 'UN',
+      factor: 1,
+      baseUnits: qty,
+      summary: `${qty} unidades base`,
+      hint: `Estás contando ${qty} unidades sueltas (sin multiplicar por caja)`,
+    };
+  }, [pendingProduct, scanQty, entryMode, hasPack, packFactor, packLabel]);
+
+  const clearPending = useCallback(() => {
+    setPendingProduct(null);
+    setPendingBarcode('');
+    setScanQty(1);
+    setEntryMode(ENTRY_PACK);
+    setTimeout(() => scanRef.current?.focus(), 50);
+  }, []);
+
+  const handleProductIdentified = useCallback((product, barcode) => {
+    if (!session || session.status !== 'OPEN') return;
+    const factor = Number(product?.uomFactor || 1);
+    setPendingProduct(product);
+    setPendingBarcode(barcode);
+    setEntryMode(factor > 1 ? ENTRY_PACK : ENTRY_BASE);
+    setScanQty(1);
+  }, [session]);
+
+  const registerCount = useCallback(async () => {
+    if (!session || session.status !== 'OPEN' || !pendingProduct) return;
+    const qty = Math.max(1, Number(scanQty) || 1);
+    const product = pendingProduct;
+    const scannedCode = pendingBarcode;
+
+    // PACK: enviar barcode de presentación + qty cajas → backend × factor
+    // BASE: enviar barcode base + qty unidades → factor 1
+    const barcodeToSend =
+      entryMode === ENTRY_BASE
+        ? (product.baseBarcode || product.barcode || scannedCode)
+        : (product.packBarcode || scannedCode || product.barcode);
+
     try {
       let selectedBatchId = null;
 
-      if (product && (product.requiresBatch || product.requiresExpiration)) {
+      if (product.requiresBatch || product.requiresExpiration) {
         setActing(true);
         const batches = await ProductBatchService.getByProduct(product.id);
         setActing(false);
@@ -98,32 +170,28 @@ const WarehouseCountSession = () => {
         if (!batches || batches.length === 0) {
           Swal.fire({
             title: 'Sin lotes registrados',
-            text: `El producto "${product.name}" requiere lote pero no tiene ningún lote disponible en el sistema.`,
+            text: `El producto "${product.baseName || product.name}" requiere lote pero no tiene ningún lote disponible.`,
             icon: 'warning',
-            confirmButtonText: 'Aceptar'
+            confirmButtonText: 'Aceptar',
           });
           return;
         }
 
         const inputOptions = {};
-        batches.forEach(b => {
+        batches.forEach((b) => {
           inputOptions[b.id] = `${b.batchCode} (Vence: ${b.expirationDate || 'Sin fecha'}) [Stock: ${b.currentQuantity}]`;
         });
 
         const { value: batchId } = await Swal.fire({
           title: 'Seleccionar Lote',
-          text: `Seleccione el lote del producto: ${product.name}`,
+          text: `Seleccione el lote: ${product.baseName || product.name}`,
           input: 'select',
           inputOptions,
           inputPlaceholder: 'Seleccione un lote...',
           showCancelButton: true,
           confirmButtonText: 'Confirmar',
           cancelButtonText: 'Cancelar',
-          inputValidator: (value) => {
-            if (!value) {
-              return 'Debes seleccionar un lote';
-            }
-          }
+          inputValidator: (value) => (!value ? 'Debes seleccionar un lote' : undefined),
         });
 
         if (!batchId) return;
@@ -131,38 +199,45 @@ const WarehouseCountSession = () => {
       }
 
       setActing(true);
-      const updated = await InventoryCountService.scan(session.id, barcode, qty, selectedBatchId);
+      const updated = await InventoryCountService.scan(session.id, barcodeToSend, qty, selectedBatchId);
       setSession(updated);
 
-      const uomLabel = product?.uomLabel || (product?.uomFactor > 1 ? product?.label : 'UN');
-      const uomFactor = product?.uomFactor || 1;
-      const baseUnits = qty * uomFactor;
-      const timestamp = new Date().toLocaleTimeString();
-
+      const effectiveFactor = entryMode === ENTRY_PACK && hasPack ? packFactor : 1;
+      const effectiveLabel = entryMode === ENTRY_PACK && hasPack ? packLabel : 'UN';
+      const baseUnits = qty * effectiveFactor;
       const entry = {
         id: Date.now(),
-        productName: product?.name || barcode,
-        barcode,
-        uomLabel: uomFactor > 1 ? uomLabel : 'UN',
-        uomFactor,
+        productName: product.baseName || product.name,
+        barcode: barcodeToSend,
+        uomLabel: effectiveLabel,
+        uomFactor: effectiveFactor,
         qty,
         baseUnits,
-        time: timestamp,
+        entryMode,
+        time: new Date().toLocaleTimeString(),
       };
-      setLastScan(entry);
       setScanLog((prev) => [entry, ...prev.slice(0, 9)]);
-
-      setScanQty(1); 
+      clearPending();
     } catch (error) {
-      Swal.fire('Error', getApiErrorMessage(error, 'No se pudo registrar el escaneo.'), 'error');
+      Swal.fire('Error', getApiErrorMessage(error, 'No se pudo registrar el conteo.'), 'error');
     } finally {
       setActing(false);
     }
-  }, [session, scanQty]);
+  }, [session, pendingProduct, pendingBarcode, scanQty, entryMode, hasPack, packFactor, packLabel, clearPending]);
 
   const { scanValue, setScanValue, scanning, handleScanKeyDown } = useBarcodeScan({
-    onFound: (product, barcode) => handleScan(product, barcode),
+    onFound: (product, barcode) => handleProductIdentified(product, barcode),
+    onNotFound: (code) => {
+      Swal.fire('No encontrado', `No hay producto con código ${code}`, 'warning');
+    },
   });
+
+  const handleQtyKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      registerCount();
+    }
+  };
 
   const runAction = async (action) => {
     const labels = {
@@ -225,57 +300,136 @@ const WarehouseCountSession = () => {
           <CardHeader
             icon={ScanLine}
             title="Escaneo de conteo"
-            description={scanQty > 1 ? `Cada escaneo sumará ×${scanQty} al producto.` : 'Cada escaneo suma +1 al producto.'}
+            description="1) Escanea el código · 2) Elige si cuentas cajas o unidades · 3) Confirma"
           />
-          <div className="mt-4 flex items-center gap-3">
+
+          <div className="mt-4">
             <BarcodeScanInput
               ref={scanRef}
               value={scanValue}
               onChange={(event) => setScanValue(event.target.value)}
               onKeyDown={handleScanKeyDown}
-              disabled={scanning || acting}
+              disabled={scanning || acting || !!pendingProduct}
             />
-            
-            <div className="flex flex-col items-center gap-1 shrink-0">
-              <label className="text-[10px] font-bold uppercase text-[var(--app-text-muted)] whitespace-nowrap">Cantidad</label>
-              <input
-                type="number"
-                min="1"
-                max="9999"
-                value={scanQty}
-                onChange={(e) => setScanQty(Math.max(1, parseInt(e.target.value) || 1))}
-                disabled={scanning || acting}
-                className="w-20 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2 py-2 text-center text-sm font-bold text-[var(--app-text)] focus:outline-none focus:ring-2 focus:ring-[var(--app-primary)] disabled:opacity-50"
-              />
-            </div>
           </div>
-          {scanQty > 1 && (
-            <p className="mt-2 text-[11px] text-[var(--app-primary)] font-bold">
-              ⚡ Modo bulk: al escanear se registrarán {scanQty} unidades de la presentación escaneada.
-            </p>
+
+          {pendingProduct && (
+            <div className="mt-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Producto identificado</p>
+                  <p className="text-sm font-bold text-[var(--app-text)]">{pendingProduct.baseName || pendingProduct.name}</p>
+                  <p className="text-[11px] font-mono text-[var(--app-text-muted)] mt-0.5">{pendingBarcode}</p>
+                  {hasPack && (
+                    <p className="mt-1 text-[11px] font-bold text-blue-700 dark:text-blue-300">
+                      Presentación detectada: {packLabel} × {packFactor} unidades
+                    </p>
+                  )}
+                </div>
+                <Button type="button" variant="secondary" size="sm" onClick={clearPending} disabled={acting}>
+                  Cancelar
+                </Button>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)] mb-2">¿Cómo vas a contar?</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={!hasPack || acting}
+                    onClick={() => setEntryMode(ENTRY_PACK)}
+                    className={`flex items-start gap-3 rounded-xl border px-3 py-3 text-left transition-all ${
+                      entryMode === ENTRY_PACK
+                        ? 'border-[var(--app-primary)] bg-[var(--app-primary-soft)]/20 ring-1 ring-[var(--app-primary)]'
+                        : 'border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40'
+                    } ${!hasPack ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  >
+                    <Box size={18} className="text-[var(--app-primary)] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-[var(--app-text)]">Cajas / presentación</p>
+                      <p className="text-[10px] text-[var(--app-text-muted)] mt-0.5">
+                        Ej: pones <strong>20</strong> → se registran 20 × {hasPack ? packFactor : '?'} = {hasPack ? 20 * packFactor : '—'} UN
+                      </p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={acting}
+                    onClick={() => setEntryMode(ENTRY_BASE)}
+                    className={`flex items-start gap-3 rounded-xl border px-3 py-3 text-left transition-all ${
+                      entryMode === ENTRY_BASE
+                        ? 'border-[var(--app-primary)] bg-[var(--app-primary-soft)]/20 ring-1 ring-[var(--app-primary)]'
+                        : 'border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40'
+                    }`}
+                  >
+                    <Package size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-[var(--app-text)]">Unidades sueltas</p>
+                      <p className="text-[10px] text-[var(--app-text-muted)] mt-0.5">
+                        Ej: pones <strong>480</strong> → se registran 480 UN (sin multiplicar)
+                      </p>
+                    </div>
+                  </button>
+                </div>
+                {!hasPack && (
+                  <p className="mt-2 text-[10px] text-[var(--app-text-muted)]">
+                    Este código es de unidad base. Solo puedes contar en unidades sueltas (o escanea el código de la caja).
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">
+                    {entryMode === ENTRY_PACK && hasPack ? `Cantidad de ${packLabel}` : 'Cantidad de unidades'}
+                  </label>
+                  <input
+                    ref={qtyRef}
+                    type="number"
+                    min="1"
+                    max="99999"
+                    value={scanQty}
+                    onChange={(e) => setScanQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    onKeyDown={handleQtyKeyDown}
+                    disabled={acting}
+                    className="w-28 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2 text-center text-lg font-bold text-[var(--app-text)] focus:outline-none focus:ring-2 focus:ring-[var(--app-primary)] disabled:opacity-50"
+                  />
+                </div>
+                <div className="flex-1 min-w-[200px] rounded-lg border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase text-emerald-800 dark:text-emerald-300">Equivale a</p>
+                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-200">
+                    {preview?.summary || '—'}
+                  </p>
+                  <p className="text-[10px] text-emerald-700/80 dark:text-emerald-400 mt-0.5">{preview?.hint}</p>
+                </div>
+                <Button type="button" icon={CheckCircle2} loading={acting} onClick={registerCount}>
+                  Registrar conteo
+                </Button>
+              </div>
+            </div>
           )}
         </Card>
       )}
 
-      {/* Info banner + Last scan + Scan log */}
       {session.status === 'OPEN' && canCount && (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-4">
-          {/* Info banner */}
           <Card className="border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/10">
             <div className="flex items-start gap-3">
               <Info size={18} className="text-blue-600 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="text-xs font-bold text-blue-900 dark:text-blue-300">
-                  Escanea cualquier código de barras — producto base o presentación
+                  Cajas vs unidades: elige el modo después de escanear
                 </p>
                 <p className="text-[10px] text-blue-700 dark:text-blue-400 font-medium leading-relaxed">
-                  Si el código corresponde a una presentación (ej. Cajilla ×6, Caja ×60), el sistema multiplicará automáticamente por el factor de conversión. Todo se registra en <strong>unidades base</strong> de inventario.
+                  Si compraste <strong>20 cajas de 24</strong>, escanea el código de la caja y elige
+                  {' '}<strong>Cajas / presentación</strong> con cantidad <strong>20</strong>
+                  {' '}(= 480 UN). Si ya contaste piezas sueltas, elige <strong>Unidades sueltas</strong> y pon <strong>480</strong>.
+                  El inventario siempre queda en unidades base.
                 </p>
               </div>
             </div>
           </Card>
 
-          {/* Scan log panel */}
           <Card className="border-[var(--app-border)]">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center gap-2">
@@ -294,11 +448,11 @@ const WarehouseCountSession = () => {
             ) : (
               <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
                 {scanLog.map((log, idx) => (
-                  <div 
-                    key={log.id} 
+                  <div
+                    key={log.id}
                     className={`flex items-start gap-2.5 p-2.5 border rounded-xl text-[10px] animate-fade-in transition-all ${
-                      idx === 0 
-                        ? 'bg-[var(--app-primary-soft)]/15 border-[var(--app-primary)]/30' 
+                      idx === 0
+                        ? 'bg-[var(--app-primary-soft)]/15 border-[var(--app-primary)]/30'
                         : 'bg-[var(--app-bg-subtle)]/60 border-[var(--app-border)]'
                     }`}
                   >
@@ -308,11 +462,9 @@ const WarehouseCountSession = () => {
                       <div className="flex justify-between text-[9px] text-[var(--app-text-muted)] mt-0.5">
                         <span className="font-mono">{log.barcode}</span>
                         <div className="flex items-center gap-1.5">
-                          {log.uomFactor > 1 && (
-                            <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 text-[8px] font-bold">
-                              <Package size={7} /> {log.uomLabel} ×{log.uomFactor}
-                            </span>
-                          )}
+                          <span className="rounded-full bg-[var(--app-bg-subtle)] px-1.5 py-0.5 text-[8px] font-bold">
+                            {log.entryMode === ENTRY_PACK ? `${log.qty} ${log.uomLabel}` : `${log.qty} UN`}
+                          </span>
                           <span className="font-bold text-emerald-600">+{log.baseUnits} UN</span>
                         </div>
                       </div>
@@ -359,7 +511,6 @@ const WarehouseCountSession = () => {
 
                 return (
                   <tr key={line.id} className="hover:bg-[var(--app-surface-2)]/50 transition-colors">
-                    
                     <td className="p-2 pl-3">
                       <p className="font-bold text-[var(--app-text)]">{line.productName}</p>
                       <div className="flex flex-wrap gap-1.5 mt-0.5">
@@ -371,8 +522,6 @@ const WarehouseCountSession = () => {
                         )}
                       </div>
                     </td>
-
-                    
                     <td className="p-2 text-center">
                       {hasUom ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 text-[10px] font-bold">
@@ -382,28 +531,20 @@ const WarehouseCountSession = () => {
                         <span className="text-[var(--app-text-muted)]">Unidad</span>
                       )}
                     </td>
-
-                    
                     <td className="p-2 text-center">
                       <span className="font-bold text-[var(--app-text)]">{commercialQty}</span>
                       {hasUom && (
                         <p className="text-[9px] text-[var(--app-text-muted)] mt-0.5">×{factor} = {ubiQty} UN</p>
                       )}
                     </td>
-
-                    
                     <td className="p-2 text-center">
                       <span className="font-bold text-[var(--app-text)]">{ubiQty}</span>
                       <p className="text-[9px] text-[var(--app-text-muted)]">UN</p>
                     </td>
-
-                    
                     <td className="p-2 text-center">
                       <span className="font-bold text-[var(--app-text)]">{Number(line.systemQuantity)}</span>
                       <p className="text-[9px] text-[var(--app-text-muted)]">UN</p>
                     </td>
-
-                    
                     <td className={`p-2 text-center ${varTone}`}>
                       {variance > 0 ? `+${variance}` : variance}
                       <p className="text-[9px] font-normal text-[var(--app-text-muted)]">UN</p>

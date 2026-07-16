@@ -10,15 +10,18 @@ export function normalizeProduct(raw) {
     (raw.category_name ? { id: raw.category_id, name: raw.category_name } : null);
 
   let salePrice = Number(raw.salePrice ?? raw.sale_price ?? 0);
-  let name = raw.name ?? raw.productName ?? raw.nombre ?? raw.product_name ?? raw.descripcion_corta ?? '';
-  let barcode = raw.barcode ?? raw.productBarcode ?? raw.codigo_barras ?? raw.codigo ?? raw.product_barcode ?? raw.sku ?? '';
+  const baseName = raw.name ?? raw.productName ?? raw.nombre ?? raw.product_name ?? raw.descripcion_corta ?? '';
+  let name = baseName;
+  const baseBarcode = raw.barcode ?? raw.productBarcode ?? raw.codigo_barras ?? raw.codigo ?? raw.product_barcode ?? raw.sku ?? '';
+  let barcode = baseBarcode;
   const uomConversionId = raw.scannedConversion?.id ?? null;
   const uomLabel = raw.scannedConversion?.label ?? null;
   const uomFactor = raw.scannedConversion?.factor ? Number(raw.scannedConversion.factor) : 1;
+  const packBarcode = raw.scannedConversion?.barcode ?? null;
 
   if (raw.scannedConversion) {
     salePrice = Number(raw.scannedConversion.salePrice ?? raw.scannedConversion.sale_price ?? salePrice);
-    name = `${name} (${raw.scannedConversion.label})`;
+    name = `${baseName} (${raw.scannedConversion.label})`;
     barcode = raw.scannedConversion.barcode ?? barcode;
   }
 
@@ -26,7 +29,10 @@ export function normalizeProduct(raw) {
     ...raw,
     id: raw.id,
     name,
+    baseName,
     barcode,
+    baseBarcode,
+    packBarcode,
     description: raw.description ?? raw.descripcion ?? '',
     salePrice,
     purchasePrice: Number(raw.purchasePrice ?? raw.purchase_price ?? 0),
