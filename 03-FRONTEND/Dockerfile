@@ -5,17 +5,23 @@ ARG VITE_API_URL=/api
 ARG VITE_KEYCLOAK_URL=/auth
 ARG VITE_KEYCLOAK_REALM=supermarket
 ARG VITE_KEYCLOAK_CLIENT_ID=supermarket-app
-ARG VITE_STRIPE_PUBLIC_KEY=
+# Si viene vacío, NO exportar: Vite usará 03-FRONTEND/.env del contexto de build
+ARG VITE_STRIPE_PUBLIC_KEY
 
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_KEYCLOAK_URL=$VITE_KEYCLOAK_URL
 ENV VITE_KEYCLOAK_REALM=$VITE_KEYCLOAK_REALM
 ENV VITE_KEYCLOAK_CLIENT_ID=$VITE_KEYCLOAK_CLIENT_ID
-ENV VITE_STRIPE_PUBLIC_KEY=$VITE_STRIPE_PUBLIC_KEY
 
 COPY package*.json ./
 RUN npm install
 COPY . .
+
+# Solo inyecta la pk si el build-arg trae valor; si no, conserva .env del proyecto
+RUN if [ -n "$VITE_STRIPE_PUBLIC_KEY" ]; then \
+      echo "VITE_STRIPE_PUBLIC_KEY=$VITE_STRIPE_PUBLIC_KEY" >> .env.production.local; \
+    fi
+
 RUN npm run build
 
 FROM nginx:1.27-alpine
