@@ -1688,7 +1688,8 @@ button:disabled {
 }
 
 .pos-col-action {
-  width: 8%;
+  width: 10%;
+  min-width: 4.5rem;
 }
 
 .pos-col-stock {

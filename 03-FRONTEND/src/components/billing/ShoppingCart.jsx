@@ -110,7 +110,7 @@ const ShoppingCart = ({
                 <th className="text-center py-2.5 px-2 text-[10px] font-black uppercase tracking-widest text-black">Cant</th>
                 <th className="text-right py-2.5 px-2 text-[10px] font-black uppercase tracking-widest text-black">Precio</th>
                 <th className="text-right pr-3 py-2.5 px-2 text-[10px] font-black uppercase tracking-widest text-black">Importe</th>
-                <th className="pr-3 py-2.5 px-1 w-12" aria-label="Acciones" />
+                <th className="py-2.5 px-2 text-[10px] font-black uppercase tracking-widest text-black text-center">Acc.</th>
               </tr>
             </thead>
 
@@ -192,8 +192,8 @@ const ShoppingCart = ({
                       )}
                     </td>
 
-                    <td className="text-right py-4 px-1 pr-3 align-middle">
-                      <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity">
+                    <td className="py-4 px-1 pr-3 align-middle">
+                      <div className="flex items-center justify-end gap-1.5">
                         {canApplyDiscount && (
                           <button
                             type="button"
@@ -201,11 +201,11 @@ const ShoppingCart = ({
                               e.stopPropagation();
                               onSetLineDiscount(item.id);
                             }}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-sm transition-all hover:border-[var(--app-primary)] hover:bg-[var(--app-primary-soft)] hover:text-[var(--app-primary)] active:scale-95 cursor-pointer"
                             aria-label="Aplicar descuento"
                             title="Aplicar descuento"
                           >
-                            <Percent size={16} strokeWidth={3} />
+                            <Percent size={16} strokeWidth={2.5} />
                           </button>
                         )}
                         <button
@@ -214,11 +214,11 @@ const ShoppingCart = ({
                             e.stopPropagation();
                             onRemoveFromCart(item.id);
                           }}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-red-700 bg-red-600 text-white shadow-sm transition-all hover:bg-red-700 active:scale-95 cursor-pointer"
                           aria-label="Quitar línea"
                           title="Quitar línea"
                         >
-                          <Trash2 size={16} strokeWidth={3} />
+                          <Trash2 size={16} strokeWidth={2.5} />
                         </button>
                       </div>
                     </td>
