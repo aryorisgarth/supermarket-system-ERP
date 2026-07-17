@@ -98,7 +98,7 @@ const Billing = () => {
       <div className="pos-billing-page animate-fade-in no-print app-page-flex w-full min-w-0 overflow-hidden bg-[var(--app-bg)] font-sans">
         
         <div className="pos-toolbar shrink-0">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+          <div className="pos-toolbar-actions">
             <input
               id="pos-search-input"
               type="text"
@@ -110,82 +110,26 @@ const Billing = () => {
               autoFocus
               style={{ flex: 1 }}
             />
-            {}
             <button
               id="btn-plu-quick-codes"
               type="button"
               onClick={() => setShowQuickCodes((p) => !p)}
               title="Códigos PLU / Cortos (F6)"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '0 14px',
-                height: '38px',
-                borderRadius: '8px',
-                border: showQuickCodes
-                  ? '1px solid var(--app-primary, #6366f1)'
-                  : '1px solid var(--app-border, #2e3a4e)',
-                background: showQuickCodes
-                  ? 'var(--app-primary, #6366f1)'
-                  : 'var(--app-surface, #1e2535)',
-                color: showQuickCodes ? '#fff' : 'var(--app-text, #e2e8f0)',
-                cursor: 'pointer',
-                fontSize: '11px',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.07em',
-                flexShrink: 0,
-                transition: 'all 0.15s',
-              }}
+              className={`pos-toolbar-btn${showQuickCodes ? ' is-active' : ''}`}
             >
               <Tag size={15} />
               <span>PLU</span>
-              <span
-                style={{
-                  fontSize: '9px',
-                  fontWeight: 700,
-                  background: showQuickCodes ? 'rgba(255,255,255,0.25)' : 'var(--app-primary, #6366f1)',
-                  color: '#fff',
-                  borderRadius: '4px',
-                  padding: '1px 5px',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                F6
-              </span>
+              <span className="pos-toolbar-btn__kbd">F6</span>
             </button>
 
-            {}
             {showQuickAccess && categories.length > 0 && (
-              <div ref={categoryMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
+              <div ref={categoryMenuRef} className="pos-category-menu-wrap">
                 <button
                   id="btn-category-menu"
                   type="button"
                   onClick={() => setShowCategoryMenu((p) => !p)}
                   title="Ver todas las categorías"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '0 14px',
-                    height: '38px',
-                    borderRadius: '8px',
-                    border: showCategoryMenu
-                      ? '1px solid var(--app-primary, #6366f1)'
-                      : '1px solid var(--app-border, #2e3a4e)',
-                    background: showCategoryMenu
-                      ? 'var(--app-primary, #6366f1)'
-                      : 'var(--app-surface, #1e2535)',
-                    color: showCategoryMenu ? '#fff' : 'var(--app-text, #e2e8f0)',
-                    cursor: 'pointer',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.07em',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.15s',
-                  }}
+                  className={`pos-toolbar-btn${showCategoryMenu ? ' is-active' : ''}`}
                 >
                   <Layers size={15} />
                   <span>Categorías</span>
@@ -198,40 +142,10 @@ const Billing = () => {
                   />
                 </button>
 
-                {}
                 {showCategoryMenu && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 6px)',
-                      right: 0,
-                      zIndex: 200,
-                      minWidth: '220px',
-                      background: 'var(--app-surface, #1e2535)',
-                      border: '1px solid var(--app-primary, #6366f1)',
-                      borderRadius: '10px',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
-                      overflow: 'hidden',
-                      animation: 'catmenu-drop 0.18s cubic-bezier(.16,1,.3,1)',
-                    }}
-                  >
-                    {}
-                    <div
-                      style={{
-                        padding: '8px 12px 6px',
-                        borderBottom: '1px solid var(--app-border, #2e3a4e)',
-                        fontSize: '9px',
-                        fontWeight: 800,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em',
-                        color: 'var(--app-primary, #6366f1)',
-                      }}
-                    >
-                      Seleccionar Categoría
-                    </div>
-
-                    {}
-                    <ul style={{ listStyle: 'none', margin: 0, padding: '4px 0', maxHeight: '250px', overflowY: 'auto' }}>
+                  <div className="pos-category-menu">
+                    <div className="pos-category-menu__header">Seleccionar categoría</div>
+                    <ul className="pos-category-menu__list">
                       {categories.map((cat, idx) => {
                         const shortcut = idx < 9 ? idx + 1 : null;
                         const isActive = selectedCategory?.id === cat.id && showCategoryProductsModal;
@@ -240,83 +154,15 @@ const Billing = () => {
                             <button
                               type="button"
                               onClick={() => handleSelectFromMenu(cat)}
-                              style={{
-                                width: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                padding: '8px 14px',
-                                background: isActive
-                                  ? 'rgba(99,102,241,0.15)'
-                                  : 'transparent',
-                                border: 'none',
-                                borderLeft: isActive
-                                  ? '3px solid var(--app-primary, #6366f1)'
-                                  : '3px solid transparent',
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                transition: 'background 0.1s',
-                              }}
-                              onMouseEnter={(e) => {
-                                if (!isActive) e.currentTarget.style.background = 'rgba(99,102,241,0.08)';
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!isActive) e.currentTarget.style.background = 'transparent';
-                              }}
+                              className={`pos-category-menu__item${isActive ? ' is-active' : ''}`}
                             >
-                              {}
-                              {shortcut && (
-                                <span
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: '18px',
-                                    height: '18px',
-                                    borderRadius: '5px',
-                                    fontSize: '10px',
-                                    fontWeight: 900,
-                                    flexShrink: 0,
-                                    background: isActive
-                                      ? 'var(--app-primary, #6366f1)'
-                                      : 'rgba(99,102,241,0.2)',
-                                    color: isActive ? '#fff' : 'var(--app-primary, #6366f1)',
-                                    border: '1px solid rgba(99,102,241,0.35)',
-                                  }}
-                                >
-                                  {shortcut}
-                                </span>
-                              )}
-                              {}
-                              <span
-                                style={{
-                                  fontSize: '12px',
-                                  fontWeight: 700,
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.04em',
-                                  color: isActive
-                                    ? 'var(--app-primary, #6366f1)'
-                                    : 'var(--app-text, #e2e8f0)',
-                                  flex: 1,
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {cat.name}
-                              </span>
+                              {shortcut && <span className="pos-category-menu__shortcut">{shortcut}</span>}
+                              <span className="pos-category-menu__label">{cat.name}</span>
                             </button>
                           </li>
                         );
                       })}
                     </ul>
-
-                    <style>{`
-                      @keyframes catmenu-drop {
-                        from { transform: translateY(-6px); opacity: 0; }
-                        to   { transform: translateY(0);    opacity: 1; }
-                      }
-                    `}</style>
                   </div>
                 )}
               </div>

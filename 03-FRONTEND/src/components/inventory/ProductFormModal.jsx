@@ -12,6 +12,8 @@ import Swal from 'sweetalert2';
 import ProductLocationsSection from './ProductLocationsSection';
 import ProductPurchasePacksSection from './ProductPurchasePacksSection';
 import ResponsiveModal from '../ui/ResponsiveModal';
+import FormSection from '../ui/FormSection';
+import { PRODUCT_FIELD, PRODUCT_LABEL, PRODUCT_NUMBER_FIELD } from './productFormStyles';
 
 const ProductFormModal = ({
   isOpen,
@@ -21,7 +23,7 @@ const ProductFormModal = ({
   suppliers,
   taxCategories,
   brands,
-  onSuccess
+  onSuccess,
 }) => {
   const [formData, setFormData] = useState({
     barcode: '',
@@ -40,7 +42,7 @@ const ProductFormModal = ({
     pricingPolicy: 'MANUAL',
     isActive: true,
     requiresBatch: false,
-    requiresExpiration: false
+    requiresExpiration: false,
   });
   const [purchasePacks, setPurchasePacks] = useState(defaultPurchasePacksForForm());
   const [packTemplateKey, setPackTemplateKey] = useState('unitOnly');
@@ -73,12 +75,12 @@ const ProductFormModal = ({
         minMarginPercent: product.minMarginPercent || '20',
         pricingPolicy: product.pricingPolicy || 'MANUAL',
         requiresBatch: !!product.requiresBatch,
-        requiresExpiration: !!product.requiresExpiration
+        requiresExpiration: !!product.requiresExpiration,
       });
       const categoryName = product.category?.name || resolveCategoryName(product.category?.id);
       const templateKey = resolvePackTemplateKey(categoryName, product.name);
       setPackTemplateKey(templateKey);
-      
+
       const conversionsMap = {};
       if (product.uomConversions) {
         product.uomConversions.forEach((conv) => {
@@ -91,15 +93,15 @@ const ProductFormModal = ({
       setPurchasePacks(
         product.purchasePacks?.length
           ? product.purchasePacks.map((pack, index) => {
-            const upperLabel = pack.label?.toUpperCase();
-            return {
-              label: pack.label,
-              factor: String(pack.factor),
-              barcode: conversionsMap[upperLabel] || pack.barcode || '',
-              isDefault: Boolean(pack.isDefault),
-              sortOrder: pack.sortOrder ?? index,
-            };
-          })
+              const upperLabel = pack.label?.toUpperCase();
+              return {
+                label: pack.label,
+                factor: String(pack.factor),
+                barcode: conversionsMap[upperLabel] || pack.barcode || '',
+                isDefault: Boolean(pack.isDefault),
+                sortOrder: pack.sortOrder ?? index,
+              };
+            })
           : defaultPurchasePacksForForm(categoryName, product.name)
       );
     } else {
@@ -123,7 +125,7 @@ const ProductFormModal = ({
         pricingPolicy: 'MANUAL',
         isActive: true,
         requiresBatch: false,
-        requiresExpiration: false
+        requiresExpiration: false,
       });
       setPurchasePacks(defaultPurchasePacksForForm(categoryName, ''));
     }
@@ -139,9 +141,9 @@ const ProductFormModal = ({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -152,7 +154,7 @@ const ProductFormModal = ({
       Swal.fire({
         icon: 'warning',
         title: 'Código inválido',
-        text: 'El código de barras solo puede contener letras, números y guiones.'
+        text: 'El código de barras solo puede contener letras, números y guiones.',
       });
       return;
     }
@@ -160,8 +162,8 @@ const ProductFormModal = ({
     if (parseFloat(formData.salePrice) < parseFloat(formData.purchasePrice)) {
       Swal.fire({
         icon: 'warning',
-        title: 'Margen Inválido',
-        text: 'El Precio de Venta no puede ser menor al Costo de Compra.'
+        title: 'Margen inválido',
+        text: 'El precio de venta no puede ser menor al costo de compra.',
       });
       return;
     }
@@ -174,10 +176,10 @@ const ProductFormModal = ({
       salePrice: parseFloat(formData.salePrice),
       currentStock: parseFloat(formData.currentStock),
       minimumStock: parseFloat(formData.minimumStock),
-      categoryId: parseInt(formData.categoryId),
-      supplierId: parseInt(formData.supplierId),
-      taxCategoryId: parseInt(formData.taxCategoryId),
-      brandId: formData.brandId ? parseInt(formData.brandId) : null,
+      categoryId: parseInt(formData.categoryId, 10),
+      supplierId: parseInt(formData.supplierId, 10),
+      taxCategoryId: parseInt(formData.taxCategoryId, 10),
+      brandId: formData.brandId ? parseInt(formData.brandId, 10) : null,
       minStockExhibicion: parseFloat(formData.minStockExhibicion),
       minMarginPercent: parseFloat(formData.minMarginPercent),
       pricingPolicy: formData.pricingPolicy,
@@ -197,22 +199,10 @@ const ProductFormModal = ({
     try {
       if (product) {
         await ProductService.update(product.id, productPayload);
-        Swal.fire({
-          icon: 'success',
-          title: 'Producto Actualizado',
-          text: 'Los cambios se han guardado con éxito.',
-          timer: 1800,
-          showConfirmButton: false
-        });
+        Swal.fire({ icon: 'success', title: 'Producto actualizado', timer: 1800, showConfirmButton: false });
       } else {
         await ProductService.create(productPayload);
-        Swal.fire({
-          icon: 'success',
-          title: 'Producto Creado',
-          text: 'El nuevo producto fue añadido al catálogo.',
-          timer: 1800,
-          showConfirmButton: false
-        });
+        Swal.fire({ icon: 'success', title: 'Producto creado', timer: 1800, showConfirmButton: false });
       }
       onSuccess();
       onClose();
@@ -225,8 +215,8 @@ const ProductFormModal = ({
       Swal.fire({
         icon: 'error',
         title: 'Error al guardar',
-        text: validationText || getApiErrorMessage(error, 'Revisa que los campos numéricos y el código de barras sean correctos.'),
-        confirmButtonColor: '#ef4444'
+        text: validationText || getApiErrorMessage(error, 'Revisa los campos numéricos y el código de barras.'),
+        confirmButtonColor: '#ef4444',
       });
     } finally {
       setSaving(false);
@@ -238,278 +228,216 @@ const ProductFormModal = ({
   const currentMargin = product?.currentMarginPercent ?? null;
   const averageCost = product?.averageCost ?? product?.purchasePrice ?? 0;
   const lastPurchaseCost = product?.lastPurchaseCost ?? product?.purchasePrice ?? 0;
+  const packCount = purchasePacks.filter((p) => p.label?.trim()).length;
 
   return (
     <ResponsiveModal
       isOpen={isOpen}
       onClose={onClose}
       icon={Package}
-      title={product ? 'Modificar Ficha de Producto' : 'Crear Producto en Catálogo'}
-      subtitle="Define códigos de barra fiscales, precios y proveedores en SuperNova."
-      initialSize="lg"
+      title={product ? 'Modificar producto' : 'Nuevo producto'}
+      subtitle="Código base, clasificación, precios y jerarquía de empaques"
+      initialSize="xl"
       sizeOptions={['md', 'lg', 'xl', 'full']}
-      bodyClassName="bg-[var(--app-surface)]"
-      headerClassName="bg-gradient-to-r from-primary to-primary-dark text-white"
+      bodyClassName="bg-[var(--app-bg-subtle)]/40 p-0"
+      headerClassName="bg-gradient-to-r from-[var(--app-primary)] to-[var(--app-primary-strong)] text-white"
+      footer={
+        <div className="flex flex-col items-end gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-end sm:gap-6">
+          <p className="text-right text-[11px] font-bold text-[var(--app-text-muted)]">
+            {packCount} empaque{packCount === 1 ? '' : 's'} · margen mín. {formData.minMarginPercent || 0}%
+          </p>
+          <div className="flex w-full gap-3 sm:w-auto">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-soft)] transition-all hover:bg-[var(--app-bg-subtle)] sm:flex-none"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="product-form"
+              disabled={saving}
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--app-primary)] px-7 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white shadow-lg transition-all hover:opacity-90 disabled:opacity-50 sm:flex-none"
+            >
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              Guardar
+            </button>
+          </div>
+        </div>
+      }
     >
-      <form onSubmit={handleSave} className="flex h-full flex-col">
-          <div className="flex-1 overflow-y-auto bg-[var(--app-surface)] p-5 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
-                  <Barcode size={13} /> Código de Barras
+      <form id="product-form" onSubmit={handleSave} className="flex h-full flex-col">
+        <div className="flex-1 space-y-4 overflow-y-auto p-4 md:p-5">
+          <FormSection
+            title="1. Identidad del producto"
+            description="Código de barras base (unidad mínima) y nombre comercial."
+          >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className={PRODUCT_LABEL}>
+                  <Barcode size={13} /> Código de barras <span className="text-[var(--app-danger)]">*</span>
                 </label>
                 <input
                   type="text"
                   name="barcode"
                   required
                   placeholder="Ej. 7401002233"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
+                  className={PRODUCT_FIELD}
                   value={formData.barcode}
                   onChange={handleChange}
                 />
               </div>
-
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Nombre Comercial</label>
+              <div>
+                <label className={PRODUCT_LABEL}>
+                  Nombre comercial <span className="text-[var(--app-danger)]">*</span>
+                </label>
                 <input
                   type="text"
                   name="name"
                   required
                   placeholder="Ej. Detergente Multiuso 1Kg"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
+                  className={PRODUCT_FIELD}
                   value={formData.name}
                   onChange={handleChange}
                 />
               </div>
             </div>
-
-            
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Detalles / Descripción</label>
+            <div>
+              <label className={PRODUCT_LABEL}>Descripción</label>
               <input
                 type="text"
                 name="description"
-                placeholder="Ej. Detergente en polvo biodegradable con fragancia a limón"
-                className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
+                placeholder="Detalle opcional para catálogo e inventario"
+                className={PRODUCT_FIELD}
                 value={formData.description}
                 onChange={handleChange}
               />
             </div>
+          </FormSection>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
-                  <Tag size={13} /> Categoría
+          <FormSection
+            title="2. Clasificación"
+            description="Categoría, proveedor, marca e impuesto aplicable."
+          >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className={PRODUCT_LABEL}>
+                  <Tag size={13} /> Categoría <span className="text-[var(--app-danger)]">*</span>
                 </label>
-                <select
-                  name="categoryId"
-                  required
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs cursor-pointer shadow-sm"
-                  value={formData.categoryId}
-                  onChange={handleChange}
-                >
+                <select name="categoryId" required className={`${PRODUCT_FIELD} cursor-pointer`} value={formData.categoryId} onChange={handleChange}>
                   <option value="" disabled={categories.length > 0}>
-                    {categories.length ? 'Seleccione categoría' : 'Sin categorías disponibles'}
+                    {categories.length ? 'Seleccione categoría' : 'Sin categorías'}
                   </option>
-                  {categories.map(cat => (
+                  {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
               </div>
-
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
-                  <Building2 size={13} /> Proveedor
+              <div>
+                <label className={PRODUCT_LABEL}>
+                  <Building2 size={13} /> Proveedor <span className="text-[var(--app-danger)]">*</span>
                 </label>
-                <select
-                  name="supplierId"
-                  required
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs cursor-pointer shadow-sm"
-                  value={formData.supplierId}
-                  onChange={handleChange}
-                >
+                <select name="supplierId" required className={`${PRODUCT_FIELD} cursor-pointer`} value={formData.supplierId} onChange={handleChange}>
                   <option value="" disabled={suppliers.length > 0}>
-                    {suppliers.length ? 'Seleccione proveedor' : 'Sin proveedores disponibles'}
+                    {suppliers.length ? 'Seleccione proveedor' : 'Sin proveedores'}
                   </option>
-                  {suppliers.map(sup => (
+                  {suppliers.map((sup) => (
                     <option key={sup.id} value={sup.id}>{sup.companyName || sup.name}</option>
                   ))}
                 </select>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
+              <div>
+                <label className={PRODUCT_LABEL}>
                   <Bookmark size={13} /> Marca
                 </label>
-                <select
-                  name="brandId"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs cursor-pointer shadow-sm"
-                  value={formData.brandId}
-                  onChange={handleChange}
-                >
+                <select name="brandId" className={`${PRODUCT_FIELD} cursor-pointer`} value={formData.brandId} onChange={handleChange}>
                   <option value="">Sin marca / Genérico</option>
-                  {brands && brands.map(b => (
+                  {brands?.map((b) => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>
               </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Mínimo en Exhibición</label>
-                <input
-                  type="number"
-                  name="minStockExhibicion"
-                  required
-                  min="0"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
-                  value={formData.minStockExhibicion}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
-                  <DollarSign size={13} /> Costo / unidad venta
+              <div>
+                <label className={PRODUCT_LABEL}>
+                  <Percent size={13} /> Tipo de impuesto <span className="text-[var(--app-danger)]">*</span>
                 </label>
-                <input
-                  type="number"
-                  name="purchasePrice"
-                  required
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0.00"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
-                  value={formData.purchasePrice}
-                  onChange={handleChange}
-                />
-              </div>
-
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
-                  <DollarSign size={13} /> Precio Venta
-                </label>
-                <input
-                  type="number"
-                  name="salePrice"
-                  required
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0.00"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
-                  value={formData.salePrice}
-                  onChange={handleChange}
-                />
-              </div>
-
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider flex items-center gap-1">
-                  <Percent size={13} /> Tipo Impuesto
-                </label>
-                <select
-                  name="taxCategoryId"
-                  required
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs cursor-pointer shadow-sm"
-                  value={formData.taxCategoryId}
-                  onChange={handleChange}
-                >
-                  {taxCategories.map(tax => (
+                <select name="taxCategoryId" required className={`${PRODUCT_FIELD} cursor-pointer`} value={formData.taxCategoryId} onChange={handleChange}>
+                  {taxCategories.map((tax) => (
                     <option key={tax.id} value={tax.id}>{tax.name} ({tax.rate}%)</option>
                   ))}
                 </select>
               </div>
             </div>
+          </FormSection>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Margen Mínimo (%)</label>
-                <input
-                  type="number"
-                  name="minMarginPercent"
-                  required
-                  min="0"
-                  step="0.01"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
-                  value={formData.minMarginPercent}
-                  onChange={handleChange}
-                />
+          <FormSection
+            title="3. Precios y stock"
+            description="Costo, venta, umbrales y política de precios."
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <label className={PRODUCT_LABEL}>
+                  <DollarSign size={13} /> Costo / UN <span className="text-[var(--app-danger)]">*</span>
+                </label>
+                <input type="number" name="purchasePrice" required step="0.01" min="0.01" placeholder="C$ 0.00" className={PRODUCT_NUMBER_FIELD} value={formData.purchasePrice} onChange={handleChange} />
               </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Política de Precio</label>
-                <select
-                  name="pricingPolicy"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs cursor-pointer shadow-sm"
-                  value={formData.pricingPolicy}
-                  onChange={handleChange}
-                >
-                  <option value="MANUAL">Manual</option>
-                  <option value="SUGGEST_ON_PURCHASE">Sugerir al comprar</option>
-                  <option value="AUTO_BY_MARGIN">Automático por margen</option>
-                </select>
+              <div>
+                <label className={PRODUCT_LABEL}>
+                  <DollarSign size={13} /> Precio venta / UN <span className="text-[var(--app-danger)]">*</span>
+                </label>
+                <input type="number" name="salePrice" required step="0.01" min="0.01" placeholder="C$ 0.00" className={PRODUCT_NUMBER_FIELD} value={formData.salePrice} onChange={handleChange} />
+              </div>
+              <div>
+                <label className={PRODUCT_LABEL}>Margen mínimo (%)</label>
+                <input type="number" name="minMarginPercent" required min="0" step="0.01" className={PRODUCT_NUMBER_FIELD} value={formData.minMarginPercent} onChange={handleChange} />
+              </div>
+              <div>
+                <label className={PRODUCT_LABEL}>Stock inicial</label>
+                <input type="number" name="currentStock" required min="0" className={PRODUCT_NUMBER_FIELD} value={formData.currentStock} onChange={handleChange} disabled={!!product} />
+              </div>
+              <div>
+                <label className={PRODUCT_LABEL}>Umbral mínimo bodega</label>
+                <input type="number" name="minimumStock" required min="1" className={PRODUCT_NUMBER_FIELD} value={formData.minimumStock} onChange={handleChange} />
+              </div>
+              <div>
+                <label className={PRODUCT_LABEL}>Mínimo en exhibición</label>
+                <input type="number" name="minStockExhibicion" required min="0" className={PRODUCT_NUMBER_FIELD} value={formData.minStockExhibicion} onChange={handleChange} />
               </div>
             </div>
-
+            <div>
+              <label className={PRODUCT_LABEL}>Política de precio</label>
+              <select name="pricingPolicy" className={`${PRODUCT_FIELD} cursor-pointer max-w-md`} value={formData.pricingPolicy} onChange={handleChange}>
+                <option value="MANUAL">Manual</option>
+                <option value="SUGGEST_ON_PURCHASE">Sugerir al comprar</option>
+                <option value="AUTO_BY_MARGIN">Automático por margen</option>
+              </select>
+            </div>
             {product && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40 p-4">
+              <div className="grid grid-cols-1 gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 sm:grid-cols-3">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Último costo</p>
-                  <p className="text-sm font-extrabold text-[var(--app-text)] mt-1">{formatMoney(lastPurchaseCost)}</p>
+                  <p className="mt-1 text-sm font-bold tabular-nums text-[var(--app-text)]">{formatMoney(lastPurchaseCost)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Costo promedio</p>
-                  <p className="text-sm font-extrabold text-[var(--app-text)] mt-1">{formatMoney(averageCost)}</p>
+                  <p className="mt-1 text-sm font-bold tabular-nums text-[var(--app-text)]">{formatMoney(averageCost)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Margen actual</p>
-                  <p className={`text-sm font-extrabold mt-1 ${currentMargin !== null && Number(currentMargin) < Number(formData.minMarginPercent || 0) ? 'text-amber-600' : 'text-emerald-600'}`}>
+                  <p className={`mt-1 text-sm font-bold tabular-nums ${currentMargin !== null && Number(currentMargin) < Number(formData.minMarginPercent || 0) ? 'text-[var(--app-warning)]' : 'text-[var(--app-success)]'}`}>
                     {currentMargin !== null ? `${Number(currentMargin).toFixed(2)}%` : 'Sin cálculo'}
                   </p>
                 </div>
               </div>
             )}
+          </FormSection>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Stock Inicial</label>
-                <input
-                  type="number"
-                  name="currentStock"
-                  required
-                  min="0"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm disabled:opacity-50 disabled:bg-[var(--app-bg-subtle)]"
-                  value={formData.currentStock}
-                  onChange={handleChange}
-                  disabled={!!product}
-                />
-              </div>
-
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--app-text-muted)] uppercase tracking-wider">Umbral Mínimo</label>
-                <input
-                  type="number"
-                  name="minimumStock"
-                  required
-                  min="1"
-                  className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-[var(--app-surface)] transition-all font-bold text-[var(--app-text)] text-xs shadow-sm"
-                  value={formData.minimumStock}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
+          <FormSection
+            title="4. Jerarquía de empaques (UOM)"
+            description="UN → cajilla → caja → rejilla. Cada nivel con su factor y código de barras."
+            bodyClassName="p-0"
+          >
             <ProductPurchasePacksSection
               barcode={formData.barcode}
               productName={formData.name}
@@ -518,82 +446,36 @@ const ProductFormModal = ({
               packTemplateKey={packTemplateKey}
               applyPackTemplate={applyPackTemplate}
             />
+          </FormSection>
 
-            
-            {product && (
-              <ProductLocationsSection 
-                product={product} 
-                onStockChanged={onSuccess} 
-              />
-            )}
+          {product && (
+            <FormSection title="5. Ubicaciones en bodega" description="Stock por ubicación física.">
+              <ProductLocationsSection product={product} onStockChanged={onSuccess} />
+            </FormSection>
+          )}
 
-            <div className="space-y-3 pt-3 border-t border-[var(--app-border)]">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  id="isActiveProduct"
-                  className="h-4.5 w-4.5 rounded text-primary border-[var(--app-border-strong)] focus:ring-primary/20 cursor-pointer"
-                  checked={formData.isActive}
-                  onChange={handleChange}
-                />
-                <label htmlFor="isActiveProduct" className="text-xs font-bold text-[var(--app-text-soft)] cursor-pointer select-none">
-                  Habilitar producto para comercialización y facturación en caja
+          <FormSection title={product ? '6. Control operativo' : '5. Control operativo'}>
+            <div className="space-y-3">
+              {[
+                { name: 'isActive', id: 'isActiveProduct', label: 'Habilitar para venta en caja' },
+                { name: 'requiresBatch', id: 'requiresBatchProduct', label: 'Controlar por lote (PEPS al vender)' },
+                { name: 'requiresExpiration', id: 'requiresExpirationProduct', label: 'Controlar por fecha de vencimiento' },
+              ].map(({ name, id, label }) => (
+                <label key={id} htmlFor={id} className="flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2.5">
+                  <input
+                    type="checkbox"
+                    name={name}
+                    id={id}
+                    className="h-4 w-4 rounded border-[var(--app-border)] accent-[var(--app-primary)]"
+                    checked={formData[name]}
+                    onChange={handleChange}
+                  />
+                  <span className="text-xs font-semibold text-[var(--app-text)]">{label}</span>
                 </label>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="requiresBatch"
-                  id="requiresBatchProduct"
-                  className="h-4.5 w-4.5 rounded text-primary border-[var(--app-border-strong)] focus:ring-primary/20 cursor-pointer"
-                  checked={formData.requiresBatch}
-                  onChange={handleChange}
-                />
-                <label htmlFor="requiresBatchProduct" className="text-xs font-bold text-[var(--app-text-soft)] cursor-pointer select-none">
-                  Controlar por Lote (descontará de lotes activos al vender)
-                </label>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="requiresExpiration"
-                  id="requiresExpirationProduct"
-                  className="h-4.5 w-4.5 rounded text-primary border-[var(--app-border-strong)] focus:ring-primary/20 cursor-pointer"
-                  checked={formData.requiresExpiration}
-                  onChange={handleChange}
-                />
-                <label htmlFor="requiresExpirationProduct" className="text-xs font-bold text-[var(--app-text-soft)] cursor-pointer select-none">
-                  Controlar por Fecha de Vencimiento (requiere fecha al recibir en bodega)
-                </label>
-              </div>
+              ))}
             </div>
-          </div>
-
-          
-          <div className="p-5 bg-[var(--app-bg-subtle)]/50 border-t border-[var(--app-border)] flex justify-end gap-3.5">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 bg-[var(--app-surface)] hover:bg-[var(--app-bg-subtle)] border border-[var(--app-border)] hover:border-[var(--app-border-strong)] text-[var(--app-text-soft)] font-bold rounded-xl transition-all text-xs uppercase tracking-wider cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-7 py-2.5 rounded-xl font-bold shadow-md shadow-emerald-500/10 hover:shadow-lg transition-all hover:scale-[1.02] duration-200 flex items-center gap-1.5 text-xs uppercase tracking-wider cursor-pointer"
-            >
-              {saving ? (
-                <Loader2 size={14} className="animate-spin animate-duration-1000" />
-              ) : (
-                <Save size={14} />
-              )}
-              Guardar
-            </button>
-          </div>
+          </FormSection>
+        </div>
       </form>
     </ResponsiveModal>
   );
