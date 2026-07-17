@@ -12,6 +12,10 @@ import ResponsiveModal from '../ui/ResponsiveModal';
 import PurchaseProductPicker from './PurchaseProductPicker';
 import PurchaseSupplierCatalog from './PurchaseSupplierCatalog';
 
+const ROW_INPUT =
+  'h-10 w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-3 text-xs font-bold text-[var(--app-text)] outline-none transition-all focus:border-[var(--app-primary)] focus:ring-2 focus:ring-[var(--app-primary)]/20 disabled:cursor-not-allowed disabled:opacity-50 placeholder:font-medium placeholder:text-[var(--app-text-muted)]';
+const ROW_NUMBER_INPUT = `${ROW_INPUT} text-right tabular-nums`;
+
 const emptyLine = () => ({
   productId: '',
   productSearch: '',
@@ -208,20 +212,20 @@ const PurchaseFormModal = ({
       subtitle="Define costo y precio de venta por unidad y empaque. Se aplican al recibir en bodega."
       initialSize="xl"
       sizeOptions={['md', 'lg', 'xl', 'full']}
-      bodyClassName="bg-[var(--app-surface)]"
+      bodyClassName="bg-[var(--app-surface)] p-0"
       footer={
-        <div className="flex flex-col gap-5 px-6 py-4 md:flex-row md:items-center md:justify-between">
-          <div className="text-left">
+        <div className="flex flex-col items-end gap-3 px-6 py-4 sm:flex-row sm:items-end sm:justify-end sm:gap-6">
+          <div className="text-right">
             <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
               Inversión Estimada
             </p>
-            <p className="text-2xl font-bold text-[var(--app-text)]">{money(total)}</p>
+            <p className="text-2xl font-bold tabular-nums text-[var(--app-text)]">{money(total)}</p>
           </div>
-          <div className="flex w-full gap-3 md:w-auto">
+          <div className="flex w-full gap-3 sm:w-auto">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-xl border border-[var(--app-border)] px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-soft)] transition-all hover:bg-[var(--app-bg-subtle)] md:flex-none cursor-pointer"
+              className="flex-1 cursor-pointer rounded-xl border border-[var(--app-border)] px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-soft)] transition-all hover:bg-[var(--app-bg-subtle)] sm:flex-none"
             >
               Cancelar
             </button>
@@ -229,7 +233,7 @@ const PurchaseFormModal = ({
               type="submit"
               form="purchase-order-form"
               disabled={saving}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--app-primary)] px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white shadow-lg shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 md:flex-none cursor-pointer"
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--app-primary)] px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white shadow-lg shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 sm:flex-none"
             >
               {saving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} strokeWidth={2.5} />}
               {isEditing ? 'Guardar cambios' : 'Guardar Orden'}
@@ -238,9 +242,10 @@ const PurchaseFormModal = ({
         </div>
       }
     >
-      <form id="purchase-order-form" onSubmit={handleFormSubmit} className="flex h-full flex-col bg-[var(--app-surface)]">
-        <div className="flex-1 space-y-5 overflow-y-auto p-4 md:p-6">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <form id="purchase-order-form" onSubmit={handleFormSubmit} className="flex h-full flex-col">
+        {/* Bloque superior: metadatos fijos */}
+        <section className="sticky top-0 z-10 shrink-0 border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/90 px-4 py-4 backdrop-blur-sm md:px-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
                 Proveedor
@@ -249,7 +254,7 @@ const PurchaseFormModal = ({
                 required
                 value={supplierId}
                 onChange={(e) => handleSupplierSelect(e.target.value)}
-                className="w-full cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-3 py-2 text-xs font-bold text-[var(--app-text)] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className={`${ROW_INPUT} cursor-pointer bg-[var(--app-surface)]`}
               >
                 <option value="">Seleccionar proveedor...</option>
                 {suppliers.map((supplier) => (
@@ -274,12 +279,15 @@ const PurchaseFormModal = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 maxLength="255"
-                className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-3 py-2 text-xs font-bold text-[var(--app-text)] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className={`${ROW_INPUT} bg-[var(--app-surface)]`}
                 placeholder="Ej. Factura #4452 - Entrega inmediata"
               />
             </div>
           </div>
+        </section>
 
+        {/* Bloque central: catálogo + tabla de ítems */}
+        <div className="flex-1 space-y-5 overflow-y-auto px-4 py-5 md:px-6">
           {supplierId ? (
             <PurchaseSupplierCatalog
               supplierName={supplierLabel}
@@ -295,32 +303,22 @@ const PurchaseFormModal = ({
             <strong>precios de venta</strong> de la unidad y del empaque indicados aquí.
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
-                Desglose de Ítems
-              </label>
-              <button
-                type="button"
-                onClick={addLine}
-                disabled={!supplierId}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-[var(--app-primary)]/10 bg-[var(--app-primary-soft)]/20 px-3 py-1 text-[10px] font-extrabold uppercase text-[var(--app-primary)] hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Plus size={11} strokeWidth={3} /> Añadir Fila
-              </button>
-            </div>
+          <section className="space-y-3">
+            <label className="block px-1 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
+              Desglose de Ítems
+            </label>
 
             <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
-              <div className="max-h-[50vh] min-h-[260px] overflow-auto pos-scroll">
+              <div className="max-h-[46vh] min-h-[240px] overflow-auto pos-scroll">
                 <table className="w-full min-w-[980px] border-collapse text-left">
                   <thead>
                     <tr className="border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/70 text-[10px] font-extrabold uppercase tracking-wider text-[var(--app-text-muted)]">
                       <th className="w-[24%] px-3 py-2.5">Producto</th>
                       <th className="w-[12%] px-2 py-2.5">Empaque</th>
-                      <th className="w-[8%] px-2 py-2.5">Cant.</th>
-                      <th className="w-[12%] px-2 py-2.5">Costo empaque</th>
-                      <th className="w-[12%] px-2 py-2.5">P. venta / UN</th>
-                      <th className="w-[12%] px-2 py-2.5">P. venta empaque</th>
+                      <th className="w-[8%] px-2 py-2.5 text-right">Cant.</th>
+                      <th className="w-[12%] px-2 py-2.5 text-right">Costo empaque</th>
+                      <th className="w-[12%] px-2 py-2.5 text-right">P. venta / UN</th>
+                      <th className="w-[12%] px-2 py-2.5 text-right">P. venta empaque</th>
                       <th className="w-[12%] px-2 py-2.5 text-right">Subtotal</th>
                       <th className="w-[40px] px-2 py-2.5"></th>
                     </tr>
@@ -347,6 +345,7 @@ const PurchaseFormModal = ({
                               productId={item.productId}
                               productSearch={item.productSearch}
                               disabled={!supplierId}
+                              inputClassName={ROW_INPUT}
                               onSelect={(candidate) => selectProductForLine(index, candidate)}
                               onSearchChange={(value) => updateLine(index, 'productSearch', value)}
                               onClear={() => clearProductForLine(index)}
@@ -367,7 +366,7 @@ const PurchaseFormModal = ({
                               value={item.purchasePackId}
                               onChange={(e) => updateLine(index, 'purchasePackId', e.target.value)}
                               disabled={!item.productId}
-                              className="w-full cursor-pointer rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2 py-2 text-xs font-bold text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] disabled:opacity-50"
+                              className={`${ROW_INPUT} cursor-pointer`}
                             >
                               <option value="">Empaque...</option>
                               {packs.map((pack) => (
@@ -390,10 +389,10 @@ const PurchaseFormModal = ({
                               value={item.quantityInPacks}
                               onChange={(e) => updateLine(index, 'quantityInPacks', e.target.value)}
                               disabled={!item.productId}
-                              className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2 py-2 text-xs font-bold text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] disabled:opacity-50"
+                              className={ROW_NUMBER_INPUT}
                             />
                             {item.productId && (
-                              <div className="mt-1 truncate text-[9px] text-[var(--app-text-muted)]">
+                              <div className="mt-1 truncate text-right text-[9px] text-[var(--app-text-muted)]">
                                 {formatPackSummary(item.quantityInPacks, selectedPack?.label, selectedPack?.factor)}
                               </div>
                             )}
@@ -408,10 +407,11 @@ const PurchaseFormModal = ({
                               value={item.costPerPack}
                               onChange={(e) => updateLine(index, 'costPerPack', e.target.value)}
                               disabled={!item.productId}
-                              className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2 py-2 text-xs font-bold text-[var(--app-text)] outline-none focus:border-[var(--app-primary)] disabled:opacity-50"
+                              placeholder="C$ 0.00"
+                              className={ROW_NUMBER_INPUT}
                             />
                             {unitCost > 0 && (
-                              <div className="mt-1 text-[9px] font-bold text-emerald-600">
+                              <div className="mt-1 text-right text-[9px] font-bold text-emerald-600">
                                 = {money(unitCost)}/UN costo
                               </div>
                             )}
@@ -426,9 +426,12 @@ const PurchaseFormModal = ({
                               value={item.salePricePerUnit}
                               onChange={(e) => updateLine(index, 'salePricePerUnit', e.target.value)}
                               disabled={!item.productId}
-                              className="w-full rounded-lg border border-blue-500/30 bg-[var(--app-surface)] px-2 py-2 text-xs font-bold text-[var(--app-text)] outline-none focus:border-blue-500 disabled:opacity-50"
+                              placeholder="C$ 0.00"
+                              className={`${ROW_NUMBER_INPUT} border-blue-500/30 focus:border-blue-500 focus:ring-blue-500/20`}
                             />
-                            <div className="mt-1 text-[9px] font-bold text-blue-700 dark:text-blue-300">Venta unidad</div>
+                            <div className="mt-1 text-right text-[9px] font-bold text-blue-700 dark:text-blue-300">
+                              Venta unidad
+                            </div>
                           </td>
 
                           <td className="px-2 py-3">
@@ -440,9 +443,10 @@ const PurchaseFormModal = ({
                               value={item.salePricePerPack}
                               onChange={(e) => updateLine(index, 'salePricePerPack', e.target.value)}
                               disabled={!item.productId}
-                              className="w-full rounded-lg border border-blue-500/30 bg-[var(--app-surface)] px-2 py-2 text-xs font-bold text-[var(--app-text)] outline-none focus:border-blue-500 disabled:opacity-50"
+                              placeholder="C$ 0.00"
+                              className={`${ROW_NUMBER_INPUT} border-blue-500/30 focus:border-blue-500 focus:ring-blue-500/20`}
                             />
-                            <div className="mt-1 text-[9px] font-bold text-blue-700 dark:text-blue-300">
+                            <div className="mt-1 text-right text-[9px] font-bold text-blue-700 dark:text-blue-300">
                               Venta {selectedPack?.label || 'empaque'}
                             </div>
                           </td>
@@ -450,7 +454,9 @@ const PurchaseFormModal = ({
                           <td className="px-2 py-3 text-right tabular-nums">
                             {item.productId ? (
                               <>
-                                <div className="pt-1.5 text-sm font-bold text-[var(--app-text)]">{money(lineTotal)}</div>
+                                <div className="flex h-10 items-center justify-end text-sm font-bold text-[var(--app-text)]">
+                                  {money(lineTotal)}
+                                </div>
                                 {selectedPack?.factor > 1 && Number(item.quantityInPacks) > 0 && (
                                   <div className="mt-1 flex items-center justify-end gap-1 text-[9px] font-bold text-[var(--app-primary)]">
                                     <ArrowRight size={8} />
@@ -459,7 +465,9 @@ const PurchaseFormModal = ({
                                 )}
                               </>
                             ) : (
-                              <div className="pt-1.5 text-xs italic text-[var(--app-text-muted)]">—</div>
+                              <div className="flex h-10 items-center justify-end text-xs italic text-[var(--app-text-muted)]">
+                                —
+                              </div>
                             )}
                           </td>
 
@@ -468,10 +476,10 @@ const PurchaseFormModal = ({
                               type="button"
                               onClick={() => removeLine(index)}
                               disabled={items.length === 1}
-                              className="mt-0.5 h-8 w-8 cursor-pointer rounded-lg text-[var(--app-text-muted)] transition-all hover:bg-red-500/10 hover:text-red-500 disabled:opacity-30"
+                              className="mt-1 flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-[var(--app-text-muted)] transition-all hover:bg-red-500/10 hover:text-red-500 disabled:opacity-30"
                               title="Eliminar fila"
                             >
-                              <Trash2 size={14} strokeWidth={2.5} className="mx-auto" />
+                              <Trash2 size={14} strokeWidth={2.5} />
                             </button>
                           </td>
                         </tr>
@@ -480,8 +488,18 @@ const PurchaseFormModal = ({
                   </tbody>
                 </table>
               </div>
+
+              <button
+                type="button"
+                onClick={addLine}
+                disabled={!supplierId}
+                className="flex w-full cursor-pointer items-center gap-2 border-t border-dashed border-[var(--app-border)] bg-[var(--app-bg-subtle)]/30 px-4 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-[var(--app-primary)] transition-colors hover:bg-[var(--app-bg-subtle)]/60 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Plus size={14} strokeWidth={3} />
+                Añadir fila
+              </button>
             </div>
-          </div>
+          </section>
         </div>
       </form>
     </ResponsiveModal>

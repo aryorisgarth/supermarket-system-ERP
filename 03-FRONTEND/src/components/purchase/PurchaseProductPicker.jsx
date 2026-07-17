@@ -22,6 +22,7 @@ const PurchaseProductPicker = ({
   productId,
   productSearch,
   disabled = false,
+  inputClassName = '',
   onSelect,
   onSearchChange,
   onClear,
@@ -126,7 +127,7 @@ const PurchaseProductPicker = ({
           onFocus={handleFocus}
           placeholder={supplierId ? 'Buscar en catálogo completo…' : 'Selecciona proveedor…'}
           disabled={disabled}
-          className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] py-2 pl-8 pr-8 text-xs font-bold text-[var(--app-text)] outline-none transition-all focus:border-[var(--app-primary)] disabled:opacity-50"
+          className={`w-full pl-8 pr-8 ${inputClassName || 'h-10 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] py-2 text-xs font-bold text-[var(--app-text)] outline-none transition-all focus:border-[var(--app-primary)] focus:ring-2 focus:ring-[var(--app-primary)]/20 disabled:opacity-50'}`}
         />
         {(loadingRemote || productId) && (
           <span className="absolute right-2 top-1/2 -translate-y-1/2">
