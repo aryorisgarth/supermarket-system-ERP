@@ -5,6 +5,17 @@ const path = require('path');
 const app = express();
 const PORT = Number(process.env.PORT || 3030);
 const API_URL = process.env.API_URL || 'http://api:8081/api';
+const BROWSER_API_URL = process.env.BROWSER_API_URL || '';
+
+function resolveBrowserApiBase(req) {
+  if (BROWSER_API_URL) {
+    return BROWSER_API_URL.replace(/\/$/, '');
+  }
+  const hostHeader = req.get('x-forwarded-host') || req.get('host') || 'localhost:3030';
+  const hostname = hostHeader.split(':')[0];
+  const protocol = req.get('x-forwarded-proto') || req.protocol || 'http';
+  return `${protocol}://${hostname}:8081/api`;
+}
 
 app.use(cors());
 app.use(express.json());
@@ -12,6 +23,14 @@ app.use(express.json());
 // Healthcheck ANTES de static: evita 404 si no hay archivo /health en public/
 app.get('/health', (_req, res) => {
     res.status(200).json({ ok: true, service: 'balanza', apiUrl: API_URL });
+});
+
+app.get('/api/config', (req, res) => {
+    const browserApi = resolveBrowserApiBase(req);
+    res.json({
+        productsActiveUrl: `${browserApi}/products/active`,
+        scaleConfigUrl: `${browserApi}/scale-config`,
+    });
 });
 
 app.use(express.static(path.join(__dirname, 'public')));

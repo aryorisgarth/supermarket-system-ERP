@@ -75,6 +75,7 @@ public class SecurityConfiguration {
 						.jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter)))
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/logout", "/api/auth/forgot-password", "/api/products/active").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/scale-config").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
 						.requestMatchers(HttpMethod.POST, "/api/auth/change-password").authenticated()
 						.requestMatchers("/actuator/health", "/actuator/info").permitAll()
