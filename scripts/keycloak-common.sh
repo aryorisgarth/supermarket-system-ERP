@@ -39,6 +39,41 @@ load_keycloak_env() {
   fi
 }
 
+ensure_admin_client_secret() {
+  local env_file="${ENV_FILE:-}"
+  if [[ -z "${env_file}" ]]; then
+    if [[ -f .env.prod ]]; then
+      env_file=".env.prod"
+    elif [[ -f .env ]]; then
+      env_file=".env"
+    fi
+  fi
+
+  if [[ -n "${KEYCLOAK_ADMIN_CLIENT_SECRET:-}" ]]; then
+    return 0
+  fi
+
+  if [[ -z "${env_file}" || ! -f "${env_file}" ]]; then
+    echo "ERROR: KEYCLOAK_ADMIN_CLIENT_SECRET vacio y no existe .env.prod"
+    echo "Crea .env.prod con:"
+    echo "  KEYCLOAK_ADMIN_CLIENT_SECRET=$(openssl rand -hex 24)"
+    exit 1
+  fi
+
+  local generated
+  generated="$(openssl rand -hex 24)"
+
+  if grep -q '^KEYCLOAK_ADMIN_CLIENT_SECRET=' "${env_file}"; then
+    sed -i "s/^KEYCLOAK_ADMIN_CLIENT_SECRET=.*/KEYCLOAK_ADMIN_CLIENT_SECRET=${generated}/" "${env_file}"
+  else
+    echo "KEYCLOAK_ADMIN_CLIENT_SECRET=${generated}" >> "${env_file}"
+  fi
+
+  export KEYCLOAK_ADMIN_CLIENT_SECRET="${generated}"
+  echo ">> KEYCLOAK_ADMIN_CLIENT_SECRET generado y guardado en ${env_file}"
+  echo ">> Reinicia la API despues del bootstrap para que tome el nuevo secret."
+}
+
 assert_keycloak_container() {
   if ! docker ps --format '{{.Names}}' | grep -qx "${KEYCLOAK_CONTAINER}"; then
     echo "ERROR: el contenedor '${KEYCLOAK_CONTAINER}' no esta corriendo."

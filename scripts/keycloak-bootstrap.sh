@@ -16,16 +16,13 @@ source "${SCRIPT_DIR}/keycloak-common.sh"
 REALM="${KEYCLOAK_REALM:-supermarket}"
 APP_CLIENT_ID="${KEYCLOAK_CLIENT_ID:-supermarket-app}"
 ADMIN_CLIENT_ID="${KEYCLOAK_ADMIN_CLIENT_ID:-supermarket-admin-client}"
-ADMIN_CLIENT_SECRET="${KEYCLOAK_ADMIN_CLIENT_SECRET:-}"
 
 load_keycloak_env
+ensure_admin_client_secret
 assert_keycloak_container
 wait_for_keycloak "http://127.0.0.1:8080/auth/realms/master"
 
-if [[ -z "${ADMIN_CLIENT_SECRET}" ]]; then
-  echo "ERROR: KEYCLOAK_ADMIN_CLIENT_SECRET vacio en .env.prod"
-  exit 1
-fi
+ADMIN_CLIENT_SECRET="${KEYCLOAK_ADMIN_CLIENT_SECRET:-}"
 
 echo ">> Bootstrap Keycloak realm=${REALM}"
 kcadm_credentials
