@@ -52,6 +52,7 @@ app:
       realm: ${KEYCLOAK_REALM:supermarket}
       client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:supermarket-admin-client}
       client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:admin-secret}
+      sync-roles-on-startup: ${KEYCLOAK_SYNC_ROLES_ON_STARTUP:true}
   billing:
     country: ${BILLING_COUNTRY:GT}
     electronic-invoice:

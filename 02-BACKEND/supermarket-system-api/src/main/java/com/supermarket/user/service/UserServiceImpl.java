@@ -111,7 +111,7 @@ public class UserServiceImpl implements UserService {
 				throw e;
 			}
 		}
-		keycloakAdminService.assignRole(keycloakId, request.getRoleName());
+		keycloakAdminService.assignRole(keycloakId, role.getName(), role.getDescription());
 
 		User user = userMapper.toEntity(request);
 		user.setPassword(passwordEncoder.encode("KEYCLOAK_MANAGED_USER"));
@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
 		if (!user.getRole().getName().equalsIgnoreCase(role.getName())) {
 			java.util.Optional<String> kcUserId = keycloakAdminService.findUserIdByEmail(user.getEmail());
 			if (kcUserId.isPresent()) {
-				keycloakAdminService.updateUserRole(kcUserId.get(), role.getName());
+				keycloakAdminService.updateUserRole(kcUserId.get(), role.getName(), role.getDescription());
 			}
 		}
 

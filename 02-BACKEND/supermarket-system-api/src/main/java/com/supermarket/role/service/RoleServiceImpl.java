@@ -21,6 +21,8 @@ import com.supermarket.role.mapper.RoleMapper;
 import com.supermarket.role.repository.RoleRepository;
 import com.supermarket.security.SecurityUtils;
 
+import com.supermarket.user.service.KeycloakAdminService;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -32,6 +34,7 @@ public class RoleServiceImpl implements RoleService {
 	private final RoleMapper roleMapper;
 	private final PermissionRepository permissionRepository;
 	private final AuditLogService auditLogService;
+	private final KeycloakAdminService keycloakAdminService;
 
 	@Override
 	public List<RoleResponseDTO> findAll() {
@@ -58,6 +61,7 @@ public class RoleServiceImpl implements RoleService {
 		Role role = roleMapper.toEntity(request);
 		applyPermissions(role, request.getPermissions());
 		Role saved = roleRepository.save(role);
+		keycloakAdminService.ensureRealmRole(saved.getName(), saved.getDescription());
 		return roleMapper.toResponse(saved);
 	}
 
@@ -67,6 +71,7 @@ public class RoleServiceImpl implements RoleService {
 		normalize(request);
 		Role role = roleRepository.findById(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
+		String previousName = role.getName();
 		String name = request.getName();
 		if (roleRepository.existsByNameIgnoreCaseAndIdNot(name, id)) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Role name already exists");
@@ -75,6 +80,9 @@ public class RoleServiceImpl implements RoleService {
 		roleMapper.apply(role, request);
 		applyPermissions(role, request.getPermissions());
 		Role saved = roleRepository.save(role);
+		if (!previousName.equalsIgnoreCase(saved.getName())) {
+			keycloakAdminService.ensureRealmRole(saved.getName(), saved.getDescription());
+		}
 		Set<String> newPermissions = permissionCodes(saved);
 		if (!oldPermissions.equals(newPermissions)) {
 			auditLogService.record(SecurityUtils.currentUserId(), "ROLE_PERMISSIONS_UPDATE", "roles", (long) saved.getId(),

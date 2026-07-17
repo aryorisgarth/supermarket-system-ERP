@@ -140,6 +140,11 @@ public class KeycloakAdminService {
 	}
 
 	public void assignRole(String userId, String roleName) {
+		assignRole(userId, roleName, roleName);
+	}
+
+	public void assignRole(String userId, String roleName, String roleDescription) {
+		ensureRealmRole(roleName, roleDescription);
 		String token = getAccessToken();
 
 		try {
@@ -170,7 +175,69 @@ public class KeycloakAdminService {
 		}
 	}
 
+	public void ensureRealmRole(String roleName, String description) {
+		String token = getAccessToken();
+		try {
+			restClient.get()
+					.uri(adminBase() + "/roles/" + roleName)
+					.header("Authorization", "Bearer " + token)
+					.retrieve()
+					.toBodilessEntity();
+			return;
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() != HttpStatus.NOT_FOUND) {
+				if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+					throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+							"Keycloak rechazó consultar roles (403). Ejecuta scripts/keycloak-grant-admin-roles.sh");
+				}
+				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+						"No se pudo verificar el rol en Keycloak: " + e.getResponseBodyAsString(), e);
+			}
+		}
+
+		Map<String, Object> roleBody = new java.util.LinkedHashMap<>();
+		roleBody.put("name", roleName);
+		roleBody.put("description", description != null && !description.isBlank() ? description : roleName);
+
+		try {
+			restClient.post()
+					.uri(adminBase() + "/roles")
+					.header("Authorization", "Bearer " + token)
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(roleBody)
+					.retrieve()
+					.toBodilessEntity();
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.CONFLICT) {
+				return;
+			}
+			if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+						"Keycloak rechazó crear rol (403). Ejecuta scripts/keycloak-grant-admin-roles.sh");
+			}
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo crear el rol en Keycloak: " + e.getResponseBodyAsString(), e);
+		}
+	}
+
+	public int syncRealmRoles(java.util.Collection<RoleDefinition> roles) {
+		int synced = 0;
+		for (RoleDefinition role : roles) {
+			ensureRealmRole(role.name(), role.description());
+			synced++;
+		}
+		return synced;
+	}
+
+	public record RoleDefinition(String name, String description) {
+	}
+
 	public void updateUserRole(String userId, String newRoleName) {
+		updateUserRole(userId, newRoleName, newRoleName);
+	}
+
+	public void updateUserRole(String userId, String newRoleName, String newRoleDescription) {
+		ensureRealmRole(newRoleName, newRoleDescription);
 		String token = getAccessToken();
 
 		try {
@@ -190,7 +257,7 @@ public class KeycloakAdminService {
 						.toBodilessEntity();
 			}
 
-			assignRole(userId, newRoleName);
+			assignRole(userId, newRoleName, newRoleDescription);
 		} catch (HttpClientErrorException e) {
 			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
 					"No se pudo actualizar el rol en Keycloak: " + e.getResponseBodyAsString(), e);

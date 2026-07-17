@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Profile("!test")
-@Order
+@Order(100)
 @RequiredArgsConstructor
 @Slf4j
 public class DataSeeder implements ApplicationRunner {
