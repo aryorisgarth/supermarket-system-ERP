@@ -10,7 +10,7 @@ const PromotionsKpis = ({ totalItems, activeCount, expiryCount, bogoCount }) => 
         </div>
         <div>
           <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Total Promos</span>
-          <span className="text-xl font-bold tabular-nums">{totalItems}</span>
+          <span className="text-xl font-bold tabular-nums text-[var(--app-text)]">{totalItems}</span>
         </div>
       </div>
 
@@ -20,7 +20,7 @@ const PromotionsKpis = ({ totalItems, activeCount, expiryCount, bogoCount }) => 
         </div>
         <div>
           <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Activas Pág.</span>
-          <span className="text-xl font-bold tabular-nums">{activeCount}</span>
+          <span className="text-xl font-bold tabular-nums text-[var(--app-text)]">{activeCount}</span>
         </div>
       </div>
 
@@ -30,7 +30,7 @@ const PromotionsKpis = ({ totalItems, activeCount, expiryCount, bogoCount }) => 
         </div>
         <div>
           <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Por Caducidad</span>
-          <span className="text-xl font-bold tabular-nums">{expiryCount}</span>
+          <span className="text-xl font-bold tabular-nums text-[var(--app-text)]">{expiryCount}</span>
         </div>
       </div>
 
@@ -40,7 +40,7 @@ const PromotionsKpis = ({ totalItems, activeCount, expiryCount, bogoCount }) => 
         </div>
         <div>
           <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Combos 2x1</span>
-          <span className="text-xl font-bold tabular-nums">{bogoCount}</span>
+          <span className="text-xl font-bold tabular-nums text-[var(--app-text)]">{bogoCount}</span>
         </div>
       </div>
     </div>

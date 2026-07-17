@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, Search, X } from 'lucide-react';
 import ProductService from '../../services/ProductService';
+import { PRODUCT_FIELD } from '../ui/formFieldStyles';
 
 const EXPIRY_PRESETS = [
   { days: 7, label: '7 d (1 semana)' },
@@ -108,7 +109,7 @@ const ProductSearchPicker = ({
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
           disabled={disabled}
-          className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-lg text-xs font-medium text-[var(--app-text)] disabled:opacity-50"
+          className={`${PRODUCT_FIELD} cursor-pointer text-xs disabled:opacity-50`}
         >
           <option value="">Todas las categorías</option>
           {categories.map((c) => (
@@ -119,7 +120,7 @@ const ProductSearchPicker = ({
           value={supplierId}
           onChange={(e) => setSupplierId(e.target.value)}
           disabled={disabled}
-          className="w-full px-3 py-2 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-lg text-xs font-medium text-[var(--app-text)] disabled:opacity-50"
+          className={`${PRODUCT_FIELD} cursor-pointer text-xs disabled:opacity-50`}
         >
           <option value="">Todos los proveedores</option>
           {suppliers.map((s) => (
@@ -143,7 +144,7 @@ const ProductSearchPicker = ({
           disabled={disabled}
           required={required && !productId}
           placeholder="Buscar por código, nombre, categoría o proveedor..."
-          className="w-full pl-9 pr-9 py-2.5 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-medium text-[var(--app-text)] disabled:opacity-50"
+          className={`${PRODUCT_FIELD} pl-9 pr-9 disabled:opacity-50`}
         />
         {(loading || productId) && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -183,7 +184,7 @@ const ProductSearchPicker = ({
       </div>
 
       {selectedProduct && (
-        <p className="text-[10px] font-medium text-emerald-700">
+        <p className="text-[10px] font-medium text-[var(--app-success)]">
           Seleccionado: <span className="font-bold">{selectedProduct.name}</span>
           {selectedProduct.barcode ? ` (${selectedProduct.barcode})` : ''}
         </p>

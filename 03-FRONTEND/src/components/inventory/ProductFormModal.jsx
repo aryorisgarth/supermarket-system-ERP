@@ -13,7 +13,7 @@ import ProductLocationsSection from './ProductLocationsSection';
 import ProductPurchasePacksSection from './ProductPurchasePacksSection';
 import ResponsiveModal from '../ui/ResponsiveModal';
 import FormSection from '../ui/FormSection';
-import { PRODUCT_FIELD, PRODUCT_LABEL, PRODUCT_NUMBER_FIELD } from './productFormStyles';
+import { PRODUCT_FIELD, PRODUCT_LABEL, PRODUCT_NUMBER_FIELD } from '../ui/formFieldStyles';
 
 const ProductFormModal = ({
   isOpen,

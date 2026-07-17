@@ -12,7 +12,7 @@ const PromotionsCardView = ({ promos, onEdit, onToggle, onDelete, formatMoney, f
           <div 
             key={p.id} 
             className={`bg-[var(--app-surface)] rounded-3xl border border-[var(--app-border)] shadow-sm hover:shadow-md hover:border-[var(--app-primary)]/30 transition-all duration-300 overflow-hidden flex flex-col ${
-              !p.isActive ? 'opacity-75 bg-slate-50/50 dark:bg-slate-900/10' : ''
+              !p.isActive ? 'opacity-75 bg-[var(--app-bg-subtle)]/60' : ''
             }`}
           >
             <div className="p-5 border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/30 flex justify-between items-start gap-3">
@@ -64,7 +64,7 @@ const PromotionsCardView = ({ promos, onEdit, onToggle, onDelete, formatMoney, f
                       Vence ≤ {p.expiryDaysTrigger}d
                     </span>
                   ) : (
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Venta General</span>
+                    <span className="font-bold text-emerald-700">Venta General</span>
                   )}
                 </div>
                 <div className="space-y-1">

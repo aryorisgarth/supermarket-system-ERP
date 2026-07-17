@@ -7,7 +7,7 @@ import {
   PACK_TEMPLATE_OPTIONS,
   sortPurchasePacks,
 } from '../../utils/purchaseUnits';
-import { PRODUCT_FIELD, PRODUCT_LABEL } from './productFormStyles';
+import { PRODUCT_FIELD, PRODUCT_LABEL } from '../ui/formFieldStyles';
 
 const ProductPurchasePacksSection = ({
   barcode,

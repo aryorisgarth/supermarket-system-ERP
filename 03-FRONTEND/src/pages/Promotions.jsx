@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Tag, Loader2, BadgePercent, Banknote, ShoppingBag } from 'lucide-react';
+import { Tag, Loader2, BadgePercent, Banknote, ShoppingBag, LayoutGrid } from 'lucide-react';
 import Swal from 'sweetalert2';
 import PromotionService from '../services/PromotionService';
 import CategoryService from '../services/CategoryService';
 import SupplierService from '../services/SupplierService';
 import BackendPagination from '../components/ui/BackendPagination';
+import ReportSection from '../components/reports/ReportSection';
 import useBackendList from '../hooks/useBackendList';
 import { formatMoney } from '../utils/formatMoney';
 
@@ -126,79 +127,97 @@ const Promotions = () => {
   const bogoCount = promos.filter(p => p.type === 'BOGO').length;
 
   return (
-    <div className="space-y-6 animate-fade-in text-[var(--app-text)]">
+    <div className="space-y-8 animate-fade-in text-[var(--app-text)]">
       <PromotionsHeader onCreate={openCreate} />
 
-      <PromotionsKpis 
-        totalItems={totalItems} 
-        activeCount={activeCount} 
-        expiryCount={expiryCount} 
-        bogoCount={bogoCount} 
-      />
-
-      <PromotionsFilters 
-        searchTerm={searchTerm} 
-        setSearchTerm={setSearchTerm} 
-        filterActive={filterActive} 
-        setFilterActive={setFilterActive} 
-        viewMode={viewMode} 
-        setViewMode={setViewMode} 
-      />
-
-      {loading ? (
-        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-3xl p-16 flex flex-col items-center justify-center gap-3 text-[var(--app-text-muted)]">
-          <Loader2 className="animate-spin text-[var(--app-primary)]" size={28} />
-          <p className="font-bold text-xs">Cargando promociones...</p>
-        </div>
-      ) : promos.length === 0 ? (
-        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-3xl p-16 flex flex-col items-center justify-center gap-3 text-[var(--app-text-muted)] text-center">
-          <Tag size={40} className="opacity-40 text-[var(--app-text-muted)]" />
-          <div>
-            <p className="font-bold text-sm text-[var(--app-text)]">No se encontraron promociones</p>
-            <p className="text-xs text-[var(--app-text-muted)] mt-1">Crea una nueva promoción para comenzar a aplicar descuentos automáticos.</p>
-          </div>
-        </div>
-      ) : viewMode === 'TABLE' ? (
-        <PromotionsTable 
-          promos={promos} 
-          onEdit={openEdit} 
-          onToggle={handleToggle} 
-          onDelete={handleDelete} 
-          formatMoney={formatMoney} 
-          formatDate={formatDate} 
-          typeMeta={TYPE_META} 
+      <ReportSection
+        icon={Tag}
+        accent="primary"
+        title="Resumen de promociones"
+        description="Totales en la página actual: activas, por caducidad y combos 2x1."
+      >
+        <PromotionsKpis
+          totalItems={totalItems}
+          activeCount={activeCount}
+          expiryCount={expiryCount}
+          bogoCount={bogoCount}
         />
-      ) : (
-        <PromotionsCardView 
-          promos={promos} 
-          onEdit={openEdit} 
-          onToggle={handleToggle} 
-          onDelete={handleDelete} 
-          formatMoney={formatMoney} 
-          formatDate={formatDate} 
-          typeMeta={TYPE_META} 
-        />
-      )}
+      </ReportSection>
 
-      <BackendPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        itemsPerPage={itemsPerPage}
-        indexOfFirstItem={indexOfFirstItem}
-        indexOfLastItem={indexOfLastItem}
-        totalItems={totalItems}
-        onPageChange={handlePageChange}
-        onItemsPerPageChange={handleItemsPerPageChange}
-        label="promociones"
-      />
+      <ReportSection
+        icon={LayoutGrid}
+        accent="reports"
+        title="Catálogo de promociones"
+        description="Busque, filtre por estado y cambie entre vista tarjetas o tabla."
+      >
+        <div className="space-y-4">
+          <PromotionsFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterActive={filterActive}
+            setFilterActive={setFilterActive}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+          />
 
-      <PromotionFormModal 
-        isOpen={showModal} 
-        onClose={() => setShowModal(false)} 
-        editing={editing} 
-        categories={categories} 
-        suppliers={suppliers} 
-        onSuccess={reload} 
+          {loading ? (
+            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-16 text-[var(--app-text-muted)]">
+              <Loader2 className="animate-spin text-[var(--app-primary)]" size={28} />
+              <p className="text-xs font-bold">Cargando promociones…</p>
+            </div>
+          ) : promos.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-16 text-center text-[var(--app-text-muted)]">
+              <Tag size={40} className="text-[var(--app-text-muted)] opacity-40" />
+              <div>
+                <p className="text-sm font-bold text-[var(--app-text)]">No se encontraron promociones</p>
+                <p className="mt-1 text-xs text-[var(--app-text-muted)]">
+                  Crea una nueva promoción para aplicar descuentos automáticos en caja.
+                </p>
+              </div>
+            </div>
+          ) : viewMode === 'TABLE' ? (
+            <PromotionsTable
+              promos={promos}
+              onEdit={openEdit}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
+              formatMoney={formatMoney}
+              formatDate={formatDate}
+              typeMeta={TYPE_META}
+            />
+          ) : (
+            <PromotionsCardView
+              promos={promos}
+              onEdit={openEdit}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
+              formatMoney={formatMoney}
+              formatDate={formatDate}
+              typeMeta={TYPE_META}
+            />
+          )}
+
+          <BackendPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            indexOfFirstItem={indexOfFirstItem}
+            indexOfLastItem={indexOfLastItem}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            label="promociones"
+          />
+        </div>
+      </ReportSection>
+
+      <PromotionFormModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        editing={editing}
+        categories={categories}
+        suppliers={suppliers}
+        onSuccess={reload}
       />
     </div>
   );
