@@ -61,7 +61,13 @@ public class KeycloakAdminService {
 
 			return (String) response.get("access_token");
 		} catch (HttpClientErrorException e) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to authenticate with Keycloak: " + e.getResponseBodyAsString(), e);
+			String body = e.getResponseBodyAsString();
+			if (body != null && body.contains("unauthorized_client")) {
+				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+						"Credenciales invalidas del client admin de Keycloak (supermarket-admin-client). "
+								+ "Verifica KEYCLOAK_ADMIN_CLIENT_SECRET en .env.prod y ejecuta: bash scripts/keycloak-bootstrap.sh");
+			}
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to authenticate with Keycloak: " + body, e);
 		}
 	}
 
