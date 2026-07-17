@@ -55,3 +55,34 @@ export function mapPluProduct(product, scaleConfig = null) {
 export function filterPluProducts(products = [], scaleConfig = null) {
   return products.filter((p) => isPluProduct(p, scaleConfig)).map((p) => mapPluProduct(p, scaleConfig));
 }
+
+/** Decodifica etiqueta EAN-13 de balanza → { plu, weight } o null. */
+export function parseScaleBarcode(barcode, scaleConfig = null) {
+  const str = String(barcode || '').trim();
+  const prefix = String(scaleConfig?.prefix ?? '20');
+  const pluLength = Number(scaleConfig?.pluLength ?? 5);
+  const weightLength = Number(scaleConfig?.weightLength ?? 5);
+  const divisor = Number(scaleConfig?.divisor ?? 1000);
+  const expectedLength = prefix.length + pluLength + weightLength + 1;
+
+  if (str.length !== expectedLength || !str.startsWith(prefix)) {
+    return null;
+  }
+
+  const pluStart = prefix.length;
+  const rawPlu = str.substring(pluStart, pluStart + pluLength);
+  const plu = rawPlu.replace(/^0+(?!$)/, '') || rawPlu;
+  const weightStr = str.substring(pluStart + pluLength, pluStart + pluLength + weightLength);
+  const weight = Number(weightStr) / divisor;
+
+  if (!plu || Number.isNaN(weight)) {
+    return null;
+  }
+
+  return { plu, weight };
+}
+
+export function normalizePluCode(code) {
+  if (code == null || code === '') return '';
+  return String(code).replace(/^0+(?!$)/, '') || String(code);
+}

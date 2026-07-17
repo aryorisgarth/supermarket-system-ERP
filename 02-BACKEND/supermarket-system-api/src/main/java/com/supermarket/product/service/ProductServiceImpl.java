@@ -625,6 +625,20 @@ public class ProductServiceImpl implements ProductService {
 			throw new ResourceNotFoundException("Product not found");
 		}
 
+		var direct = productRepository.findByBarcode(searchPlu);
+		if (direct.isPresent()) {
+			return direct.get();
+		}
+
+		com.supermarket.scale.entity.ScaleConfig config = scaleConfigService.getConfig();
+		if (searchPlu.matches("\\d+")) {
+			String padded = String.format("%0" + config.getPluLength() + "d", Long.parseLong(searchPlu));
+			var paddedHit = productRepository.findByBarcode(padded);
+			if (paddedHit.isPresent()) {
+				return paddedHit.get();
+			}
+		}
+
 		for (Product candidate : productRepository.findByIsActiveTrueOrderByBarcodeAsc()) {
 			if (candidate.getBarcode() == null) {
 				continue;
@@ -636,7 +650,6 @@ public class ProductServiceImpl implements ProductService {
 		}
 
 		if (fromScaleScan || searchPlu.length() <= 6) {
-			com.supermarket.scale.entity.ScaleConfig config = scaleConfigService.getConfig();
 			int prefixLen = config.getPrefix().length();
 			int expectedLength = prefixLen + config.getPluLength() + config.getWeightLength() + 1;
 

@@ -58,7 +58,8 @@ const ProductService = {
 
   
   getByBarcode: async (barcode) => {
-    const response = await api.get(`/products/barcode/${barcode}`);
+    const encoded = encodeURIComponent(String(barcode).trim());
+    const response = await api.get(`/products/barcode/${encoded}`);
     return response.data;
   },
 
