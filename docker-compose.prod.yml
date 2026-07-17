@@ -31,6 +31,8 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
       KC_PROXY_HEADERS: xforwarded
       KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-localhost}
       KC_HOSTNAME_PORT: ${KEYCLOAK_HOSTNAME_PORT:-80}
@@ -39,6 +41,12 @@ services:
     command: start-dev
     volumes:
       - keycloak_data:/opt/keycloak/data
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://127.0.0.1:8080/auth/health/ready || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
     networks:
       - supermarket-net
 
@@ -51,7 +59,7 @@ services:
       mysql:
         condition: service_healthy
       keycloak:
-        condition: service_started
+        condition: service_healthy
     networks:
       - supermarket-net
     environment:
