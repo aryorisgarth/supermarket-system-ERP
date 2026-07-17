@@ -22,6 +22,7 @@ export const usePurchaseForm = ({ onSuccess }) => {
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState([emptyLine()]);
   const [supplierProducts, setSupplierProducts] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState(null);
@@ -29,14 +30,40 @@ export const usePurchaseForm = ({ onSuccess }) => {
   const loadSupplierCatalog = useCallback(async (nextSupplierId) => {
     if (!nextSupplierId) {
       setSupplierProducts([]);
-      return;
+      setCatalogLoading(false);
+      return [];
     }
+
+    setCatalogLoading(true);
     try {
-      const data = await ProductService.getBySupplier(Number(nextSupplierId));
-      setSupplierProducts(normalizeProductList(Array.isArray(data) ? data : data?.content || []));
+      const pageSize = 200;
+      const firstPage = await ProductService.getInventoryPage({
+        supplierId: Number(nextSupplierId),
+        size: pageSize,
+        page: 0,
+        sort: 'name,asc',
+      });
+      let products = normalizeProductList(firstPage.content || []);
+      const totalPages = firstPage.totalPages || 1;
+
+      for (let page = 1; page < totalPages; page += 1) {
+        const nextPage = await ProductService.getInventoryPage({
+          supplierId: Number(nextSupplierId),
+          size: pageSize,
+          page,
+          sort: 'name,asc',
+        });
+        products = products.concat(normalizeProductList(nextPage.content || []));
+      }
+
+      setSupplierProducts(products.filter((product) => product.isActive !== false));
+      return products.filter((product) => product.isActive !== false);
     } catch (error) {
       console.error(error);
       setSupplierProducts([]);
+      return [];
+    } finally {
+      setCatalogLoading(false);
     }
   }, []);
 
@@ -62,9 +89,7 @@ export const usePurchaseForm = ({ onSuccess }) => {
       setEditingOrderId(order.id);
       setSupplierId(nextSupplierId);
       setNotes(order.notes || '');
-      const catalog = await ProductService.getBySupplier(Number(nextSupplierId));
-      const products = normalizeProductList(Array.isArray(catalog) ? catalog : catalog?.content || []);
-      setSupplierProducts(products);
+      const products = await loadSupplierCatalog(nextSupplierId);
 
       const mappedItems = (order.items || []).map((item) => {
         const product = products.find((p) => String(p.id) === String(item.product?.id));
@@ -95,7 +120,7 @@ export const usePurchaseForm = ({ onSuccess }) => {
       console.error(error);
       Swal.fire('Error', getApiErrorMessage(error, 'No se pudo cargar la orden para editar.'), 'error');
     }
-  }, []);
+  }, [loadSupplierCatalog]);
 
   const handleSupplierChange = useCallback((nextSupplierId) => {
     setSupplierId(nextSupplierId);
@@ -194,6 +219,7 @@ export const usePurchaseForm = ({ onSuccess }) => {
       setItems,
       saving,
       supplierProducts,
+      catalogLoading,
       onSupplierChange: handleSupplierChange,
       onSubmit: saveOrder,
       isEditing: Boolean(editingOrderId),

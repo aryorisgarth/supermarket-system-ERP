@@ -101,7 +101,7 @@ public class ProductServiceImpl implements ProductService {
 
 	@Override
 	public List<ProductResponseDTO> findBySupplier(Integer supplierId) {
-		return productRepository.findBySupplierIdOrderByBarcodeAsc(supplierId).stream()
+		return productRepository.findBySupplierIdAndIsActive(supplierId, true).stream()
 				.map(productMapper::toResponse)
 				.toList();
 	}
