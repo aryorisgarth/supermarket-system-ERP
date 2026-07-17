@@ -7,23 +7,24 @@ const BatchHeader = ({
   expiredCount,
   onRefresh,
   onWriteOff,
-  onCreateClick
+  onCreateClick,
 }) => {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
       <div>
-        <h1 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
-          <CalendarClock className="text-primary shrink-0" size={26} />
+        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[var(--app-text)]">
+          <CalendarClock className="shrink-0 text-[var(--app-primary)]" size={26} />
           Lotes y Vencimientos
         </h1>
-        <p className="text-text-secondary dark:text-text-secondary-dark text-sm font-medium">
+        <p className="mt-1 text-sm font-medium text-[var(--app-text-muted)]">
           Control de caducidad, merma y rotación PEPS (Primero en Entrar, Primero en Salir).
         </p>
       </div>
-      <div className="flex gap-2 w-full md:w-auto">
+      <div className="flex w-full gap-2 md:w-auto">
         <button
+          type="button"
           onClick={onRefresh}
-          className="flex items-center gap-2 bg-[var(--app-surface)] border border-[var(--app-border)] text-[var(--app-text-soft)] px-4 py-3 rounded-xl transition-all font-bold hover:bg-[var(--app-bg-subtle)] text-sm cursor-pointer"
+          className="flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-sm font-bold text-[var(--app-text-soft)] transition-all hover:bg-[var(--app-bg-subtle)]"
         >
           <RefreshCw size={16} /> Actualizar
         </button>
@@ -31,15 +32,16 @@ const BatchHeader = ({
           <button
             type="button"
             onClick={onWriteOff}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl transition-all font-bold text-sm cursor-pointer"
+            className="flex cursor-pointer items-center gap-2 rounded-xl bg-[var(--app-danger)] px-4 py-3 text-sm font-bold text-white transition-all hover:opacity-90"
           >
             <ShieldAlert size={16} /> Baja vencidos ({expiredCount})
           </button>
         )}
         {canCreateBatch && (
           <button
+            type="button"
             onClick={onCreateClick}
-            className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-5 py-3 rounded-xl transition-all shadow-enterprise font-bold hover:shadow-enterprise-lg hover:scale-[1.02] duration-250 flex-1 md:flex-none justify-center cursor-pointer text-sm"
+            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-bold text-white shadow-lg transition-all hover:opacity-90 md:flex-none"
           >
             <Plus size={18} /> Nuevo Lote
           </button>

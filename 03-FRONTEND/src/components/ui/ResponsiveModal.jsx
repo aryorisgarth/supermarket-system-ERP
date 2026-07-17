@@ -137,9 +137,9 @@ const ResponsiveModal = ({
           <div className="flex min-w-0 items-center gap-3">
             {Icon ? <Icon size={22} strokeWidth={2.5} className="shrink-0" /> : null}
             <div className="min-w-0">
-              <h3 className="truncate text-sm font-bold uppercase tracking-wider">{title}</h3>
+              <h3 className="truncate text-sm font-bold uppercase tracking-wider text-inherit">{title}</h3>
               {subtitle ? (
-                <p className="mt-0.5 truncate text-[10px] font-bold uppercase tracking-widest text-white/80">
+                <p className="mt-0.5 truncate text-[10px] font-bold uppercase tracking-widest opacity-80 text-inherit">
                   {subtitle}
                 </p>
               ) : null}
@@ -148,7 +148,7 @@ const ResponsiveModal = ({
 
           <div className="flex items-center gap-1.5">
             {headerActions}
-            <span className="hidden md:inline-flex rounded-lg bg-white/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white/80">
+            <span className="hidden md:inline-flex rounded-lg bg-black/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest opacity-80 text-inherit">
               {sizeLabel}
             </span>
             <button

@@ -19,6 +19,7 @@ import PurchasesVsSalesAnalysis from '../components/reports/PurchasesVsSalesAnal
 import TransactionAuditTable from '../components/reports/TransactionAuditTable';
 import ReportsChartsSection from '../components/reports/ReportsChartsSection';
 import CommercialGoalsTab from '../components/reports/CommercialGoalsTab';
+import ReportSection from '../components/reports/ReportSection';
 
 const money = formatMoney;
 const movementLabel = {
@@ -31,17 +32,17 @@ const movementLabel = {
 };
 
 const getReportCatalog = (reportsData) => [
-  { key: REPORT_SECTION.KPI_GENERAL, name: 'KPIs generales', description: 'Ingresos, utilidad, margen y ticket promedio.', count: reportsData.kpis ? 1 : 0, icon: Target },
-  { key: REPORT_SECTION.KPI_COMPARATIVE, name: 'Comparativo de KPIs', description: 'Variación contra el periodo anterior.', count: reportsData.comparison ? 1 : 0, icon: BarChart },
-  { key: REPORT_SECTION.DAILY_SALES, name: 'Ventas diarias', description: 'Flujo semanal de ventas.', count: reportsData.weeklySales.length, icon: BarChart },
-  { key: REPORT_SECTION.PAYMENT_METHODS, name: 'Métodos de pago', description: 'Distribución por efectivo, tarjeta y transferencia.', count: reportsData.paymentMethods.length, icon: Target },
-  { key: REPORT_SECTION.PRODUCT_PERFORMANCE, name: 'Productos rentables', description: 'Utilidad, margen y unidades vendidas.', count: reportsData.productPerformance.length, icon: Target },
-  { key: REPORT_SECTION.INVENTORY_MOVEMENTS, name: 'Entradas y salidas', description: 'Movimientos de inventario por tipo.', count: reportsData.inventoryMovements.length, icon: Boxes },
-  { key: REPORT_SECTION.INVENTORY_TURNOVER, name: 'Rotación de inventario', description: 'Días de inventario y baja rotación.', count: reportsData.inventoryTurnover.length, icon: Target },
-  { key: REPORT_SECTION.PURCHASES_VS_SALES, name: 'Compras vs ventas', description: 'Relación entre abastecimiento y salida comercial.', count: reportsData.purchasesVsSales ? 1 : 0, icon: ShoppingBag },
-  { key: REPORT_SECTION.SALES_BY_USER, name: 'Ventas por cajero', description: 'Ranking operativo por usuario.', count: reportsData.salesByUser.length, icon: Target },
-  { key: REPORT_SECTION.CUSTOMER_RANKING, name: 'Ranking de clientes', description: 'Clientes por visitas y monto comprado.', count: reportsData.customerRanking.length, icon: Target },
-  { key: REPORT_SECTION.STOCK_ALERTS, name: 'Stock crítico', description: 'Productos bajo mínimo.', count: reportsData.stockAlerts.length, icon: AlertCircle },
+  { key: REPORT_SECTION.KPI_GENERAL, area: 'commercial', name: 'KPIs generales', description: 'Ingresos, utilidad, margen y ticket promedio.', count: reportsData.kpis ? 1 : 0, icon: Target },
+  { key: REPORT_SECTION.KPI_COMPARATIVE, area: 'commercial', name: 'Comparativo de KPIs', description: 'Variación contra el periodo anterior.', count: reportsData.comparison ? 1 : 0, icon: BarChart },
+  { key: REPORT_SECTION.DAILY_SALES, area: 'commercial', name: 'Ventas diarias', description: 'Flujo semanal de ventas.', count: reportsData.weeklySales.length, icon: BarChart },
+  { key: REPORT_SECTION.PAYMENT_METHODS, area: 'commercial', name: 'Métodos de pago', description: 'Distribución por efectivo, tarjeta y transferencia.', count: reportsData.paymentMethods.length, icon: Target },
+  { key: REPORT_SECTION.PRODUCT_PERFORMANCE, area: 'commercial', name: 'Productos rentables', description: 'Utilidad, margen y unidades vendidas.', count: reportsData.productPerformance.length, icon: Target },
+  { key: REPORT_SECTION.SALES_BY_USER, area: 'commercial', name: 'Ventas por cajero', description: 'Ranking operativo por usuario.', count: reportsData.salesByUser.length, icon: Target },
+  { key: REPORT_SECTION.CUSTOMER_RANKING, area: 'commercial', name: 'Ranking de clientes', description: 'Clientes por visitas y monto comprado.', count: reportsData.customerRanking.length, icon: Target },
+  { key: REPORT_SECTION.INVENTORY_MOVEMENTS, area: 'inventory', name: 'Entradas y salidas', description: 'Movimientos de inventario por tipo.', count: reportsData.inventoryMovements.length, icon: Boxes },
+  { key: REPORT_SECTION.INVENTORY_TURNOVER, area: 'inventory', name: 'Rotación de inventario', description: 'Días de inventario y baja rotación.', count: reportsData.inventoryTurnover.length, icon: Target },
+  { key: REPORT_SECTION.STOCK_ALERTS, area: 'inventory', name: 'Stock crítico', description: 'Productos bajo mínimo.', count: reportsData.stockAlerts.length, icon: AlertCircle },
+  { key: REPORT_SECTION.PURCHASES_VS_SALES, area: 'operations', name: 'Compras vs ventas', description: 'Relación entre abastecimiento y salida comercial.', count: reportsData.purchasesVsSales ? 1 : 0, icon: ShoppingBag },
 ];
 
 const Reports = () => {
@@ -183,87 +184,114 @@ const Reports = () => {
       </div>
 
       {activeTab === 'METRICS' ? (
-        <div className="space-y-8">
-          <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
-            <label className="flex flex-col gap-1 text-xs font-bold text-[var(--app-text-muted)]">
-              Desde
-              <input
-                type="date"
-                className="ui-input"
-                value={dateFrom}
-                max={dateTo}
-                onChange={(e) => setDateFrom(e.target.value)}
+        <div className="space-y-10">
+          <ReportSection
+            icon={Target}
+            accent="primary"
+            title="Resumen Ejecutivo"
+            description="Indicadores clave del periodo seleccionado y filtros de fecha."
+          >
+            <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
+              <label className="flex flex-col gap-1 text-xs font-bold text-[var(--app-text-muted)]">
+                Desde
+                <input
+                  type="date"
+                  className="ui-input"
+                  value={dateFrom}
+                  max={dateTo}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs font-bold text-[var(--app-text-muted)]">
+                Hasta
+                <input
+                  type="date"
+                  className="ui-input"
+                  value={dateTo}
+                  min={dateFrom}
+                  max={todayStr}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </label>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  setDateFrom(firstDayOfYearStr);
+                  setDateTo(todayStr);
+                }}
+              >
+                Año actual
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  const d = new Date();
+                  const monthStart = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+                  setDateFrom(monthStart);
+                  setDateTo(todayStr);
+                }}
+              >
+                Mes actual
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <ReportMetricCard
+                title="Ingresos Totales"
+                value={money(reportsData.kpis?.totalSales ?? reportsData.totalWeeklySales)}
+                change={Number(reportsData.comparison?.totalSalesChangePercentage || 0).toFixed(1)}
+                isPositive={Number(reportsData.comparison?.totalSalesChangePercentage || 0) >= 0}
               />
-            </label>
-            <label className="flex flex-col gap-1 text-xs font-bold text-[var(--app-text-muted)]">
-              Hasta
-              <input
-                type="date"
-                className="ui-input"
-                value={dateTo}
-                min={dateFrom}
-                max={todayStr}
-                onChange={(e) => setDateTo(e.target.value)}
+              <ReportMetricCard
+                title="Utilidad Bruta"
+                value={money(reportsData.kpis?.grossProfit)}
+                change={Number(reportsData.comparison?.grossProfitChangePercentage || 0).toFixed(1)}
+                isPositive={Number(reportsData.comparison?.grossProfitChangePercentage || 0) >= 0}
               />
-            </label>
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                setDateFrom(firstDayOfYearStr);
-                setDateTo(todayStr);
-              }}
-            >
-              Año actual
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                const d = new Date();
-                const monthStart = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-                setDateFrom(monthStart);
-                setDateTo(todayStr);
-              }}
-            >
-              Mes actual
-            </Button>
-          </div>
+              <ReportMetricCard title="Margen Operativo" value={`${Number(reportsData.kpis?.grossMarginPercentage || 0).toFixed(1)}%`} />
+              <ReportMetricCard
+                title="Ticket Promedio"
+                value={money(reportsData.kpis?.averageTicket)}
+                change={Number(reportsData.comparison?.averageTicketChangePercentage || 0).toFixed(1)}
+                isPositive={Number(reportsData.comparison?.averageTicketChangePercentage || 0) >= 0}
+              />
+            </div>
+          </ReportSection>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <ReportMetricCard
-              title="Ingresos Totales"
-              value={money(reportsData.kpis?.totalSales ?? reportsData.totalWeeklySales)}
-              change={Number(reportsData.comparison?.totalSalesChangePercentage || 0).toFixed(1)}
-              isPositive={Number(reportsData.comparison?.totalSalesChangePercentage || 0) >= 0}
-            />
-            <ReportMetricCard
-              title="Utilidad Bruta"
-              value={money(reportsData.kpis?.grossProfit)}
-              change={Number(reportsData.comparison?.grossProfitChangePercentage || 0).toFixed(1)}
-              isPositive={Number(reportsData.comparison?.grossProfitChangePercentage || 0) >= 0}
-            />
-            <ReportMetricCard title="Margen Operativo" value={`${Number(reportsData.kpis?.grossMarginPercentage || 0).toFixed(1)}%`} />
-            <ReportMetricCard
-              title="Ticket Promedio"
-              value={money(reportsData.kpis?.averageTicket)}
-              change={Number(reportsData.comparison?.averageTicketChangePercentage || 0).toFixed(1)}
-              isPositive={Number(reportsData.comparison?.averageTicketChangePercentage || 0) >= 0}
-            />
-          </div>
+          <ReportSection
+            icon={BarChart}
+            accent="charts"
+            title="Gráficas y Tendencias"
+            description="Visualización de ventas, activos, medios de pago y productos rentables."
+          >
+            <ReportsChartsSection {...reportsData} money={money} />
+          </ReportSection>
 
-          <AvailableReports reportCatalog={reportCatalog} onPrintReport={handlePrintReport} />
+          <ReportSection
+            icon={Printer}
+            accent="reports"
+            title="Reportes Imprimibles"
+            description="Catálogo de informes por área: comercial, inventario y operaciones."
+          >
+            <AvailableReports reportCatalog={reportCatalog} onPrintReport={handlePrintReport} />
+          </ReportSection>
 
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-            <InventoryFlowAnalysis {...reportsData} movementLabel={movementLabel} money={money} />
-            <PurchasesVsSalesAnalysis {...reportsData} money={money} />
-          </div>
-
-          <ReportsChartsSection {...reportsData} money={money} />
-
-          <TransactionAuditTable sales={reportsData.sales} money={money} />
+          <ReportSection
+            icon={Boxes}
+            accent="analysis"
+            title="Análisis Detallado"
+            description="Flujo de inventario, compras vs ventas y auditoría de transacciones."
+          >
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+              <InventoryFlowAnalysis {...reportsData} movementLabel={movementLabel} money={money} />
+              <PurchasesVsSalesAnalysis {...reportsData} money={money} />
+            </div>
+            <TransactionAuditTable sales={reportsData.sales} money={money} />
+          </ReportSection>
         </div>
       ) : (
         <CommercialGoalsTab {...goalsData} money={money} />

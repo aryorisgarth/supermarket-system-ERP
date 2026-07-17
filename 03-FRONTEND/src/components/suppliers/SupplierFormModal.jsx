@@ -2,6 +2,10 @@ import React from 'react';
 import { Building2, Loader2, Save } from 'lucide-react';
 import ResponsiveModal from '../ui/ResponsiveModal';
 
+const FIELD =
+  'h-10 w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-3 text-xs font-medium text-[var(--app-text)] outline-none transition-all placeholder:text-[var(--app-text-muted)] focus:border-[var(--app-primary)] focus:ring-2 focus:ring-[var(--app-primary)]/20';
+const LABEL = 'mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]';
+
 const SupplierFormModal = ({
   onClose,
   editingSupplier = null,
@@ -26,87 +30,21 @@ const SupplierFormModal = ({
       subtitle={editingSupplier ? 'Actualizar información del proveedor' : 'Registrar nuevo proveedor'}
       initialSize="md"
       sizeOptions={['sm', 'md', 'lg']}
-      headerClassName="bg-gradient-to-r from-violet-700 to-indigo-700 text-white"
-    >
-      <form onSubmit={onSubmit} className="p-6 space-y-4">
-        <div>
-          <label className="block text-xs font-bold text-text-primary dark:text-text-primary-dark mb-1.5">
-            Nombre de la Empresa *
-          </label>
-          <input
-            type="text"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            className="w-full px-4 py-2.5 bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-medium text-text-primary dark:text-text-primary-dark"
-            placeholder="Ej: Supermercado Central S.A."
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-text-primary dark:text-text-primary-dark mb-1.5">
-            Nombre de Contacto
-          </label>
-          <input
-            type="text"
-            value={contactName}
-            onChange={(e) => setContactName(e.target.value)}
-            className="w-full px-4 py-2.5 bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-medium text-text-primary dark:text-text-primary-dark"
-            placeholder="Ej: Juan Pérez"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-text-primary dark:text-text-primary-dark mb-1.5">
-            Teléfono
-          </label>
-          <input
-            type="text"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="w-full px-4 py-2.5 bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-medium text-text-primary dark:text-text-primary-dark"
-            placeholder="Ej: +502 1234-5678"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-text-primary dark:text-text-primary-dark mb-1.5">
-            Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2.5 bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-medium text-text-primary dark:text-text-primary-dark"
-            placeholder="Ej: contacto@empresa.com"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-text-primary dark:text-text-primary-dark mb-1.5">
-            Dirección
-          </label>
-          <textarea
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            rows="2"
-            className="w-full px-4 py-2.5 bg-surface dark:bg-surface-dark border border-border-light dark:border-border-light-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-medium text-text-primary dark:text-text-primary-dark resize-none"
-            placeholder="Ej: Calle Principal #123, Ciudad"
-          />
-        </div>
-
-        <div className="flex gap-3 pt-2">
+      headerClassName="bg-gradient-to-r from-[var(--app-primary)] to-[var(--app-primary-strong)] text-white"
+      footer={
+        <div className="flex gap-3 px-6 py-4">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark border border-border-light dark:border-border-light-dark rounded-lg font-bold text-xs hover:bg-surface/80 dark:hover:bg-surface-dark/80 transition-all cursor-pointer"
+            className="flex-1 cursor-pointer rounded-xl border border-[var(--app-border)] px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-soft)] transition-all hover:bg-[var(--app-bg-subtle)]"
           >
             Cancelar
           </button>
           <button
             type="submit"
+            form="supplier-form"
             disabled={saving}
-            className="flex-1 px-4 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-indigo-600 hover:to-violet-600 text-white rounded-xl font-bold text-xs transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer border-0"
+            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--app-primary)] px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white shadow-lg transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? (
               <>
@@ -120,6 +58,76 @@ const SupplierFormModal = ({
               </>
             )}
           </button>
+        </div>
+      }
+    >
+      <form id="supplier-form" onSubmit={onSubmit} className="space-y-4 p-6">
+        <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/50 px-4 py-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
+            Datos del proveedor
+          </p>
+          <p className="mt-0.5 text-xs text-[var(--app-text-soft)]">
+            Información usada en compras, recepción en bodega y catálogo por proveedor.
+          </p>
+        </div>
+
+        <div>
+          <label className={LABEL}>
+            Nombre de la Empresa <span className="text-[var(--app-danger)]">*</span>
+          </label>
+          <input
+            type="text"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            className={FIELD}
+            placeholder="Ej: Supermercado Central S.A."
+            required
+          />
+        </div>
+
+        <div>
+          <label className={LABEL}>Nombre de Contacto</label>
+          <input
+            type="text"
+            value={contactName}
+            onChange={(e) => setContactName(e.target.value)}
+            className={FIELD}
+            placeholder="Ej: Juan Pérez"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className={LABEL}>Teléfono</label>
+            <input
+              type="text"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className={FIELD}
+              placeholder="Ej: +502 1234-5678"
+            />
+          </div>
+          <div>
+            <label className={LABEL}>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={FIELD}
+              placeholder="Ej: contacto@empresa.com"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className={LABEL}>Dirección</label>
+          <textarea
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            rows="2"
+            className={`${FIELD} min-h-[72px] resize-none py-2.5`}
+            placeholder="Ej: Calle Principal #123, Ciudad"
+          />
         </div>
       </form>
     </ResponsiveModal>
