@@ -1,7 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Check } from 'lucide-react';
+import { Check, Landmark } from 'lucide-react';
 import { formatMoney } from '../../utils/formatMoney';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const MockQrCode = () => (
   <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg" className="bg-white p-2 rounded-lg border border-slate-200">
@@ -46,32 +46,18 @@ const TransferSimulatorModal = ({ show, onClose, onSuccess, amount, bankName }) 
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+    <ResponsiveModal
+      isOpen={show}
+      onClose={onClose}
+      icon={Landmark}
+      title="Simulador de Transferencia"
+      subtitle={bankName}
+      initialSize="md"
+      sizeOptions={['sm', 'md']}
+      resizable={false}
     >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 12 }}
-        className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
-      >
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
-            Simulador de Transferencia
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-800"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="my-5 flex flex-col items-center gap-4 text-center">
+      <div className="p-6">
+        <div className="my-1 flex flex-col items-center gap-4 text-center">
           <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 w-full text-left space-y-2.5">
             <div>
               <span className="block text-[9px] font-bold uppercase text-slate-450">Banco Receptor</span>
@@ -97,7 +83,7 @@ const TransferSimulatorModal = ({ show, onClose, onSuccess, amount, bankName }) 
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-4">
+        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-4 mt-4">
           <button
             type="button"
             onClick={onClose}
@@ -114,8 +100,8 @@ const TransferSimulatorModal = ({ show, onClose, onSuccess, amount, bankName }) 
             Confirmar
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </ResponsiveModal>
   );
 };
 

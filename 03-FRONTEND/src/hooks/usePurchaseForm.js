@@ -36,28 +36,34 @@ export const usePurchaseForm = ({ onSuccess }) => {
 
     setCatalogLoading(true);
     try {
-      const pageSize = 200;
-      const firstPage = await ProductService.getInventoryPage({
-        supplierId: Number(nextSupplierId),
-        size: pageSize,
-        page: 0,
-        sort: 'name,asc',
-      });
-      let products = normalizeProductList(firstPage.content || []);
-      const totalPages = firstPage.totalPages || 1;
+      const bySupplier = await ProductService.getBySupplier(Number(nextSupplierId));
+      let products = normalizeProductList(Array.isArray(bySupplier) ? bySupplier : []);
 
-      for (let page = 1; page < totalPages; page += 1) {
-        const nextPage = await ProductService.getInventoryPage({
+      if (products.length === 0) {
+        const pageSize = 500;
+        const firstPage = await ProductService.getInventoryPage({
           supplierId: Number(nextSupplierId),
           size: pageSize,
-          page,
+          page: 0,
           sort: 'name,asc',
         });
-        products = products.concat(normalizeProductList(nextPage.content || []));
+        products = normalizeProductList(firstPage.content || []);
+        const totalPages = firstPage.totalPages || 1;
+
+        for (let page = 1; page < totalPages; page += 1) {
+          const nextPage = await ProductService.getInventoryPage({
+            supplierId: Number(nextSupplierId),
+            size: pageSize,
+            page,
+            sort: 'name,asc',
+          });
+          products = products.concat(normalizeProductList(nextPage.content || []));
+        }
       }
 
-      setSupplierProducts(products.filter((product) => product.isActive !== false));
-      return products.filter((product) => product.isActive !== false);
+      products = products.filter((product) => product.isActive !== false);
+      setSupplierProducts(products);
+      return products;
     } catch (error) {
       console.error(error);
       setSupplierProducts([]);

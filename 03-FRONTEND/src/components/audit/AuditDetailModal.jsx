@@ -1,7 +1,8 @@
 import React from 'react';
-import { Terminal, X, GitCompare, FileJson, AlertOctagon, Check } from 'lucide-react';
+import { Terminal, GitCompare, FileJson, AlertOctagon, Check } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const AuditDetailModal = ({
   selectedLog,
@@ -168,35 +169,23 @@ const AuditDetailModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm animate-fade-in">
-      <div className="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl animate-scale-up">
-        
-        <div className="flex items-start justify-between gap-4 border-b border-[var(--app-border)] bg-gradient-to-r from-[var(--app-primary)] to-indigo-800 p-6 text-white">
-          <div className="flex items-start gap-3">
-            <span className="rounded-2xl bg-white/10 p-3">
-              <Terminal size={22} />
-            </span>
-            <div>
-              <h3 className="text-lg font-bold">Detalle de Auditoría #{selectedLog.id}</h3>
-              <p className="mt-1 text-xs font-bold text-white/80">
-                {getActionLabel(selectedLog.action)} en {getModuleLabel(selectedLog.affectedTable)} por{' '}
-                {selectedLog.userFullName || 'Sistema'}.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSelectedLog(null)}
-            className="rounded-xl p-2 text-white/80 transition hover:bg-white/10 hover:text-white"
-          >
-            <X size={20} />
-          </button>
+    <ResponsiveModal
+      isOpen
+      onClose={() => setSelectedLog(null)}
+      icon={Terminal}
+      title={`Detalle de Auditoría #${selectedLog.id}`}
+      subtitle={`${getActionLabel(selectedLog.action)} en ${getModuleLabel(selectedLog.affectedTable)} por ${selectedLog.userFullName || 'Sistema'}.`}
+      initialSize="xl"
+      sizeOptions={['md', 'lg', 'xl', 'full']}
+      headerClassName="bg-gradient-to-r from-[var(--app-primary)] to-indigo-800 text-white"
+      footer={
+        <div className="flex justify-end px-6 py-4">
+          <Button onClick={() => setSelectedLog(null)}>Cerrar Detalle</Button>
         </div>
-
-        
-        <div className="max-h-[calc(92vh-190px)] overflow-y-auto p-6">
-          
-          <div className="mb-6 grid gap-3 grid-cols-2 md:grid-cols-4">
+      }
+    >
+      <div className="space-y-6 p-6">
+        <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
             <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4">
               <p className="text-[10px] font-bold uppercase text-[var(--app-text-muted)]">Fecha y Hora</p>
               <p className="mt-1 text-xs font-bold">{formatDateTime(selectedLog.logDate)}</p>
@@ -243,15 +232,9 @@ const AuditDetailModal = ({
           </div>
 
           
-          {renderEnhancedJsonDiff(selectedLog.oldValues, selectedLog.newValues)}
-        </div>
-
-        
-        <div className="border-t border-[var(--app-border)] bg-[var(--app-bg-subtle)]/50 p-4 flex justify-end">
-          <Button onClick={() => setSelectedLog(null)}>Cerrar Detalle</Button>
-        </div>
+        {renderEnhancedJsonDiff(selectedLog.oldValues, selectedLog.newValues)}
       </div>
-    </div>
+    </ResponsiveModal>
   );
 };
 

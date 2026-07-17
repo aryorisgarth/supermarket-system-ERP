@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Loader2, Undo2, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Loader2, Undo2, RotateCcw, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import SaleService from '../../services/SaleService';
 import { formatMoney } from '../../utils/formatMoney';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const REASONS = [
   'Producto defectuoso',
@@ -126,25 +127,17 @@ const RefundModal = ({ saleId, invoiceNumber, onClose, onDone }) => {
   const allReturned = data?.fullyRefunded;
 
   return (
-    <div className="fixed inset-0 bg-[var(--app-bg)]/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
-      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-2xl w-full overflow-hidden max-h-[92vh] flex flex-col">
-        
-        <div className="bg-gradient-to-r from-rose-600 to-rose-500 p-5 text-white flex justify-between items-center shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/15 rounded-lg">
-              <Undo2 size={20} />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider">Devolución / Nota de Crédito</h3>
-              <p className="text-white/80 text-[11px] font-medium">Factura {invoiceNumber}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all cursor-pointer">
-            <X size={18} />
-          </button>
-        </div>
-
-        {loading ? (
+    <ResponsiveModal
+      onClose={onClose}
+      icon={Undo2}
+      title="Devolución / Nota de Crédito"
+      subtitle={`Factura ${invoiceNumber}`}
+      initialSize="lg"
+      sizeOptions={['md', 'lg', 'xl']}
+      headerClassName="bg-gradient-to-r from-rose-600 to-rose-500 text-white"
+      bodyClassName="flex flex-col"
+    >
+      {loading ? (
           <div className="flex items-center justify-center py-20 text-[var(--app-text-muted)]">
             <Loader2 className="animate-spin mr-2" size={22} /> Cargando líneas...
           </div>
@@ -258,8 +251,7 @@ const RefundModal = ({ saleId, invoiceNumber, onClose, onDone }) => {
             )}
           </>
         )}
-      </div>
-    </div>
+    </ResponsiveModal>
   );
 };
 

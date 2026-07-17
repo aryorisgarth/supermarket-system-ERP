@@ -10,12 +10,12 @@ import {
   Loader2,
   RefreshCw,
   Scale,
-  X,
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import ReportService from '../../services/ReportService';
 import { formatMoney } from '../../utils/formatMoney';
 import { getApiErrorMessage } from '../../utils/apiError';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const money = formatMoney;
 
@@ -205,25 +205,17 @@ const KardexModal = ({ isOpen, onClose, product }) => {
   if (!isOpen || !product) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-6xl w-full overflow-hidden">
-        <div className="bg-[var(--app-text)] p-5 text-[var(--app-surface)] flex justify-between items-center shadow-sm">
-          <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider">Kardex de Inventario</h3>
-            <p className="opacity-70 text-[11px] font-medium mt-1">
-              {product.name} · Código {product.barcode || 'N/A'} · Stock actual: {number(product.currentStock)}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="opacity-70 hover:opacity-100 hover:bg-white/10 p-1.5 rounded-lg transition-all cursor-pointer"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <div className="border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40 px-5 py-3">
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={FileText}
+      title="Kardex de Inventario"
+      subtitle={`${product.name} · Código ${product.barcode || 'N/A'} · Stock actual: ${number(product.currentStock)}`}
+      initialSize="xl"
+      sizeOptions={['lg', 'xl', 'full']}
+      headerClassName="bg-[var(--app-text)] text-[var(--app-surface)]"
+    >
+      <div className="border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/40 px-5 py-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
@@ -444,8 +436,7 @@ const KardexModal = ({ isOpen, onClose, product }) => {
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </ResponsiveModal>
   );
 };
 

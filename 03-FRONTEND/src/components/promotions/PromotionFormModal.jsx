@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Tag, X, Save, Loader2, CalendarClock } from 'lucide-react';
+import { Tag, Save, Loader2, CalendarClock } from 'lucide-react';
 import Swal from 'sweetalert2';
 import PromotionService from '../../services/PromotionService';
 import ProductSearchPicker, { EXPIRY_PRESETS } from './ProductSearchPicker';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const today = new Date().toISOString().slice(0, 10);
 const emptyForm = {
@@ -134,20 +135,17 @@ const PromotionFormModal = ({ isOpen, onClose, editing, categories, suppliers, o
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-lg w-full overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="bg-gradient-to-r from-[var(--app-primary)] to-[var(--app-primary-strong)] p-5 text-white flex justify-between items-center shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/10 rounded-xl"><Tag size={18} /></div>
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider">{editing ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
-              <p className="text-white/80 text-[10px] font-bold">Configuración de descuento automático</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all cursor-pointer"><X size={16} /></button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-4 pos-scroll">
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={Tag}
+      title={editing ? 'Editar Promoción' : 'Nueva Promoción'}
+      subtitle="Configuración de descuento automático"
+      initialSize="lg"
+      sizeOptions={['md', 'lg', 'xl']}
+      headerClassName="bg-gradient-to-r from-[var(--app-primary)] to-[var(--app-primary-strong)] text-white"
+    >
+      <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-4 pos-scroll">
           <div>
             <label className="block text-[11px] font-bold text-[var(--app-text)] mb-1.5 uppercase tracking-wider">Nombre de la Promoción *</label>
             <input 
@@ -352,9 +350,8 @@ const PromotionFormModal = ({ isOpen, onClose, editing, categories, suppliers, o
               {saving ? <><Loader2 size={14} className="animate-spin" /> Guardando...</> : <><Save size={14} /> {editing ? 'Guardar Cambios' : 'Crear Promoción'}</>}
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </ResponsiveModal>
   );
 };
 

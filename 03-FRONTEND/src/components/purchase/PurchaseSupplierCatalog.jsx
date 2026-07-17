@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Package, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
+
+const PAGE_SIZE = 25;
 
 const PurchaseSupplierCatalog = ({
   supplierName,
@@ -10,6 +12,7 @@ const PurchaseSupplierCatalog = ({
 }) => {
   const [expanded, setExpanded] = useState(true);
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(0);
 
   const filteredProducts = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -21,6 +24,17 @@ const PurchaseSupplierCatalog = ({
       return name.includes(term) || barcode.includes(term) || category.includes(term);
     });
   }, [products, query]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const pageItems = filteredProducts.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
+  const rangeStart = filteredProducts.length === 0 ? 0 : safePage * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(filteredProducts.length, safePage * PAGE_SIZE + PAGE_SIZE);
+
+  const handleQueryChange = (value) => {
+    setQuery(value);
+    setPage(0);
+  };
 
   if (!loading && products.length === 0) {
     return (
@@ -44,17 +58,17 @@ const PurchaseSupplierCatalog = ({
       >
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
-            Catálogo del proveedor
+            Catálogo completo del proveedor
           </p>
           <p className="mt-0.5 text-xs font-bold text-[var(--app-text)]">
-            {supplierName || 'Proveedor'} · {products.length} producto{products.length === 1 ? '' : 's'}
+            {supplierName || 'Proveedor'} · {products.length} producto{products.length === 1 ? '' : 's'} · clic para agregar
           </p>
         </div>
         {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
 
       {expanded && (
-        <div className="border-t border-[var(--app-border)] px-4 pb-4 pt-3 space-y-3">
+        <div className="space-y-3 border-t border-[var(--app-border)] px-4 pb-4 pt-3">
           <div className="relative">
             <Search
               size={14}
@@ -63,47 +77,100 @@ const PurchaseSupplierCatalog = ({
             <input
               type="text"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filtrar catálogo…"
+              onChange={(event) => handleQueryChange(event.target.value)}
+              placeholder="Filtrar por nombre, código o categoría…"
               className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] py-2 pl-9 pr-3 text-xs font-medium text-[var(--app-text)] outline-none focus:border-[var(--app-primary)]"
             />
           </div>
 
           {loading ? (
-            <p className="text-xs text-[var(--app-text-muted)]">Cargando catálogo…</p>
+            <p className="text-xs text-[var(--app-text-muted)]">Cargando catálogo completo…</p>
           ) : filteredProducts.length === 0 ? (
             <p className="text-xs text-[var(--app-text-muted)]">No hay productos que coincidan con el filtro.</p>
           ) : (
-            <div className="max-h-44 overflow-y-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2">
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredProducts.map((product) => {
-                  const isSelected = selectedProductIds.includes(String(product.id));
-                  return (
-                    <button
-                      key={product.id}
-                      type="button"
-                      onClick={() => onPickProduct(product)}
-                      className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 text-left transition-all hover:border-[var(--app-primary)] hover:bg-[var(--app-primary-soft)]/10 ${
-                        isSelected
-                          ? 'border-[var(--app-primary)] bg-[var(--app-primary-soft)]/15'
-                          : 'border-[var(--app-border)] bg-[var(--app-surface)]'
-                      }`}
-                    >
-                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--app-bg-subtle)] text-[var(--app-primary)]">
-                        <Package size={14} />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate text-xs font-bold text-[var(--app-text)]">{product.name}</span>
-                        <span className="mt-0.5 block truncate text-[10px] text-[var(--app-text-muted)]">
-                          {product.barcode || 'Sin código'}
-                          {product.category?.name ? ` · ${product.category.name}` : ''}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
+            <>
+              <div className="max-h-[min(52vh,520px)] overflow-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">
+                <table className="w-full min-w-[640px] text-left text-xs">
+                  <thead className="sticky top-0 z-10 border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)] text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
+                    <tr>
+                      <th className="px-3 py-2.5">Producto</th>
+                      <th className="px-3 py-2.5">Código</th>
+                      <th className="px-3 py-2.5">Categoría</th>
+                      <th className="px-3 py-2.5 text-right">Precio venta</th>
+                      <th className="px-3 py-2.5 text-center">Agregar</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--app-border)]/50">
+                    {pageItems.map((product) => {
+                      const isSelected = selectedProductIds.includes(String(product.id));
+                      return (
+                        <tr
+                          key={product.id}
+                          className={`transition-colors hover:bg-[var(--app-bg-subtle)]/50 ${
+                            isSelected ? 'bg-[var(--app-primary-soft)]/15' : ''
+                          }`}
+                        >
+                          <td className="px-3 py-2.5 font-bold text-[var(--app-text)]">{product.name}</td>
+                          <td className="px-3 py-2.5 font-mono text-[10px] text-[var(--app-text-muted)]">
+                            {product.barcode || '—'}
+                          </td>
+                          <td className="px-3 py-2.5 text-[var(--app-text-soft)]">
+                            {product.category?.name || '—'}
+                          </td>
+                          <td className="px-3 py-2.5 text-right font-semibold tabular-nums">
+                            {product.salePrice ? `C$ ${Number(product.salePrice).toFixed(2)}` : '—'}
+                          </td>
+                          <td className="px-3 py-2.5 text-center">
+                            <button
+                              type="button"
+                              onClick={() => onPickProduct(product)}
+                              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-[var(--app-primary)] text-white'
+                                  : 'border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-primary)] hover:border-[var(--app-primary)]'
+                              }`}
+                            >
+                              <Plus size={12} />
+                              {isSelected ? 'En orden' : 'Agregar'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
+                  Mostrando {rangeStart}-{rangeEnd} de {filteredProducts.length}
+                  {query.trim() ? ` (filtrados de ${products.length})` : ''}
+                </p>
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={safePage === 0}
+                      onClick={() => setPage((current) => Math.max(0, current - 1))}
+                      className="inline-flex items-center gap-1 rounded-lg border border-[var(--app-border)] px-2.5 py-1.5 text-[10px] font-bold uppercase disabled:opacity-40 cursor-pointer"
+                    >
+                      <ChevronLeft size={14} /> Anterior
+                    </button>
+                    <span className="text-[10px] font-bold text-[var(--app-text-muted)]">
+                      Página {safePage + 1} / {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={safePage >= totalPages - 1}
+                      onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))}
+                      className="inline-flex items-center gap-1 rounded-lg border border-[var(--app-border)] px-2.5 py-1.5 text-[10px] font-bold uppercase disabled:opacity-40 cursor-pointer"
+                    >
+                      Siguiente <ChevronRight size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       )}

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  X, 
   ShoppingCart, 
   Barcode, 
   Building2, 
@@ -19,6 +18,7 @@ import {
   Layers,
   ArrowDown
 } from 'lucide-react';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const steps = [
   {
@@ -364,8 +364,49 @@ const InventoryGuideModal = ({ isOpen, onClose, initialStep = 0 }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 sm:p-6 animate-fade-in">
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-[95vw] max-w-[1400px] overflow-hidden flex flex-col md:flex-row min-h-[70vh] max-h-[90vh] text-slate-900">
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={Sparkles}
+      title="Guía del Inventario"
+      subtitle={`Paso ${activeStep + 1} de ${steps.length} · ${current.subtitle}`}
+      initialSize="full"
+      sizeOptions={['lg', 'xl', 'full']}
+      bodyClassName="p-0 overflow-hidden"
+      panelClassName="max-h-[94vh]"
+      headerClassName="bg-gradient-to-r from-indigo-700 to-violet-700 text-white"
+      footer={
+        <div className="flex justify-between items-center gap-4 px-6 py-4 bg-slate-50/80 border-t border-slate-200">
+          <button
+            type="button"
+            onClick={handlePrev}
+            disabled={activeStep === 0}
+            className="px-4 py-2.5 border border-slate-200 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent text-xs font-bold text-slate-700 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <ChevronLeft size={16} /> Anterior
+          </button>
+
+          {activeStep === steps.length - 1 ? (
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:scale-[1.02] active:scale-95 text-white text-xs font-extrabold uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              ¡Entendido! <ShieldCheck size={16} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleNext}
+              className="px-6 py-2.5 bg-indigo-600 text-white text-xs font-extrabold uppercase tracking-wider rounded-xl hover:scale-[1.02] active:scale-95 shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              Siguiente <ChevronRight size={16} />
+            </button>
+          )}
+        </div>
+      }
+    >
+      <div className="flex flex-col md:flex-row min-h-[min(70vh,640px)] max-h-[calc(94vh-140px)] text-slate-900">
         {/* Sidebar */}
         <div className="w-full md:w-88 bg-slate-50 border-r border-slate-200 p-6 flex flex-col justify-between shrink-0 overflow-y-auto">
           <div className="space-y-6">
@@ -421,27 +462,16 @@ const InventoryGuideModal = ({ isOpen, onClose, initialStep = 0 }) => {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col justify-between bg-white relative overflow-hidden text-slate-900">
-          {/* Subtle light background glow */}
+        <div className="flex-1 flex flex-col relative overflow-hidden bg-white">
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50/30 to-purple-50/30 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
-          {/* Header */}
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-white">
-            <div className="flex items-center gap-3">
-              <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${current.badgeColor}`}>
-                Paso {activeStep + 1} de {steps.length}
-              </span>
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-widest hidden sm:inline">
-                {current.subtitle}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-            >
-              <X size={18} />
-            </button>
+          <div className="px-6 pt-4 pb-2 border-b border-slate-200 bg-white flex items-center gap-3">
+            <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${current.badgeColor}`}>
+              Paso {activeStep + 1} de {steps.length}
+            </span>
+            <span className="text-xs text-slate-500 font-bold uppercase tracking-widest hidden sm:inline">
+              {current.subtitle}
+            </span>
           </div>
 
           {/* Step content */}
@@ -458,39 +488,9 @@ const InventoryGuideModal = ({ isOpen, onClose, initialStep = 0 }) => {
 
             {current.content}
           </div>
-
-          {/* Footer buttons */}
-          <div className="p-6 border-t border-slate-200 bg-slate-50/50 flex justify-between items-center gap-4">
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={activeStep === 0}
-              className="px-4 py-2.5 border border-slate-200 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent text-xs font-bold text-slate-700 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <ChevronLeft size={16} /> Anterior
-            </button>
-
-            {activeStep === steps.length - 1 ? (
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:scale-[1.02] active:scale-95 text-white text-xs font-extrabold uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                ¡Entendido! <ShieldCheck size={16} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="px-6 py-2.5 bg-indigo-600 text-white text-xs font-extrabold uppercase tracking-wider rounded-xl hover:scale-[1.02] active:scale-95 shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                Siguiente <ChevronRight size={16} />
-              </button>
-            )}
-          </div>
         </div>
       </div>
-    </div>
+    </ResponsiveModal>
   );
 };
 

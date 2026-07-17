@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { User, X, Phone, CreditCard, Mail, MapPin } from 'lucide-react';
+import { User, Phone, CreditCard, Mail, MapPin } from 'lucide-react';
 import Swal from 'sweetalert2';
 import CustomerService from '../../services/CustomerService';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const CustomerModal = ({ customer, onClose, onSaved }) => {
   const isEdit = !!customer;
@@ -59,60 +60,15 @@ const CustomerModal = ({ customer, onClose, onSaved }) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-      onClick={onClose}
+    <ResponsiveModal
+      onClose={onClose}
+      icon={User}
+      title={isEdit ? 'Editar Cliente' : 'Nuevo Cliente'}
+      subtitle={isEdit ? `Actualizar datos de ${customer.fullName}` : 'Registrar nuevo cliente para fidelización'}
+      initialSize="md"
+      sizeOptions={['sm', 'md', 'lg']}
     >
-      <div
-        className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
-        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {}
-        <div
-          style={{
-            padding: '18px 22px 14px',
-            borderBottom: '1px solid var(--app-border)',
-            background: 'linear-gradient(135deg, rgba(99,102,241,0.15), transparent)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: 'rgba(99,102,241,0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <User size={18} style={{ color: 'var(--app-primary)' }} />
-            </div>
-            <div>
-              <p style={{ fontSize: '14px', fontWeight: 900, color: 'var(--app-text)' }}>
-                {isEdit ? 'Editar Cliente' : 'Nuevo Cliente'}
-              </p>
-              <p style={{ fontSize: '10px', color: 'var(--app-text-muted)', fontWeight: 600 }}>
-                {isEdit ? `Actualizar datos de ${customer.fullName}` : 'Registrar nuevo cliente para fidelización'}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-text-muted)', padding: '4px' }}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={handleSubmit} style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {}
           <div>
             <label
@@ -395,9 +351,8 @@ const CustomerModal = ({ customer, onClose, onSaved }) => {
               {saving ? 'Guardando...' : isEdit ? 'Actualizar' : 'Registrar Cliente'}
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </ResponsiveModal>
   );
 };
 

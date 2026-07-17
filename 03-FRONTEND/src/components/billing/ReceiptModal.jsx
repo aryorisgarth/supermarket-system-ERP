@@ -1,6 +1,6 @@
-import { CheckCircle2, Printer, ReceiptText, X } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { CheckCircle2, Printer, ReceiptText } from 'lucide-react';
 import Button from '../ui/Button';
+import ResponsiveModal from '../ui/ResponsiveModal';
 import { formatMoney } from '../../utils/formatMoney';
 import { generateInvoicePDF } from '../../utils/pdfGenerator';
 import ThermalReceiptView from './ThermalReceiptView';
@@ -60,23 +60,22 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
   const printedTime = Number.isNaN(printedAt.getTime()) ? '' : printedAt.toLocaleTimeString();
   const articleCount = receiptData.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const getLineDiscount = (item) => Number(item.discountAmount || item.discount || 0);
-  const getLineGross = (item) => Number(item.salePrice || 0) * Number(item.quantity || 0);
   const discountTotal = receiptData.discountTotal ?? receiptData.items.reduce((sum, item) => sum + getLineDiscount(item), 0);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-slate-950/55 p-4 backdrop-blur-sm no-print"
+    <ResponsiveModal
+      isOpen={show}
+      onClose={onClose}
+      icon={ReceiptText}
+      title={`Venta procesada · ${money(receiptData.total)}`}
+      subtitle={`Factura ${receiptData.invoiceNumber}`}
+      initialSize="xl"
+      sizeOptions={['md', 'lg', 'xl', 'full']}
+      bodyClassName="p-0 overflow-hidden no-print"
+      panelClassName="max-h-[92vh]"
+      headerClassName="bg-[var(--app-bg-subtle)] text-[var(--app-text)] border-b border-[var(--app-border)]"
     >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 12 }}
-        transition={{ duration: 0.18 }}
-        className="grid max-h-[88vh] w-full max-w-5xl grid-cols-[minmax(280px,360px)_minmax(320px,1fr)] overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl max-lg:grid-cols-1"
-      >
+      <div className="grid max-h-[calc(92vh-120px)] w-full grid-cols-[minmax(280px,360px)_minmax(320px,1fr)] overflow-hidden max-lg:grid-cols-1">
         <aside className="flex flex-col border-r border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-5 max-lg:hidden">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -143,30 +142,6 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
         </aside>
 
         <section className="flex min-h-0 flex-col">
-          <header className="flex items-center justify-between border-b border-[var(--app-border)] px-5 py-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                <ReceiptText size={20} />
-              </span>
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-[0.06em] text-[var(--app-text)]">
-                  Vista previa de ticket
-                </h3>
-                <p className="text-xs font-semibold text-[var(--app-text-muted)]">
-                  Contenido con scroll interno, listo para impresion termica
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--app-text-muted)] transition hover:bg-[var(--app-bg-subtle)] hover:text-[var(--app-text)]"
-              aria-label="Cerrar ticket"
-            >
-              <X size={17} />
-            </button>
-          </header>
-
           <div className="pos-scroll min-h-0 flex-1 overflow-auto bg-[var(--app-bg-subtle)] p-5">
             <ThermalReceiptView
               receiptData={receiptData}
@@ -215,8 +190,8 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
             </button>
           </footer>
         </section>
-      </motion.div>
-    </motion.div>
+      </div>
+    </ResponsiveModal>
   );
 };
 

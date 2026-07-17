@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { CalendarClock, X, Loader2, Save } from 'lucide-react';
+import { CalendarClock, Loader2, Save } from 'lucide-react';
 import Swal from 'sweetalert2';
 import ProductBatchService from '../../services/ProductBatchService';
 import { getApiErrorMessage } from '../../utils/apiError';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 const emptyForm = {
   productId: '',
@@ -96,31 +97,17 @@ const BatchFormModal = ({ isOpen, onClose, editing, products, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-[var(--app-bg)]/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-md w-full overflow-hidden">
-        <div className="bg-gradient-to-r from-primary to-primary-dark p-5 text-white flex justify-between items-center shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/10 rounded-lg text-white">
-              <CalendarClock size={18} />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider">
-                {editing ? 'Editar Lote' : 'Nuevo Lote'}
-              </h3>
-              <p className="text-white/80 text-[10px] font-medium">
-                {editing ? 'Actualizar datos del lote' : 'Registrar lote con fecha de vencimiento'}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all cursor-pointer"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-[var(--app-surface)]">
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={CalendarClock}
+      title={editing ? 'Editar Lote' : 'Nuevo Lote'}
+      subtitle={editing ? 'Actualizar datos del lote' : 'Registrar lote con fecha de vencimiento'}
+      initialSize="md"
+      sizeOptions={['sm', 'md', 'lg']}
+      headerClassName="bg-gradient-to-r from-primary to-primary-dark text-white"
+    >
+      <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-[var(--app-surface)]">
           <div>
             <label className="block text-xs font-bold text-[var(--app-text)] mb-1.5 uppercase tracking-wider">Producto *</label>
             <select
@@ -220,9 +207,8 @@ const BatchFormModal = ({ isOpen, onClose, editing, products, onSuccess }) => {
               )}
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </ResponsiveModal>
   );
 };
 

@@ -3,6 +3,8 @@ import { Loader2, Search, X } from 'lucide-react';
 import ProductService from '../../services/ProductService';
 import { normalizeProductList } from '../../utils/normalizeProduct';
 
+const DROPDOWN_PAGE_SIZE = 50;
+
 const filterProducts = (products, query) => {
   const term = query.trim().toLowerCase();
   if (!term) return products;
@@ -28,6 +30,7 @@ const PurchaseProductPicker = ({
   const [open, setOpen] = useState(false);
   const [loadingRemote, setLoadingRemote] = useState(false);
   const [remoteResults, setRemoteResults] = useState([]);
+  const [dropdownPage, setDropdownPage] = useState(0);
 
   const localResults = useMemo(
     () => filterProducts(supplierProducts, productSearch),
@@ -52,7 +55,7 @@ const PurchaseProductPicker = ({
         const page = await ProductService.getInventoryPage({
           q: query,
           supplierId: Number(supplierId),
-          size: 50,
+          size: 200,
           page: 0,
           sort: 'name,asc',
         });
@@ -74,6 +77,17 @@ const PurchaseProductPicker = ({
     source.forEach((product) => merged.set(String(product.id), product));
     return Array.from(merged.values());
   }, [localResults, productSearch, remoteResults]);
+
+  const totalDropdownPages = Math.max(1, Math.ceil(results.length / DROPDOWN_PAGE_SIZE));
+  const safeDropdownPage = Math.min(dropdownPage, totalDropdownPages - 1);
+  const visibleResults = results.slice(
+    safeDropdownPage * DROPDOWN_PAGE_SIZE,
+    safeDropdownPage * DROPDOWN_PAGE_SIZE + DROPDOWN_PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setDropdownPage(0);
+  }, [productSearch, supplierId]);
 
   useEffect(() => {
     const onDocClick = (event) => {
@@ -110,7 +124,7 @@ const PurchaseProductPicker = ({
             setOpen(true);
           }}
           onFocus={handleFocus}
-          placeholder={supplierId ? 'Buscar por nombre, código o categoría…' : 'Selecciona proveedor…'}
+          placeholder={supplierId ? 'Buscar en catálogo completo…' : 'Selecciona proveedor…'}
           disabled={disabled}
           className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] py-2 pl-8 pr-8 text-xs font-bold text-[var(--app-text)] outline-none transition-all focus:border-[var(--app-primary)] disabled:opacity-50"
         />
@@ -136,40 +150,70 @@ const PurchaseProductPicker = ({
       </div>
 
       {open && supplierId && (
-        <div className="absolute z-50 left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl">
+        <div className="absolute z-50 left-0 right-0 top-full mt-1 max-h-80 overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl">
           {results.length > 0 ? (
             <>
-              <div className="sticky top-0 border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/90 px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
-                {results.length} producto{results.length === 1 ? '' : 's'} encontrado{results.length === 1 ? '' : 's'}
+              <div className="sticky top-0 border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)]/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]">
+                {results.length} producto{results.length === 1 ? '' : 's'}
+                {totalDropdownPages > 1
+                  ? ` · página ${safeDropdownPage + 1}/${totalDropdownPages}`
+                  : ''}
               </div>
-              {results.map((product) => (
-                <button
-                  key={product.id}
-                  type="button"
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    handlePick(product);
-                  }}
-                  className="w-full border-b border-[var(--app-border)]/40 px-3 py-2.5 text-left last:border-0 hover:bg-[var(--app-bg-subtle)]"
-                >
-                  <span className="block text-xs font-bold text-[var(--app-text)]">{product.name}</span>
-                  <span className="mt-0.5 block text-[10px] text-[var(--app-text-muted)]">
-                    Cod: {product.barcode || '—'}
-                    {product.category?.name ? ` · ${product.category.name}` : ''}
-                    {product.salePrice ? ` · Venta C$ ${Number(product.salePrice).toFixed(2)}` : ''}
+              <div className="max-h-64 overflow-y-auto">
+                {visibleResults.map((product) => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      handlePick(product);
+                    }}
+                    className="w-full border-b border-[var(--app-border)]/40 px-3 py-2.5 text-left last:border-0 hover:bg-[var(--app-bg-subtle)]"
+                  >
+                    <span className="block text-xs font-bold text-[var(--app-text)]">{product.name}</span>
+                    <span className="mt-0.5 block text-[10px] text-[var(--app-text-muted)]">
+                      Cod: {product.barcode || '—'}
+                      {product.category?.name ? ` · ${product.category.name}` : ''}
+                      {product.salePrice ? ` · Venta C$ ${Number(product.salePrice).toFixed(2)}` : ''}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {totalDropdownPages > 1 && (
+                <div className="flex items-center justify-between border-t border-[var(--app-border)] bg-[var(--app-bg-subtle)]/90 px-2 py-1.5">
+                  <button
+                    type="button"
+                    disabled={safeDropdownPage === 0}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setDropdownPage((p) => Math.max(0, p - 1))}
+                    className="rounded px-2 py-1 text-[10px] font-bold disabled:opacity-40"
+                  >
+                    ← Ant
+                  </button>
+                  <span className="text-[10px] font-bold text-[var(--app-text-muted)]">
+                    {safeDropdownPage + 1} / {totalDropdownPages}
                   </span>
-                </button>
-              ))}
+                  <button
+                    type="button"
+                    disabled={safeDropdownPage >= totalDropdownPages - 1}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setDropdownPage((p) => Math.min(totalDropdownPages - 1, p + 1))}
+                    className="rounded px-2 py-1 text-[10px] font-bold disabled:opacity-40"
+                  >
+                    Sig →
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div className="px-3 py-4 text-[11px] text-[var(--app-text-muted)]">
               {loadingRemote
                 ? 'Buscando productos…'
                 : productSearch.trim()
-                  ? 'Sin coincidencias. Prueba otro término o usa el catálogo del proveedor.'
+                  ? 'Sin coincidencias. Usa el catálogo completo arriba.'
                   : supplierProducts.length === 0
                     ? 'Este proveedor no tiene productos asignados en inventario.'
-                    : 'Escribe para filtrar o elige desde el catálogo del proveedor.'}
+                    : 'Escribe para filtrar o usa el catálogo completo del proveedor.'}
             </div>
           )}
         </div>
