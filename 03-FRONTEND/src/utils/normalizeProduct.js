@@ -56,6 +56,8 @@ export function normalizeProduct(raw) {
     uomConversionId,
     uomLabel,
     uomFactor,
+    prefilledQuantity:
+      raw.prefilledQuantity ?? raw.prefilled_quantity ?? null,
   };
 }
 

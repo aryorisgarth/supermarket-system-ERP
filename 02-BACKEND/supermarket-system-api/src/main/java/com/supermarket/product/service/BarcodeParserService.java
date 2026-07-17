@@ -25,7 +25,7 @@ public class BarcodeParserService {
             
             int pluStart = prefixLen;
             int pluEnd = pluStart + config.getPluLength();
-            String plu = barcode.substring(pluStart, pluEnd);
+            String plu = normalizePlu(barcode.substring(pluStart, pluEnd));
             
             int weightStart = pluEnd;
             int weightEnd = weightStart + config.getWeightLength();
@@ -38,5 +38,13 @@ public class BarcodeParserService {
         }
         
         return new ParsedBarcode(false, null, null);
+    }
+
+    /** Quita ceros a la izquierda del PLU (00085 → 85) para coincidir con el código en inventario. */
+    public static String normalizePlu(String plu) {
+        if (plu == null || plu.isBlank()) {
+            return plu;
+        }
+        return plu.replaceFirst("^0+(?!$)", "");
     }
 }

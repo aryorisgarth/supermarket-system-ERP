@@ -174,31 +174,7 @@ public class ProductServiceImpl implements ProductService {
 		}
 
 		Product product = productRepository.findByBarcode(finalTargetBarcode)
-				.orElseGet(() -> {
-					// Fallback: Si el usuario guardó el código EAN-13 completo en la BD (ej. 2001593000000)
-					// pero el cajero escaneó un código generado con peso (parsedWeight != null) 
-					// O el cajero tecleó manualmente el código corto "1593" en el buscador.
-					if (finalParsedWeight != null || finalTargetBarcode.length() <= 5) {
-						String searchPlu = finalTargetBarcode.replaceFirst("^0+(?!$)", "");
-						List<Product> allProducts = productRepository.findAll();
-						
-						com.supermarket.scale.entity.ScaleConfig config = scaleConfigService.getConfig();
-						int prefixLen = config.getPrefix().length();
-						int expectedLength = prefixLen + config.getPluLength() + config.getWeightLength() + 1;
-						
-						for (Product p : allProducts) {
-							if (p.getBarcode() != null && p.getBarcode().length() == expectedLength && p.getBarcode().startsWith(config.getPrefix())) {
-								int pluStart = prefixLen;
-								int pluEnd = pluStart + config.getPluLength();
-								String pPlu = p.getBarcode().substring(pluStart, pluEnd).replaceFirst("^0+(?!$)", "");
-								if (pPlu.equals(searchPlu)) {
-									return p;
-								}
-							}
-						}
-					}
-					throw new ResourceNotFoundException("Product not found");
-				});
+				.orElseGet(() -> findProductByPluCode(finalTargetBarcode, finalParsedWeight != null));
 		ProductResponseDTO response = productMapper.toResponse(product);
 		if (finalParsedWeight != null) {
 			return new ProductResponseDTO(
@@ -638,5 +614,44 @@ public class ProductServiceImpl implements ProductService {
 		unit.setIsDefault(true);
 		unit.setSortOrder(0);
 		return List.of(unit);
+	}
+
+	/**
+	 * Resuelve producto por PLU corto (85, 4011) o plantilla EAN-13 guardada en inventario.
+	 */
+	private Product findProductByPluCode(String pluCode, boolean fromScaleScan) {
+		String searchPlu = BarcodeParserService.normalizePlu(pluCode);
+		if (searchPlu == null || searchPlu.isBlank()) {
+			throw new ResourceNotFoundException("Product not found");
+		}
+
+		for (Product candidate : productRepository.findByIsActiveTrueOrderByBarcodeAsc()) {
+			if (candidate.getBarcode() == null) {
+				continue;
+			}
+			String storedPlu = BarcodeParserService.normalizePlu(candidate.getBarcode());
+			if (searchPlu.equals(storedPlu)) {
+				return candidate;
+			}
+		}
+
+		if (fromScaleScan || searchPlu.length() <= 6) {
+			com.supermarket.scale.entity.ScaleConfig config = scaleConfigService.getConfig();
+			int prefixLen = config.getPrefix().length();
+			int expectedLength = prefixLen + config.getPluLength() + config.getWeightLength() + 1;
+
+			for (Product candidate : productRepository.findByIsActiveTrueOrderByBarcodeAsc()) {
+				String barcode = candidate.getBarcode();
+				if (barcode != null && barcode.length() == expectedLength && barcode.startsWith(config.getPrefix())) {
+					int pluEnd = prefixLen + config.getPluLength();
+					String embeddedPlu = BarcodeParserService.normalizePlu(barcode.substring(prefixLen, pluEnd));
+					if (searchPlu.equals(embeddedPlu)) {
+						return candidate;
+					}
+				}
+			}
+		}
+
+		throw new ResourceNotFoundException("Product not found");
 	}
 }
