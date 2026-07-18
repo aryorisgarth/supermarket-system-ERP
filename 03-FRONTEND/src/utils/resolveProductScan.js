@@ -1,14 +1,13 @@
 import ProductService from '../services/ProductService';
 import ScaleConfigService from '../services/ScaleConfigService';
 import { normalizeProduct } from './normalizeProduct';
-import { isScaleEanBarcode, normalizePluCode, parseScaleBarcode } from './pluProductUtils';
-
-const DEFAULT_SCALE_CONFIG = {
-  prefix: '20',
-  pluLength: 5,
-  weightLength: 5,
-  divisor: 1000,
-};
+import {
+  DEFAULT_SCALE_CONFIG,
+  isScaleEanBarcode,
+  normalizePluCode,
+  parseScaleBarcodeWithFallback,
+  sanitizeScanCode,
+} from './pluProductUtils';
 
 let cachedScaleConfig = null;
 
@@ -26,66 +25,86 @@ export function clearScaleConfigCache() {
   cachedScaleConfig = null;
 }
 
+function attachWeight(product, scaleParsed) {
+  if (!product) return null;
+  const weight = scaleParsed?.weight ?? product.prefilledQuantity ?? product.prefilled_quantity;
+  if (weight == null || Number.isNaN(Number(weight))) return product;
+  return { ...product, prefilledQuantity: Number(weight) };
+}
+
 /**
  * Resuelve producto escaneado en POS.
- * Etiquetas de balanza (13 dígitos, prefijo 20): extrae PLU + peso, nunca busca el EAN completo.
+ * Etiquetas de balanza (EAN-13 prefijo 20): extrae PLU + peso, nunca busca el EAN completo en BD local.
  */
 export async function resolveProductByScanCode(code, localProducts = []) {
-  const trimmed = String(code || '').trim();
-  if (!trimmed) {
-    return { product: null, scaleParsed: null, lookupCode: null };
+  const scannedCode = sanitizeScanCode(code);
+  if (!scannedCode) {
+    return { product: null, scaleParsed: null, lookupCode: null, scannedCode: '' };
   }
 
   const scaleConfig = await getScaleConfigForScan();
-  const isScaleLabel = isScaleEanBarcode(trimmed, scaleConfig.prefix ?? '20');
-  const scaleParsed = isScaleLabel ? parseScaleBarcode(trimmed, scaleConfig) : null;
+  const prefix = scaleConfig?.prefix ?? DEFAULT_SCALE_CONFIG.prefix;
+  const scaleParsed = parseScaleBarcodeWithFallback(scannedCode, scaleConfig);
+  const isScaleLabel = Boolean(scaleParsed) || isScaleEanBarcode(scannedCode, prefix);
+
+  const lookupCodes = [];
+  if (isScaleLabel) {
+    lookupCodes.push(scannedCode);
+    if (scaleParsed?.plu) lookupCodes.push(scaleParsed.plu);
+  } else {
+    lookupCodes.push(scannedCode);
+  }
+
+  for (const lookupCode of [...new Set(lookupCodes)]) {
+    try {
+      const product = attachWeight(
+        normalizeProduct(await ProductService.getByBarcode(lookupCode)),
+        scaleParsed,
+      );
+      return { product, scaleParsed, lookupCode, scannedCode };
+    } catch {
+      /* siguiente candidato */
+    }
+  }
 
   if (scaleParsed?.plu) {
-    const lookupCode = scaleParsed.plu;
-    try {
-      const product = normalizeProduct(await ProductService.getByBarcode(lookupCode));
+    const local = localProducts.find(
+      (p) => p?.barcode && normalizePluCode(p.barcode) === scaleParsed.plu,
+    );
+    if (local) {
       return {
-        product: { ...product, prefilledQuantity: scaleParsed.weight },
+        product: attachWeight(local, scaleParsed),
         scaleParsed,
-        lookupCode,
+        lookupCode: scaleParsed.plu,
+        scannedCode,
       };
-    } catch {
-      const local = localProducts.find(
-        (p) => p?.barcode && normalizePluCode(p.barcode) === lookupCode,
-      );
-      if (local) {
-        return {
-          product: { ...local, prefilledQuantity: scaleParsed.weight },
-          scaleParsed,
-          lookupCode,
-        };
-      }
-      return { product: null, scaleParsed, lookupCode };
     }
+  }
+
+  const stripped = normalizePluCode(scannedCode);
+  const local = localProducts.find((p) => {
+    if (!p?.barcode) return false;
+    const stored = normalizePluCode(p.barcode);
+    return p.barcode === scannedCode || stored === stripped;
+  });
+  if (local) {
+    return { product: local, scaleParsed, lookupCode: scannedCode, scannedCode };
   }
 
   try {
-    const product = normalizeProduct(await ProductService.getByBarcode(trimmed));
-    return { product, scaleParsed: null, lookupCode: trimmed };
+    const results = await ProductService.search(scannedCode);
+    const list = Array.isArray(results) ? results : results?.content || [];
+    if (list.length) {
+      return {
+        product: attachWeight(normalizeProduct(list[0]), scaleParsed),
+        scaleParsed,
+        lookupCode: scannedCode,
+        scannedCode,
+      };
+    }
   } catch {
-    const stripped = normalizePluCode(trimmed);
-    const local = localProducts.find((p) => {
-      if (!p?.barcode) return false;
-      const stored = normalizePluCode(p.barcode);
-      return p.barcode === trimmed || stored === stripped;
-    });
-    if (local) {
-      return { product: local, scaleParsed: null, lookupCode: trimmed };
-    }
-    try {
-      const results = await ProductService.search(trimmed);
-      const list = Array.isArray(results) ? results : results?.content || [];
-      if (list.length) {
-        return { product: normalizeProduct(list[0]), scaleParsed: null, lookupCode: trimmed };
-      }
-    } catch {
-      /* ignore */
-    }
-    return { product: null, scaleParsed: null, lookupCode: trimmed };
+    /* ignore */
   }
+
+  return { product: null, scaleParsed, lookupCode: lookupCodes[0] ?? scannedCode, scannedCode };
 }

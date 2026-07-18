@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import BillingService from '../services/BillingService';
-import { isScaleEanBarcode } from '../utils/pluProductUtils';
+import { isScaleEanBarcode, sanitizeScanCode } from '../utils/pluProductUtils';
 import { resolveProductByScanCode } from '../utils/resolveProductScan';
 
 import { useBillingCart } from './useBillingCart';
@@ -114,15 +114,15 @@ export const useBilling = () => {
   const handleKeyDown = async (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const code = searchData.searchQuery.trim();
+      const code = sanitizeScanCode(searchData.searchQuery.trim());
       if (!code) return;
 
       try {
         searchData.setLoading(true);
-        const isScaleLabel = isScaleEanBarcode(code);
+        const isScaleLabel = isScaleEanBarcode(code) || /^20\d{11}$/.test(code);
         const isLikelyBarcode = isScaleLabel || (code.length >= 4 && /^[a-zA-Z0-9_-]{3,}$/.test(code));
 
-        let { product: foundProduct, scaleParsed } = await resolveProductByScanCode(
+        let { product: foundProduct, scaleParsed, scannedCode } = await resolveProductByScanCode(
           code,
           searchData.products,
         );
@@ -159,9 +159,12 @@ export const useBilling = () => {
             startAddProduct(foundProduct);
           }
         } else {
+          const shown = scannedCode || code;
           const detail = scaleParsed
-            ? `Etiqueta de balanza: PLU ${scaleParsed.plu}, peso ${scaleParsed.weight}. No hay producto activo con ese PLU en inventario.`
-            : 'No se encontró producto por código o nombre.';
+            ? `Etiqueta de balanza (${shown}): PLU ${scaleParsed.plu}, peso ${scaleParsed.weight}. No hay producto activo con ese PLU. Verifique migraciones V48/V49 en el servidor.`
+            : isScaleLabel
+              ? `Codigo de balanza (${shown}) detectado, pero no se pudo leer el PLU. Revise Configuracion de Balanza (prefijo 20, PLU 5, peso 5).`
+              : `No se encontro producto para "${shown}".`;
           Swal.fire({ icon: 'warning', title: 'No Encontrado', text: detail, confirmButtonColor: '#10b981' });
         }
       } catch (error) { 

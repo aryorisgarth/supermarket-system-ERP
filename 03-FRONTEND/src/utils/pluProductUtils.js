@@ -1,4 +1,22 @@
 /** Unidades de venta por peso (balanza / etiquetas EAN-13 tipo 20xxxx). */
+export const DEFAULT_SCALE_CONFIG = {
+  prefix: '20',
+  pluLength: 5,
+  weightLength: 5,
+  divisor: 1000,
+};
+
+/** Limpia entrada del escaner: solo digitos cuando parece codigo de barras numerico. */
+export function sanitizeScanCode(code) {
+  const trimmed = String(code || '').trim();
+  if (!trimmed) return '';
+  const digits = trimmed.replace(/\D/g, '');
+  if (digits.length >= 8 && /^\d+$/.test(digits)) {
+    return digits;
+  }
+  return trimmed;
+}
+
 export function isWeightUom(uom) {
   const u = String(uom || 'UN').trim().toUpperCase();
   return u === 'LB' || u === 'KG' || u === 'GR' || u === 'G' || u === 'OZ';
@@ -58,7 +76,7 @@ export function filterPluProducts(products = [], scaleConfig = null) {
 
 /** Decodifica etiqueta EAN-13 de balanza → { plu, weight } o null. */
 export function parseScaleBarcode(barcode, scaleConfig = null) {
-  const str = String(barcode || '').trim();
+  const str = sanitizeScanCode(barcode);
   const prefix = String(scaleConfig?.prefix ?? '20');
   const pluLength = Number(scaleConfig?.pluLength ?? 5);
   const weightLength = Number(scaleConfig?.weightLength ?? 5);
@@ -80,6 +98,17 @@ export function parseScaleBarcode(barcode, scaleConfig = null) {
   }
 
   return { plu, weight };
+}
+
+/** Intenta parsear con config del ERP y, si falla, con valores estandar (20 + PLU 5 + peso 5). */
+export function parseScaleBarcodeWithFallback(barcode, scaleConfig = null) {
+  const str = sanitizeScanCode(barcode);
+  const parsed = parseScaleBarcode(str, scaleConfig);
+  if (parsed) return parsed;
+  if (scaleConfig) {
+    return parseScaleBarcode(str, DEFAULT_SCALE_CONFIG);
+  }
+  return null;
 }
 
 export function normalizePluCode(code) {
