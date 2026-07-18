@@ -18,6 +18,7 @@ INSERT INTO products (
   ('3124', 'Tomate Bola', 'Tomate rojo, precio por kg', 8.00, 13.00, 300, 25, 'KG', 1, NOW(), NOW(), 10, 2, 1, 5),
   ('4543', 'Zanahoria', 'Zanahoria fresca, precio por kg', 5.50, 8.50, 280, 20, 'KG', 1, NOW(), NOW(), 10, 2, 1, 5),
   ('4384', 'Pepino', 'Pepino fresco, precio por kg', 5.00, 8.00, 200, 15, 'KG', 1, NOW(), NOW(), 10, 2, 1, 5),
+  ('1234', 'Cebolla Amarilla', 'Cebolla amarilla a granel, precio por peso', 7.00, 11.00, 250, 20, 'LB', 1, NOW(), NOW(), 10, 2, 1, 5),
   ('4196', 'Piña', 'Piña golden, precio por pieza', 15.00, 25.00, 80, 10, 'UN', 1, NOW(), NOW(), 10, 1, 1, 5)
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
@@ -32,7 +33,7 @@ INSERT INTO product_locations (product_id, location_id, stock, created_at, updat
 SELECT p.id, bod.id, p.current_stock, NOW(), NOW()
 FROM products p
 CROSS JOIN (SELECT id FROM locations WHERE location_code = 'BOD-DEFAULT' LIMIT 1) bod
-WHERE p.barcode IN ('4011','4065','4056','3045','4959','3085','3124','4543','4384','4196')
+WHERE p.barcode IN ('4011','4065','4056','3045','4959','3085','3124','4543','4384','1234','4196')
   AND NOT EXISTS (
     SELECT 1 FROM product_locations pl WHERE pl.product_id = p.id AND pl.location_id = bod.id
   );

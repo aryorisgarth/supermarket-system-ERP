@@ -1,35 +1,18 @@
 import { useCallback, useState } from 'react';
-import ProductService from '../services/ProductService';
-import { normalizeProduct } from '../utils/normalizeProduct';
-
-const BARCODE_PATTERN = /^[a-zA-Z0-9_-]{3,}$/;
-
+import { resolveProductByScanCode } from '../utils/resolveProductScan';
 
 export default function useBarcodeScan({ onFound, onNotFound, onError } = {}) {
   const [scanValue, setScanValue] = useState('');
   const [scanning, setScanning] = useState(false);
   const [lastScanned, setLastScanned] = useState(null);
 
-  const lookupBarcode = useCallback(async (rawCode) => {
+  const lookupBarcode = useCallback(async (rawCode, localProducts = []) => {
     const code = String(rawCode || '').trim();
     if (!code) return null;
 
     setScanning(true);
     try {
-      let product = null;
-      if (BARCODE_PATTERN.test(code)) {
-        try {
-          product = normalizeProduct(await ProductService.getByBarcode(code));
-        } catch {
-          product = null;
-        }
-      }
-      if (!product) {
-        const results = await ProductService.search(code);
-        const list = Array.isArray(results) ? results : results?.content || [];
-        product = list.length ? normalizeProduct(list[0]) : null;
-      }
-
+      const { product } = await resolveProductByScanCode(code, localProducts);
       if (product) {
         setLastScanned(product);
         onFound?.(product, code);

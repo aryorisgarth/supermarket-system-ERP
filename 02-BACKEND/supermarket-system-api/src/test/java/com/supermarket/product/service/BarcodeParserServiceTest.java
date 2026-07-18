@@ -38,8 +38,25 @@ class BarcodeParserServiceTest {
 		assertThat(parsed.weight()).isEqualByComparingTo("2.000");
 	}
 
-	@Test
-	void normalizePlu_stripsLeadingZeros() {
+  @Test
+  void parseScaleBarcode_cebollaAmarilla_extractsPluAndWeight() {
+    ScaleConfig config = ScaleConfig.builder()
+        .prefix("20")
+        .pluLength(5)
+        .weightLength(5)
+        .divisor(new BigDecimal("1000"))
+        .build();
+    when(scaleConfigService.getConfig()).thenReturn(config);
+
+    var parsed = barcodeParserService.parse("2001234020008");
+
+    assertThat(parsed.isScaleBarcode()).isTrue();
+    assertThat(parsed.plu()).isEqualTo("1234");
+    assertThat(parsed.weight()).isEqualByComparingTo("2.000");
+  }
+
+  @Test
+  void normalizePlu_stripsLeadingZeros() {
 		assertThat(BarcodeParserService.normalizePlu("00085")).isEqualTo("85");
 		assertThat(BarcodeParserService.normalizePlu("04011")).isEqualTo("4011");
 	}

@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import BillingService from '../services/BillingService';
-import ProductService from '../services/ProductService';
-import { normalizeProduct } from '../utils/normalizeProduct';
-import { normalizePluCode, parseScaleBarcode } from '../utils/pluProductUtils';
+import { isScaleEanBarcode } from '../utils/pluProductUtils';
+import { resolveProductByScanCode } from '../utils/resolveProductScan';
 
 import { useBillingCart } from './useBillingCart';
 import { useBillingProductSearch } from './useBillingProductSearch';
@@ -120,49 +119,20 @@ export const useBilling = () => {
 
       try {
         searchData.setLoading(true);
-        let foundProduct = null;
-        const isLikelyBarcode = code.length >= 4 && /^[a-zA-Z0-9_-]{3,}$/.test(code);
+        const isScaleLabel = isScaleEanBarcode(code);
+        const isLikelyBarcode = isScaleLabel || (code.length >= 4 && /^[a-zA-Z0-9_-]{3,}$/.test(code));
 
-        if (isLikelyBarcode) {
-          try {
-            foundProduct = normalizeProduct(await ProductService.getByBarcode(code));
-          } catch (err) {
-            console.warn('Barcode not found, falling back to name search');
-          }
+        let { product: foundProduct, scaleParsed } = await resolveProductByScanCode(
+          code,
+          searchData.products,
+        );
 
-          if (!foundProduct) {
-            const scaleParsed = parseScaleBarcode(code);
-            if (scaleParsed?.plu) {
-              try {
-                foundProduct = normalizeProduct(await ProductService.getByBarcode(scaleParsed.plu));
-                if (foundProduct && scaleParsed.weight != null) {
-                  foundProduct = { ...foundProduct, prefilledQuantity: scaleParsed.weight };
-                }
-              } catch (err) {
-                console.warn('PLU lookup failed:', scaleParsed.plu, err);
-              }
-            }
-          }
-        }
-
-        if (!foundProduct) {
-          const strippedCode = normalizePluCode(code);
-          const scaleParsed = parseScaleBarcode(code);
-          const pluHint = scaleParsed?.plu || strippedCode;
-          const matches = searchData.products.filter((p) => {
-            if (!p.barcode) return false;
-            const stored = normalizePluCode(p.barcode);
-            return (
-              p.barcode === code
-              || stored === strippedCode
-              || stored === pluHint
-              || p.name?.toLowerCase().includes(code.toLowerCase())
-            );
-          });
+        if (!foundProduct && !isScaleLabel) {
+          const matches = searchData.products.filter((p) =>
+            p.name?.toLowerCase().includes(code.toLowerCase()),
+          );
           if (matches.length > 0) {
-            foundProduct = scaleParsed?.weight != null
-              ? { ...matches[0], prefilledQuantity: scaleParsed.weight }
-              : matches[0];
+            foundProduct = matches[0];
           }
         }
 
@@ -189,9 +159,8 @@ export const useBilling = () => {
             startAddProduct(foundProduct);
           }
         } else {
-          const scaleParsed = parseScaleBarcode(code);
           const detail = scaleParsed
-            ? `Etiqueta de balanza: PLU ${scaleParsed.plu} · ${scaleParsed.weight} kg. No hay producto activo con ese código en inventario.`
+            ? `Etiqueta de balanza: PLU ${scaleParsed.plu}, peso ${scaleParsed.weight}. No hay producto activo con ese PLU en inventario.`
             : 'No se encontró producto por código o nombre.';
           Swal.fire({ icon: 'warning', title: 'No Encontrado', text: detail, confirmButtonColor: '#10b981' });
         }
