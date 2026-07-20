@@ -159,6 +159,10 @@ public class SecurityConfiguration {
 										new String[] {"INVENTORY_VIEW", "INVENTORY_ADJUST", "REPORT_VIEW"}))
 						.requestMatchers(HttpMethod.GET, "/api/promotions", "/api/promotions/**").authenticated()
 						.requestMatchers("/api/promotions/**").hasAuthority("PROMO_MANAGE")
+						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/transfer")
+								.hasAnyRole("BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR")
+						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/stock")
+								.access(warehouseMutationAccess())
 						.requestMatchers(HttpMethod.POST, "/api/locations", "/api/locations/**")
 								.access(warehouseMutationAccess())
 						.requestMatchers(HttpMethod.PUT, "/api/locations/**")
@@ -281,6 +285,13 @@ public class SecurityConfiguration {
 					&& auth.isAuthenticated()
 					&& auth.getAuthorities().stream()
 							.anyMatch(authority -> accepted.contains(authority.getAuthority()));
+			if (!granted && auth != null) {
+				String path = context.getRequest().getMethod() + " " + context.getRequest().getRequestURI();
+				String grantedAuthorities = auth.getAuthorities().stream()
+						.map(a -> a.getAuthority())
+						.collect(Collectors.joining(", "));
+				log.warn("Acceso denegado a {} - authorities=[{}]", path, grantedAuthorities);
+			}
 			return new AuthorizationDecision(granted);
 		};
 	}
