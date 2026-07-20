@@ -2,10 +2,30 @@
 INSERT INTO products (
   barcode, name, description, purchase_price, sale_price, current_stock, minimum_stock,
   uom_base, is_active, created_at, updated_at, category_id, supplier_id, tax_category_id, min_stock_exhibicion
-) VALUES (
-  '1234', 'Cebolla Amarilla', 'Cebolla amarilla a granel, precio por peso', 7.00, 11.00, 250, 20,
-  'LB', 1, NOW(), NOW(), 10, 2, 1, 5
 )
+SELECT
+  '1234',
+  'Cebolla Amarilla',
+  'Cebolla amarilla a granel, precio por peso',
+  7.00,
+  11.00,
+  250,
+  20,
+  'LB',
+  1,
+  NOW(),
+  NOW(),
+  cat.id,
+  COALESCE(
+    (SELECT id FROM suppliers WHERE id = 2 LIMIT 1),
+    (SELECT id FROM suppliers ORDER BY id LIMIT 1)
+  ),
+  COALESCE(
+    (SELECT id FROM tax_categories WHERE is_active = 1 ORDER BY id LIMIT 1),
+    1
+  ),
+  5
+FROM (SELECT id FROM categories WHERE name = 'Frutas y Verduras' LIMIT 1) cat
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
   uom_base = VALUES(uom_base),
