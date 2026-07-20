@@ -195,15 +195,17 @@ const CashRegisterStatus = ({ compact = false, className = '' }) => {
 
   return (
     <div
-      className={`app-cash-register ${isOpen ? 'app-cash-register--open' : 'app-cash-register--closed'} ${
-        compact ? 'app-cash-register--compact' : ''
-      } ${className}`}
+      className={`app-cash-register w-full min-w-0 border border-slate-200 bg-slate-50 dark:border-zinc-700 dark:bg-zinc-800/70 sm:w-auto ${
+        isOpen
+          ? 'app-cash-register--open border-emerald-300/50 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10'
+          : 'app-cash-register--closed'
+      } ${compact ? 'app-cash-register--compact' : ''} ${className}`}
     >
       <div className="app-cash-register-status">
         <span className={`app-cash-register-dot ${isOpen ? 'app-cash-register-dot--on' : ''}`} />
         <div className="app-cash-register-text min-w-0">
-          <p className="app-cash-register-label">{isOpen ? 'Caja abierta' : 'Caja cerrada'}</p>
-          <p className="app-cash-register-amount">
+          <p className="app-cash-register-label text-slate-600 dark:text-zinc-400">{isOpen ? 'Caja abierta' : 'Caja cerrada'}</p>
+          <p className="app-cash-register-amount text-slate-900 dark:text-zinc-100">
             {isOpen ? money(session.openingBalance) : 'Sin turno'}
           </p>
         </div>
@@ -249,7 +251,11 @@ const CashRegisterStatus = ({ compact = false, className = '' }) => {
             )}
           </div>
           {AuthService.hasPermission('CASH_CLOSE') && (
-            <button type="button" className="app-cash-register-close-btn" onClick={handleClose}>
+            <button
+              type="button"
+              className="app-cash-register-close-btn hidden sm:inline-flex"
+              onClick={handleClose}
+            >
               Cerrar caja
             </button>
           )}

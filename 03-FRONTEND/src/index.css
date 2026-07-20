@@ -236,38 +236,11 @@ button:disabled {
   position: sticky;
   top: 0;
   z-index: 30;
-  display: flex;
   flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 52px;
-  padding: 6px 12px;
-  border-bottom: 1px solid var(--app-border);
-  background: color-mix(in srgb, var(--app-surface) 94%, transparent);
-  backdrop-filter: blur(10px);
 }
 
 .app-header--pos {
-  min-height: 44px;
-  padding: 4px 10px;
-}
-
-.app-header-start,
-.app-header-end {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.app-header-end {
-  flex-shrink: 0;
-  justify-content: flex-end;
-}
-
-.app-header-start {
-  flex: 1;
+  min-height: auto;
 }
 
 .app-header-pos-label {
@@ -326,8 +299,13 @@ button:disabled {
 }
 
 .app-header-icon-btn:hover {
-  background: var(--app-bg-subtle);
-  color: var(--app-primary);
+  background: rgb(241 245 249);
+  color: rgb(15 23 42);
+}
+
+.dark .app-header-icon-btn:hover {
+  background: rgb(39 39 42);
+  color: rgb(244 244 245);
 }
 
 .app-header-user {
@@ -576,18 +554,9 @@ button:disabled {
 }
 
 @media (max-width: 639px) {
-  .app-header-user-text {
-    display: none;
-  }
-
   .app-cash-register-close-btn {
     padding: 6px 8px;
     font-size: 9px;
-  }
-
-  .app-header-tools {
-    border-left: none;
-    padding-left: 0;
   }
 }
 

@@ -105,18 +105,18 @@ const NotificationPanel = () => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl animate-fade-in">
-          <div className="flex items-center justify-between border-b border-[var(--app-border)] px-4 py-3">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-fade-in dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-zinc-700">
             <div>
-              <p className="text-sm font-bold text-[var(--app-text)]">Notificaciones</p>
-              <p className="text-[10px] font-semibold text-[var(--app-text-muted)]">
+              <p className="text-sm font-bold text-slate-900 dark:text-zinc-100">Notificaciones</p>
+              <p className="text-[10px] font-semibold text-slate-500 dark:text-zinc-400">
                 {activeCount === 0 ? 'Sin alertas activas' : `${activeCount} alerta(s) activa(s)`}
               </p>
             </div>
             <button
               type="button"
               onClick={() => { setOpen(false); navigate('/alertas'); }}
-              className="text-[10px] font-bold text-[var(--app-primary)] hover:underline"
+              className="text-[10px] font-bold text-blue-800 hover:underline dark:text-blue-400"
             >
               Ver todas
             </button>
