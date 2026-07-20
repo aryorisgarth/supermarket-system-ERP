@@ -668,7 +668,15 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		if (totalPaid.compareTo(totalAmount) < 0) {
-			throw new BadRequestException("Total paid is less than the invoice amount");
+			BigDecimal shortfall = totalAmount.subtract(totalPaid);
+			if (builtPayments.size() == 1
+					&& builtPayments.get(0).getPaymentMethod() != PaymentMethod.CASH
+					&& shortfall.compareTo(new BigDecimal("0.0100")) <= 0) {
+				builtPayments.get(0).setAmount(totalAmount);
+				totalPaid = totalAmount;
+			} else {
+				throw new BadRequestException("Total paid is less than the invoice amount");
+			}
 		}
 
 		BigDecimal changeAmount = totalPaid.subtract(totalAmount);

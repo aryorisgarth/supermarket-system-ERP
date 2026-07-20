@@ -264,6 +264,7 @@ export const useBilling = () => {
     paymentAccounts,
     stripeClientSecret: checkoutData.stripeClientSecret,
     showStripeModal: checkoutData.showStripeModal,
+    stripeChargeAmount: checkoutData.stripeChargeAmount,
     
     subtotal: cartData.subtotal,
     discountTotal: cartData.discountTotal,
@@ -286,6 +287,7 @@ export const useBilling = () => {
     setShowReceipt: checkoutData.setShowReceipt,
     setShowCategoryProductsModal: searchData.setShowCategoryProductsModal,
     setShowStripeModal: checkoutData.setShowStripeModal,
+    handleStripeModalClose: checkoutData.handleStripeModalClose,
     handleStripePaymentSuccess: checkoutData.handleStripePaymentSuccess,
     
     handleSearch: searchData.handleSearch,

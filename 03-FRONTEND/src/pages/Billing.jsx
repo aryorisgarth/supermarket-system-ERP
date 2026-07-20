@@ -34,20 +34,20 @@ const Billing = () => {
     showReceipt, receiptData, showPrintButton, showQuickAccess, canApplyDiscount,
     subtotal, discountTotal, tax, total, taxRate, billingConfig, entryBarProduct,
     transferBank, transferRef, paymentAccounts,
-    stripeClientSecret, showStripeModal,
+    stripeClientSecret, showStripeModal, stripeChargeAmount,
     products,
 
     
     setSearchQuery, setEntryQty, setSelectedCustomer, setPayments, setPaymentMethod, setAmountReceived, 
     setCouponCode, setIsMultiPayment, setShowQuickAccess, setShowReceipt, setShowCategoryProductsModal,
-    setTransferBank, setTransferRef, setShowStripeModal,
+    setTransferBank, setTransferRef,
 
     
     handleSearch, handleKeyDown, handleCategoryClick, selectCartLine, removeFromCart, handleSetLineDiscount,
     handleCancelCurrentPurchase, confirmEntry, clearEntry, handleValidateCoupon, handleCheckout,
     handlePrintReceipt, handleReprintTicket, handleEditSale, handleCancelSale,
     handleCategoryQuickAdd, handleCategoryQuantityEdit, getDynamicCountryLabel, paymentMethod,
-    handleStripePaymentSuccess
+    handleStripeModalClose, handleStripePaymentSuccess
   } = useBilling();
 
   
@@ -298,10 +298,10 @@ const Billing = () => {
 
         <StripePaymentModal
           show={showStripeModal}
-          onClose={() => setShowStripeModal(false)}
+          onClose={handleStripeModalClose}
           clientSecret={stripeClientSecret}
           onPaymentSuccess={handleStripePaymentSuccess}
-          total={total}
+          total={stripeChargeAmount || total}
           formatMoney={formatMoney}
         />
       </div>

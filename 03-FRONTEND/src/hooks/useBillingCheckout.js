@@ -5,8 +5,36 @@ import CouponService from '../services/CouponService';
 import { formatMoney } from '../utils/formatMoney';
 import PaymentService from '../services/PaymentService';
 
+const extractApiError = (error) => {
+  if (typeof error === 'string' && error.trim()) return error.trim();
+  return error?.response?.data?.message
+    || error?.response?.data?.detail
+    || error?.message
+    || null;
+};
+
+const encodeTransferReference = (bank, ref) => {
+  const bankLabel = String(bank || '').trim();
+  const reference = String(ref || '').trim();
+  if (bankLabel && reference) return `${bankLabel}|${reference}`;
+  return reference || bankLabel || undefined;
+};
+
+const parseTransferReference = (reference, bank) => {
+  const raw = String(reference || '').trim();
+  if (raw.includes('|')) {
+    const [parsedBank, ...rest] = raw.split('|');
+    return { bank: parsedBank || bank || '', reference: rest.join('|') };
+  }
+  return { bank: bank || '', reference: raw };
+};
+
 const parseSaleError = (message, cart) => {
-  if (typeof message !== 'string') return 'Error interno al registrar la venta.';
+  if (typeof message !== 'string' || !message.trim()) return 'Error interno al registrar la venta.';
+  if (message === 'Total paid is less than the invoice amount') {
+    return 'El monto del pago es menor al total de la factura. Verifique el total o use pago mixto.';
+  }
+  if (message.startsWith('Error al procesar cobro/facturación:')) return message;
   const inactiveMatch = message.match(/^Product is not active: (\d+)$/);
   if (inactiveMatch) {
     const id = Number(inactiveMatch[1]);
@@ -54,11 +82,14 @@ export const useBillingCheckout = ({
   const [transferRef, setTransferRef] = useState('');
   const [stripeClientSecret, setStripeClientSecret] = useState(null);
   const [showStripeModal, setShowStripeModal] = useState(false);
+  const [stripeChargeAmount, setStripeChargeAmount] = useState(0);
+  const [pendingCheckout, setPendingCheckout] = useState(null);
 
   const describePaymentMethod = (payment) => {
     if (payment.method === 'TRANSFER') {
-      const bankLabel = payment.bank ? ` ${payment.bank}` : '';
-      const refLabel = payment.reference ? ` (Ref: ${payment.reference})` : '';
+      const { bank, reference } = parseTransferReference(payment.reference, payment.bank);
+      const bankLabel = bank ? ` ${bank}` : '';
+      const refLabel = reference ? ` (Ref: ${reference})` : '';
       return `TRANSF.${bankLabel}${refLabel}`;
     }
     return ({
@@ -75,8 +106,9 @@ export const useBillingCheckout = ({
       return payments.map((payment) => ({
         method: payment.method,
         amount: parseFloat(Number(payment.amount || 0).toFixed(4)),
-        ...(payment.bank ? { bank: payment.bank } : {}),
-        ...(payment.reference ? { reference: payment.reference } : {}),
+        ...(payment.method === 'TRANSFER'
+          ? { reference: encodeTransferReference(payment.bank, payment.reference) }
+          : payment.reference ? { reference: payment.reference } : {}),
         ...(payment.method === 'COUPON' && payment.couponCode ? { couponCode: payment.couponCode } : {}),
       }));
     }
@@ -92,8 +124,7 @@ export const useBillingCheckout = ({
       return [{
         method: 'TRANSFER',
         amount: parseFloat(Number(total || 0).toFixed(4)),
-        bank: transferBank,
-        reference: transferRef?.trim() || undefined,
+        reference: encodeTransferReference(transferBank, transferRef),
       }];
     }
 
@@ -101,6 +132,33 @@ export const useBillingCheckout = ({
       method: paymentMethod,
       amount: parseFloat(Number(total || 0).toFixed(4)),
     }];
+  };
+
+  const startStripeCheckout = async (chargeAmount, checkoutContext) => {
+    const publishableKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || '';
+    if (!publishableKey || publishableKey.includes('...') || !publishableKey.startsWith('pk_')) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Stripe no configurado',
+        html: 'Falta <code>VITE_STRIPE_PUBLIC_KEY</code> (pk_test_...) en el frontend.<br/>Sin esa clave el cobro con tarjeta falla con "Invalid request".',
+      });
+      return false;
+    }
+
+    try {
+      Swal.fire({ title: 'Preparando pago...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      const { clientSecret } = await PaymentService.createPaymentIntent(chargeAmount);
+      setPendingCheckout(checkoutContext);
+      setStripeChargeAmount(chargeAmount);
+      setStripeClientSecret(clientSecret);
+      Swal.close();
+      setShowStripeModal(true);
+      return true;
+    } catch (error) {
+      const msg = extractApiError(error) || 'No se pudo inicializar el pago con Stripe';
+      Swal.fire({ icon: 'error', title: 'Error', text: msg });
+      return false;
+    }
   };
 
   const handleValidateCoupon = async () => {
@@ -156,43 +214,24 @@ export const useBillingCheckout = ({
       }
     }
 
-    if (isMultiPayment && payments.some((p) => p.method === 'CARD')) {
+    if (!isMultiPayment && paymentMethod === 'TRANSFER' && !transferRef?.trim()) {
       Swal.fire({
         icon: 'warning',
-        title: 'Tarjeta no disponible en pago mixto',
-        text: 'Por seguridad, la tarjeta solo puede cobrarse en modo simple mientras completamos la integración segura del pago mixto.',
+        title: 'Referencia requerida',
+        text: 'Ingrese el número de referencia de la transferencia antes de cobrar.',
       });
       return;
     }
 
     const customerName = selectedCustomer ? selectedCustomer.fullName : 'Consumidor Final';
+    const mappedPayments = buildMappedPayments();
+    const cardChargeAmount = mappedPayments
+      .filter((payment) => payment.method === 'CARD')
+      .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
 
-    if (!isMultiPayment && paymentMethod === 'CARD') {
-      const publishableKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || '';
-      if (!publishableKey || publishableKey.includes('...') || !publishableKey.startsWith('pk_')) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Stripe no configurado',
-          html: 'Falta <code>VITE_STRIPE_PUBLIC_KEY</code> (pk_test_...) en el frontend.<br/>Sin esa clave el cobro con tarjeta falla con "Invalid request".',
-        });
-        return;
-      }
-      try {
-        Swal.fire({ title: 'Preparando pago...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        const { clientSecret } = await PaymentService.createPaymentIntent(total);
-        setStripeClientSecret(clientSecret);
-        Swal.close();
-        setShowStripeModal(true);
-        return;
-      } catch (error) {
-        const msg =
-          error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          error?.message ||
-          'No se pudo inicializar el pago con Stripe';
-        Swal.fire({ icon: 'error', title: 'Error', text: msg });
-        return;
-      }
+    if (cardChargeAmount > 0) {
+      await startStripeCheckout(cardChargeAmount, { customerName, mappedPayments });
+      return;
     }
 
     const res = await Swal.fire({ 
@@ -205,23 +244,40 @@ export const useBillingCheckout = ({
     });
 
     if (res.isConfirmed) {
-      const mappedPayments = buildMappedPayments();
       await processCheckoutLogic(customerName, mappedPayments);
     }
   };
 
   const handleStripePaymentSuccess = async (paymentIntent) => {
     setShowStripeModal(false);
-    
-    const customerName = selectedCustomer ? selectedCustomer.fullName : 'Consumidor Final';
-    const mappedPayments = [{
-      method: 'CARD',
-      amount: parseFloat(total.toFixed(4)),
-      reference: paymentIntent.id
-    }];
 
-    await processCheckoutLogic(customerName, mappedPayments);
+    const checkoutContext = pendingCheckout || {
+      customerName: selectedCustomer ? selectedCustomer.fullName : 'Consumidor Final',
+      mappedPayments: [{
+        method: 'CARD',
+        amount: parseFloat(Number(total || 0).toFixed(4)),
+      }],
+    };
+
+    const mappedPayments = checkoutContext.mappedPayments.map((payment) => (
+      payment.method === 'CARD'
+        ? { ...payment, reference: paymentIntent.id }
+        : payment
+    ));
+
+    setPendingCheckout(null);
+    setStripeClientSecret(null);
+    setStripeChargeAmount(0);
+
+    await processCheckoutLogic(checkoutContext.customerName, mappedPayments);
     Swal.fire({ icon: 'success', title: 'Pago Exitoso', text: 'La factura ha sido registrada', timer: 2000, showConfirmButton: false });
+  };
+
+  const handleStripeModalClose = () => {
+    setShowStripeModal(false);
+    setStripeClientSecret(null);
+    setStripeChargeAmount(0);
+    setPendingCheckout(null);
   };
 
   const processCheckoutLogic = async (customerName, mappedPayments) => {
@@ -287,7 +343,7 @@ export const useBillingCheckout = ({
       } catch (error) {
         console.error('Error al registrar venta:', error);
         const message = parseSaleError(
-          error?.response?.data?.message || error?.message || 'Error interno al registrar la venta.',
+          extractApiError(error) || 'Error interno al registrar la venta.',
           cart
         );
         Swal.fire({ icon: 'error', title: 'Error al registrar venta', text: message });
@@ -408,6 +464,8 @@ export const useBillingCheckout = ({
     stripeClientSecret,
     showStripeModal,
     setShowStripeModal,
+    stripeChargeAmount,
+    handleStripeModalClose,
     handleStripePaymentSuccess
   };
 };
