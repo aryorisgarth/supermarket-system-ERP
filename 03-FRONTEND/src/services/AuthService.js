@@ -204,7 +204,7 @@ const AuthService = {
       }
     }
 
-    const baseUrl = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080';
+    const baseUrl = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080/auth';
     const realm = import.meta.env.VITE_KEYCLOAK_REALM || 'supermarket';
     const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'supermarket-app';
     const redirectUri = encodeURIComponent(window.location.origin + '/login');

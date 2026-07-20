@@ -138,6 +138,30 @@ public class SecurityConfiguration {
 										new String[] {"INVENTORY_VIEW", "INVENTORY_ADJUST", "REPORT_VIEW"}))
 						.requestMatchers(HttpMethod.GET, "/api/promotions", "/api/promotions/**").authenticated()
 						.requestMatchers("/api/promotions/**").hasAuthority("PROMO_MANAGE")
+						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/transfer")
+								.access(anyRoleOrAuthority(
+										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
+										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
+						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/stock")
+								.access(anyRoleOrAuthority(
+										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
+										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
+						.requestMatchers(HttpMethod.POST, "/api/locations")
+								.access(anyRoleOrAuthority(
+										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
+										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
+						.requestMatchers(HttpMethod.PUT, "/api/locations/**")
+								.access(anyRoleOrAuthority(
+										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
+										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
+						.requestMatchers(HttpMethod.DELETE, "/api/locations/product/**")
+								.access(anyRoleOrAuthority(
+										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
+										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
+						.requestMatchers(HttpMethod.DELETE, "/api/locations/*")
+								.access(anyRoleOrAuthority(
+										new String[] {"ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
+										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
 						.requestMatchers(HttpMethod.POST, "/api/product-batches/write-off-expired")
 								.hasAuthority("INVENTORY_ADJUST")
 						.requestMatchers(HttpMethod.GET, "/api/product-batches/**")

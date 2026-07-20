@@ -1,7 +1,7 @@
 import Keycloak from 'keycloak-js';
 
 const keycloakConfig = {
-  url: import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080',
+  url: import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080/auth',
   realm: import.meta.env.VITE_KEYCLOAK_REALM || 'supermarket',
   clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'supermarket-app',
 };
@@ -45,13 +45,43 @@ export const getValidToken = async (minValidity = 30) => {
   }
 };
 
+const mapKeycloakLoginError = (errData = {}) => {
+  const description = errData.error_description || '';
+  const normalized = description.toLowerCase();
+
+  if (description === 'Account is not fully set up') {
+    return 'PASSWORD_CHANGE_REQUIRED';
+  }
+
+  if (normalized.includes('invalid user credentials')) {
+    return 'Credenciales inválidas. Usa el correo exacto del email (en minúsculas), copia la contraseña temporal sin espacios y verifica caracteres especiales (!@*-_).';
+  }
+
+  if (normalized.includes('direct access grants') || normalized.includes('not allowed')) {
+    return 'El cliente de Keycloak no permite inicio de sesión directo. Ejecuta: bash scripts/keycloak-bootstrap.sh';
+  }
+
+  if (normalized.includes('unauthorized_client') || normalized.includes('invalid client')) {
+    return 'Configuración de Keycloak incorrecta (cliente no autorizado). Contacta al administrador del sistema.';
+  }
+
+  return description || 'Usuario o contraseña incorrectos.';
+};
+
 export const loginWithDirectGrant = async (username, password) => {
+  const normalizedUsername = String(username || '').trim().toLowerCase();
+  const normalizedPassword = String(password || '').trim();
+
+  if (!normalizedUsername || !normalizedPassword) {
+    throw new Error('Correo y contraseña son obligatorios.');
+  }
+
   const tokenUrl = `${keycloakConfig.url}/realms/${keycloakConfig.realm}/protocol/openid-connect/token`;
   const params = new URLSearchParams();
   params.append('grant_type', 'password');
   params.append('client_id', keycloakConfig.clientId);
-  params.append('username', username);
-  params.append('password', password);
+  params.append('username', normalizedUsername);
+  params.append('password', normalizedPassword);
 
   const response = await fetch(tokenUrl, {
     method: 'POST',
@@ -63,10 +93,11 @@ export const loginWithDirectGrant = async (username, password) => {
 
   if (!response.ok) {
     const errData = await response.json().catch(() => ({}));
-    if (errData.error_description === 'Account is not fully set up') {
+    const mappedError = mapKeycloakLoginError(errData);
+    if (mappedError === 'PASSWORD_CHANGE_REQUIRED') {
       throw new Error('PASSWORD_CHANGE_REQUIRED');
     }
-    throw new Error(errData.error_description || 'Usuario o contraseña incorrectos.');
+    throw new Error(mappedError);
   }
 
   const data = await response.json();

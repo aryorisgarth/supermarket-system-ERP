@@ -65,7 +65,7 @@ const Login = () => {
 				navigate(getDefaultPathForRole(roleName), { replace: true });
 				return;
 			}
-			await AuthService.loginDirect(email.trim(), password);
+			await AuthService.loginDirect(email.trim().toLowerCase(), password.trim());
 			
 			Swal.fire({
 				icon: 'success',
