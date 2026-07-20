@@ -5,7 +5,7 @@ INSERT INTO categories (name, description, default_requires_batch, default_requi
 SELECT 'Frutas y Verduras', 'Productos frescos vendidos por peso (PLU)', 0, 1
 WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = 'Frutas y Verduras');
 
-INSERT INTO products (
+INSERT IGNORE INTO products (
   barcode, name, description, purchase_price, sale_price, current_stock, minimum_stock,
   uom_base, is_active, created_at, updated_at, category_id, supplier_id, tax_category_id, min_stock_exhibicion
 )
@@ -46,14 +46,32 @@ FROM (
   UNION ALL SELECT '1234', 'Cebolla Amarilla', 'Cebolla amarilla a granel, precio por peso', 7.00, 11.00, 250, 20, 'LB', 2, 5
   UNION ALL SELECT '4196', 'Piña', 'Piña golden, precio por pieza', 15.00, 25.00, 80, 10, 'UN', 1, 5
 ) seed
+CROSS JOIN (SELECT id FROM categories WHERE name = 'Frutas y Verduras' LIMIT 1) cat;
+
+UPDATE products p
+INNER JOIN (
+  SELECT '4011' AS barcode, 'Plátano / Banana' AS name, 'Plátano maduro, precio por kg' AS description,
+         8.00 AS purchase_price, 12.50 AS sale_price, 'KG' AS uom_base
+  UNION ALL SELECT '4065', 'Mango Ataulfo', 'Mango fresco, precio por kg', 10.00, 18.00, 'KG'
+  UNION ALL SELECT '4056', 'Naranja Valencia', 'Naranja jugosa, precio por kg', 7.00, 11.00, 'KG'
+  UNION ALL SELECT '3045', 'Manzana Roja', 'Manzana importada, precio por kg', 22.00, 35.00, 'KG'
+  UNION ALL SELECT '4959', 'Aguacate Hass', 'Aguacate, precio por kg', 35.00, 55.00, 'KG'
+  UNION ALL SELECT '3085', 'Papa Blanca', 'Papa a granel, precio por kg', 6.00, 9.50, 'KG'
+  UNION ALL SELECT '3124', 'Tomate Bola', 'Tomate rojo, precio por kg', 8.00, 13.00, 'KG'
+  UNION ALL SELECT '4543', 'Zanahoria', 'Zanahoria fresca, precio por kg', 5.50, 8.50, 'KG'
+  UNION ALL SELECT '4384', 'Pepino', 'Pepino fresco, precio por kg', 5.00, 8.00, 'KG'
+  UNION ALL SELECT '1234', 'Cebolla Amarilla', 'Cebolla amarilla a granel, precio por peso', 7.00, 11.00, 'LB'
+  UNION ALL SELECT '4196', 'Piña', 'Piña golden, precio por pieza', 15.00, 25.00, 'UN'
+) seed ON p.barcode = seed.barcode
 CROSS JOIN (SELECT id FROM categories WHERE name = 'Frutas y Verduras' LIMIT 1) cat
-ON DUPLICATE KEY UPDATE
-  name = VALUES(name),
-  description = VALUES(description),
-  uom_base = VALUES(uom_base),
-  sale_price = VALUES(sale_price),
-  is_active = 1,
-  updated_at = NOW();
+SET
+  p.name = seed.name,
+  p.description = seed.description,
+  p.uom_base = seed.uom_base,
+  p.sale_price = seed.sale_price,
+  p.category_id = cat.id,
+  p.is_active = 1,
+  p.updated_at = NOW();
 
 -- Stock en bodega por defecto para productos PLU nuevos
 INSERT INTO product_locations (product_id, location_id, stock, created_at, updated_at)

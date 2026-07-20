@@ -1,5 +1,5 @@
 -- Cebolla Amarilla PLU 1234 (ejemplo etiqueta balanza 2001234020008)
-INSERT INTO products (
+INSERT IGNORE INTO products (
   barcode, name, description, purchase_price, sale_price, current_stock, minimum_stock,
   uom_base, is_active, created_at, updated_at, category_id, supplier_id, tax_category_id, min_stock_exhibicion
 )
@@ -25,12 +25,17 @@ SELECT
     1
   ),
   5
-FROM (SELECT id FROM categories WHERE name = 'Frutas y Verduras' LIMIT 1) cat
-ON DUPLICATE KEY UPDATE
-  name = VALUES(name),
-  uom_base = VALUES(uom_base),
-  is_active = 1,
-  updated_at = NOW();
+FROM (SELECT id FROM categories WHERE name = 'Frutas y Verduras' LIMIT 1) cat;
+
+UPDATE products p
+CROSS JOIN (SELECT id FROM categories WHERE name = 'Frutas y Verduras' LIMIT 1) cat
+SET
+  p.name = 'Cebolla Amarilla',
+  p.uom_base = 'LB',
+  p.category_id = cat.id,
+  p.is_active = 1,
+  p.updated_at = NOW()
+WHERE p.barcode = '1234';
 
 INSERT INTO product_locations (product_id, location_id, stock, created_at, updated_at)
 SELECT p.id, bod.id, p.current_stock, NOW(), NOW()
