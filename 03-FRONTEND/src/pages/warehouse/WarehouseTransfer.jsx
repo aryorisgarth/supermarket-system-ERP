@@ -9,6 +9,8 @@ import WarehouseFlowStrip from '../../components/warehouse/WarehouseFlowStrip';
 import ProductService from '../../services/ProductService';
 import LocationService from '../../services/LocationService';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { isScaleEanBarcode, sanitizeScanCode } from '../../utils/pluProductUtils';
+import { resolveProductByScanCode } from '../../utils/resolveProductScan';
 
 const WarehouseTransfer = () => {
   const [query, setQuery] = useState('');
@@ -55,29 +57,41 @@ const WarehouseTransfer = () => {
 
   const handleSearch = async (event) => {
     event?.preventDefault?.();
-    const term = query.trim();
+    const term = sanitizeScanCode(query.trim());
     if (!term) return;
 
     setSearching(true);
     try {
+      const isScaleLabel = isScaleEanBarcode(term) || /^20\d{11}$/.test(term);
+      const { product: scannedProduct, scaleParsed, scannedCode } = await resolveProductByScanCode(term);
+
       let found = [];
-      try {
-        const byBarcode = await ProductService.getByBarcode(term);
-        if (byBarcode) found = [byBarcode];
-      } catch {
-        // ignore barcode miss
-      }
-      if (found.length === 0) {
+      if (scannedProduct) {
+        found = [scannedProduct];
+      } else if (!isScaleLabel) {
         const data = await ProductService.search(term);
         found = Array.isArray(data) ? data : data?.content || [];
       }
+
       setResults(found.slice(0, 12));
       if (found.length === 1) {
         setProduct(found[0]);
+        if (scaleParsed?.weight != null) {
+          setQty(String(scaleParsed.weight));
+        }
         await loadProductLocations(found[0]);
       } else {
         setProduct(null);
         setLocStocks([]);
+        if (found.length === 0) {
+          const shown = scannedCode || term;
+          const detail = scaleParsed
+            ? `Etiqueta de balanza (${shown}): PLU ${scaleParsed.plu}, peso ${scaleParsed.weight}. No hay producto activo con ese PLU en el servidor.`
+            : isScaleLabel
+              ? `Código de balanza (${shown}) detectado, pero no se pudo leer el PLU. Revise Configuración de Balanza (prefijo 20, PLU 5, peso 5).`
+              : `No se encontró producto por código o nombre para "${shown}".`;
+          Swal.fire({ icon: 'warning', title: 'No Encontrado', text: detail });
+        }
       }
     } catch (error) {
       console.error(error);

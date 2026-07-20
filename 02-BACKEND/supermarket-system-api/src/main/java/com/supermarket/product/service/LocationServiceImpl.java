@@ -5,8 +5,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import com.supermarket.product.dto.LocationRequestDTO;
 import com.supermarket.product.dto.LocationResponseDTO;
 import com.supermarket.product.dto.ProductLocationResponseDTO;
@@ -133,6 +135,7 @@ public class LocationServiceImpl implements LocationService {
 	@Override
 	@Transactional
 	public void transferStock(Long productId, Long fromLocationId, Long toLocationId, BigDecimal quantity) {
+		assertWarehouseTransferAccess();
 		if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new ConflictException("Transfer quantity must be positive");
 		}
@@ -148,6 +151,20 @@ public class LocationServiceImpl implements LocationService {
 	private User currentUser() {
 		return userRepository.findById(SecurityUtils.currentUserId())
 				.orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
+	}
+
+	private void assertWarehouseTransferAccess() {
+		if (SecurityUtils.hasAuthority("ROLE_BODEGUERO")
+				|| SecurityUtils.hasAuthority("ROLE_ADMINISTRADOR")
+				|| SecurityUtils.hasAuthority("ROLE_ADMIN_INGENIERO")
+				|| SecurityUtils.hasAuthority("ROLE_SUPERVISOR")
+				|| SecurityUtils.hasAuthority("WAREHOUSE_LOCATION")
+				|| SecurityUtils.hasAuthority("INVENTORY_ADJUST")
+				|| SecurityUtils.hasAuthority("PURCHASE_RECEIVE")) {
+			return;
+		}
+		throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+				"No tiene permisos para trasladar mercadería entre ubicaciones");
 	}
 
 	private LocationResponseDTO toResponse(Location loc) {

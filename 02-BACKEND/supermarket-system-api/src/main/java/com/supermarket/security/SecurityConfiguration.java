@@ -107,7 +107,7 @@ public class SecurityConfiguration {
 						.requestMatchers(HttpMethod.GET, "/api/scale-config").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
 						.requestMatchers(HttpMethod.POST, "/api/auth/change-password").authenticated()
-						.requestMatchers(warehouseLocationTransferMatcher()).access(warehouseMutationAccess())
+						.requestMatchers(warehouseLocationTransferMatcher()).authenticated()
 						.requestMatchers("/actuator/health", "/actuator/info").permitAll()
 						.requestMatchers("/actuator/**").hasRole("ADMIN_INGENIERO")
 						.requestMatchers(
@@ -169,7 +169,7 @@ public class SecurityConfiguration {
 						.requestMatchers(HttpMethod.GET, "/api/promotions", "/api/promotions/**").authenticated()
 						.requestMatchers("/api/promotions/**").hasAuthority("PROMO_MANAGE")
 						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/transfer")
-								.access(warehouseMutationAccess())
+								.authenticated()
 						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/stock")
 								.access(warehouseMutationAccess())
 						.requestMatchers(HttpMethod.POST, "/api/locations", "/api/locations/**")
@@ -295,6 +295,10 @@ public class SecurityConfiguration {
 	private AuthorizationManager<RequestAuthorizationContext> defaultApiAccess() {
 		return (authentication, context) -> {
 			HttpServletRequest request = context.getRequest();
+			if (isWarehouseLocationTransfer(request.getMethod(), request.getRequestURI())) {
+				var auth = authentication.get();
+				return new AuthorizationDecision(auth != null && auth.isAuthenticated());
+			}
 			if (isWarehouseLocationMutation(request.getMethod(), request.getRequestURI())) {
 				return warehouseMutationAccess().check(authentication, context);
 			}
@@ -308,13 +312,18 @@ public class SecurityConfiguration {
 		};
 	}
 
+	private static boolean isWarehouseLocationTransfer(String method, String uri) {
+		return "POST".equalsIgnoreCase(method)
+				&& uri != null
+				&& uri.matches("/api/locations/product/\\d+/transfer");
+	}
+
 	private static boolean isWarehouseLocationMutation(String method, String uri) {
 		if (uri == null || !uri.startsWith("/api/locations")) {
 			return false;
 		}
 		if ("POST".equalsIgnoreCase(method)) {
-			return uri.matches("/api/locations/product/\\d+/transfer")
-					|| uri.matches("/api/locations/product/\\d+/stock")
+			return uri.matches("/api/locations/product/\\d+/stock")
 					|| "/api/locations".equals(uri);
 		}
 		if ("PUT".equalsIgnoreCase(method)) {

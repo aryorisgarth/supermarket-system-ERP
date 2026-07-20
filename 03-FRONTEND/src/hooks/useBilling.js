@@ -164,7 +164,7 @@ export const useBilling = () => {
             ? `Etiqueta de balanza (${shown}): PLU ${scaleParsed.plu}, peso ${scaleParsed.weight}. No hay producto activo con ese PLU. Verifique migraciones V48/V49 en el servidor.`
             : isScaleLabel
               ? `Codigo de balanza (${shown}) detectado, pero no se pudo leer el PLU. Revise Configuracion de Balanza (prefijo 20, PLU 5, peso 5).`
-              : `No se encontro producto para "${shown}".`;
+              : `No se encontró producto por código o nombre para "${shown}".`;
           Swal.fire({ icon: 'warning', title: 'No Encontrado', text: detail, confirmButtonColor: '#10b981' });
         }
       } catch (error) { 

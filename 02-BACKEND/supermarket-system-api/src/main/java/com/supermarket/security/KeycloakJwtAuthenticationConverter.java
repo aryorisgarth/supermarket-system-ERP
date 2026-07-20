@@ -55,9 +55,9 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
 		if (email == null || email.isBlank()) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Keycloak token does not contain email");
 		}
-		email = email.trim().toLowerCase(Locale.ROOT);
+		final String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
 
-		userRepository.findByEmailWithRole(email).ifPresent(existing -> {
+		userRepository.findByEmailWithRole(normalizedEmail).ifPresent(existing -> {
 			if (!Boolean.TRUE.equals(existing.getIsActive())) {
 				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User account is inactive");
 			}
@@ -68,9 +68,9 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
 						"Role " + roleName + " does not exist in local database"));
 
-		User user = userRepository.findByEmailWithRole(email)
+		User user = userRepository.findByEmailWithRole(normalizedEmail)
 				.map(existing -> updateUser(existing, jwt, role))
-				.orElseGet(() -> createUser(email, jwt, role));
+				.orElseGet(() -> createUser(normalizedEmail, jwt, role));
 
 		Role effectiveRole = user.getRole() != null ? user.getRole() : role;
 		List<SimpleGrantedAuthority> authorities = new ArrayList<>();
