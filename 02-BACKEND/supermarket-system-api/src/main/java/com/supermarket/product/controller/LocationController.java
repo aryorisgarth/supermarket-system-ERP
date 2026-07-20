@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +33,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LocationController {
 
+	private static final String WAREHOUSE_MUTATION_AUTH =
+			"hasAnyRole('BODEGUERO','ADMINISTRADOR','ADMIN_INGENIERO','SUPERVISOR') "
+					+ "or hasAnyAuthority('WAREHOUSE_LOCATION','INVENTORY_ADJUST','PURCHASE_RECEIVE',"
+					+ "'BATCH_MANAGE','PURCHASE_MANAGE','INVENTORY_VIEW')";
+
 	private final LocationService locationService;
 
 	@GetMapping
@@ -52,6 +58,7 @@ public class LocationController {
 	}
 
 	@PostMapping
+	@PreAuthorize(WAREHOUSE_MUTATION_AUTH)
 	public ResponseEntity<LocationResponseDTO> createLocation(@Valid @RequestBody LocationRequestDTO request) {
 		LocationResponseDTO created = locationService.create(request);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -62,12 +69,15 @@ public class LocationController {
 	}
 
 	@PutMapping("/{id}")
+	@PreAuthorize(WAREHOUSE_MUTATION_AUTH)
 	public ResponseEntity<LocationResponseDTO> updateLocation(@PathVariable Long id,
 			@Valid @RequestBody LocationRequestDTO request) {
 		return ResponseEntity.ok(locationService.update(id, request));
 	}
 
 	@DeleteMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','ADMIN_INGENIERO','SUPERVISOR') "
+			+ "or hasAnyAuthority('WAREHOUSE_LOCATION','INVENTORY_ADJUST')")
 	public ResponseEntity<Void> deleteLocation(@PathVariable Long id) {
 		locationService.deleteById(id);
 		return ResponseEntity.noContent().build();
@@ -79,6 +89,7 @@ public class LocationController {
 	}
 
 	@PostMapping("/product/{productId}/stock")
+	@PreAuthorize(WAREHOUSE_MUTATION_AUTH)
 	public ResponseEntity<Void> updateProductLocationStock(
 			@PathVariable Long productId,
 			@RequestParam Long locationId,
@@ -88,6 +99,7 @@ public class LocationController {
 	}
 
 	@PostMapping("/product/{productId}/transfer")
+	@PreAuthorize(WAREHOUSE_MUTATION_AUTH)
 	public ResponseEntity<Void> transferStock(
 			@PathVariable Long productId,
 			@RequestParam Long fromLocationId,
@@ -103,6 +115,7 @@ public class LocationController {
 	}
 
 	@DeleteMapping("/product/{productId}")
+	@PreAuthorize(WAREHOUSE_MUTATION_AUTH)
 	public ResponseEntity<Void> removeProductLocation(
 			@PathVariable Long productId,
 			@RequestParam Long locationId) {

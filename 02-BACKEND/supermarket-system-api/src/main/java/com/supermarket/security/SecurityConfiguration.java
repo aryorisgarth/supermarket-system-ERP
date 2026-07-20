@@ -28,6 +28,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -41,6 +43,17 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
+
+	private static final Logger log = LoggerFactory.getLogger(SecurityConfiguration.class);
+
+	private static final String[] WAREHOUSE_MUTATION_ROLES = {
+			"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"
+	};
+
+	private static final String[] WAREHOUSE_MUTATION_AUTHORITIES = {
+			"WAREHOUSE_LOCATION", "INVENTORY_ADJUST", "PURCHASE_RECEIVE",
+			"INVENTORY_VIEW", "BATCH_MANAGE", "PURCHASE_MANAGE"
+	};
 
 	private final CustomUserDetailsService customUserDetailsService;
 	private final AppCorsProperties appCorsProperties;
@@ -68,6 +81,14 @@ public class SecurityConfiguration {
 							response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
 							response.setContentType("application/json");
 							response.getWriter().write("{\"message\": \"Sesión no válida o expirada. Por favor inicie sesión.\"}");
+						})
+						.accessDeniedHandler((request, response, accessDeniedException) -> {
+							log.warn("Access denied {} {} - {}", request.getMethod(), request.getRequestURI(),
+									accessDeniedException.getMessage());
+							response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+							response.setContentType("application/json");
+							response.getWriter().write(
+									"{\"message\": \"No tienes permisos para realizar esta operación de bodega/inventario.\"}");
 						})
 				)
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -138,26 +159,12 @@ public class SecurityConfiguration {
 										new String[] {"INVENTORY_VIEW", "INVENTORY_ADJUST", "REPORT_VIEW"}))
 						.requestMatchers(HttpMethod.GET, "/api/promotions", "/api/promotions/**").authenticated()
 						.requestMatchers("/api/promotions/**").hasAuthority("PROMO_MANAGE")
-						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/transfer")
-								.access(anyRoleOrAuthority(
-										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
-										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
-						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/stock")
-								.access(anyRoleOrAuthority(
-										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
-										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
-						.requestMatchers(HttpMethod.POST, "/api/locations")
-								.access(anyRoleOrAuthority(
-										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
-										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
+						.requestMatchers(HttpMethod.POST, "/api/locations", "/api/locations/**")
+								.access(warehouseMutationAccess())
 						.requestMatchers(HttpMethod.PUT, "/api/locations/**")
-								.access(anyRoleOrAuthority(
-										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
-										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
+								.access(warehouseMutationAccess())
 						.requestMatchers(HttpMethod.DELETE, "/api/locations/product/**")
-								.access(anyRoleOrAuthority(
-										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
-										new String[] {"WAREHOUSE_LOCATION", "INVENTORY_ADJUST"}))
+								.access(warehouseMutationAccess())
 						.requestMatchers(HttpMethod.DELETE, "/api/locations/*")
 								.access(anyRoleOrAuthority(
 										new String[] {"ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
@@ -256,6 +263,10 @@ public class SecurityConfiguration {
 						.anyRequest().authenticated())
 				.authenticationProvider(daoAuthenticationProvider(passwordEncoder));
 		return http.build();
+	}
+
+	private AuthorizationManager<RequestAuthorizationContext> warehouseMutationAccess() {
+		return anyRoleOrAuthority(WAREHOUSE_MUTATION_ROLES, WAREHOUSE_MUTATION_AUTHORITIES);
 	}
 
 	private AuthorizationManager<RequestAuthorizationContext> anyRoleOrAuthority(String[] roles, String[] authorities) {
