@@ -36,6 +36,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.supermarket.config.AppCorsProperties;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -64,6 +66,12 @@ public class SecurityConfiguration {
 
 	@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:#{null}}")
 	private String issuerUri;
+
+	@PostConstruct
+	void logSecurityProfile() {
+		log.info("Security: traslados bodega habilitados para roles {} y permisos {}",
+				Arrays.toString(WAREHOUSE_MUTATION_ROLES), Arrays.toString(WAREHOUSE_MUTATION_AUTHORITIES));
+	}
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {
@@ -99,6 +107,7 @@ public class SecurityConfiguration {
 						.requestMatchers(HttpMethod.GET, "/api/scale-config").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
 						.requestMatchers(HttpMethod.POST, "/api/auth/change-password").authenticated()
+						.requestMatchers(warehouseLocationTransferMatcher()).access(warehouseMutationAccess())
 						.requestMatchers("/actuator/health", "/actuator/info").permitAll()
 						.requestMatchers("/actuator/**").hasRole("ADMIN_INGENIERO")
 						.requestMatchers(
@@ -160,7 +169,7 @@ public class SecurityConfiguration {
 						.requestMatchers(HttpMethod.GET, "/api/promotions", "/api/promotions/**").authenticated()
 						.requestMatchers("/api/promotions/**").hasAuthority("PROMO_MANAGE")
 						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/transfer")
-								.hasAnyRole("BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR")
+								.access(warehouseMutationAccess())
 						.requestMatchers(HttpMethod.POST, "/api/locations/product/*/stock")
 								.access(warehouseMutationAccess())
 						.requestMatchers(HttpMethod.POST, "/api/locations", "/api/locations/**")
@@ -263,7 +272,7 @@ public class SecurityConfiguration {
 								.hasAuthority("SALE_CANCEL")
 						
 						
-						.requestMatchers("/api/**").hasAnyRole("ADMINISTRADOR", "ADMIN_INGENIERO")
+						.requestMatchers("/api/**").access(defaultApiAccess())
 						.anyRequest().authenticated())
 				.authenticationProvider(daoAuthenticationProvider(passwordEncoder));
 		return http.build();
@@ -271,6 +280,50 @@ public class SecurityConfiguration {
 
 	private AuthorizationManager<RequestAuthorizationContext> warehouseMutationAccess() {
 		return anyRoleOrAuthority(WAREHOUSE_MUTATION_ROLES, WAREHOUSE_MUTATION_AUTHORITIES);
+	}
+
+	private org.springframework.security.web.util.matcher.RequestMatcher warehouseLocationTransferMatcher() {
+		return request -> {
+			if (request == null || !"POST".equalsIgnoreCase(request.getMethod())) {
+				return false;
+			}
+			String uri = request.getRequestURI();
+			return uri != null && uri.matches("/api/locations/product/\\d+/transfer");
+		};
+	}
+
+	private AuthorizationManager<RequestAuthorizationContext> defaultApiAccess() {
+		return (authentication, context) -> {
+			HttpServletRequest request = context.getRequest();
+			if (isWarehouseLocationMutation(request.getMethod(), request.getRequestURI())) {
+				return warehouseMutationAccess().check(authentication, context);
+			}
+			var auth = authentication.get();
+			boolean admin = auth != null
+					&& auth.isAuthenticated()
+					&& auth.getAuthorities().stream()
+							.anyMatch(a -> "ROLE_ADMINISTRADOR".equals(a.getAuthority())
+									|| "ROLE_ADMIN_INGENIERO".equals(a.getAuthority()));
+			return new AuthorizationDecision(admin);
+		};
+	}
+
+	private static boolean isWarehouseLocationMutation(String method, String uri) {
+		if (uri == null || !uri.startsWith("/api/locations")) {
+			return false;
+		}
+		if ("POST".equalsIgnoreCase(method)) {
+			return uri.matches("/api/locations/product/\\d+/transfer")
+					|| uri.matches("/api/locations/product/\\d+/stock")
+					|| "/api/locations".equals(uri);
+		}
+		if ("PUT".equalsIgnoreCase(method)) {
+			return uri.matches("/api/locations/\\d+");
+		}
+		if ("DELETE".equalsIgnoreCase(method)) {
+			return uri.matches("/api/locations/product/\\d+");
+		}
+		return false;
 	}
 
 	private AuthorizationManager<RequestAuthorizationContext> anyRoleOrAuthority(String[] roles, String[] authorities) {

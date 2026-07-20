@@ -25,11 +25,13 @@ import com.supermarket.product.dto.ProductLocationResponseDTO;
 import com.supermarket.product.service.LocationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/locations")
 @Validated
 @RequiredArgsConstructor
+@Slf4j
 public class LocationController {
 
 	private final LocationService locationService;
@@ -93,6 +95,7 @@ public class LocationController {
 			@RequestParam Long fromLocationId,
 			@RequestParam Long toLocationId,
 			@RequestParam BigDecimal quantity) {
+		log.info("Traslado solicitado productId={} from={} to={} qty={}", productId, fromLocationId, toLocationId, quantity);
 		locationService.transferStock(productId, fromLocationId, toLocationId, quantity);
 		return ResponseEntity.ok().build();
 	}

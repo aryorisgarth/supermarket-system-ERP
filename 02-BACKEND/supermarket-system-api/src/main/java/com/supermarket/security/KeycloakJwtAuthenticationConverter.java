@@ -55,6 +55,7 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
 		if (email == null || email.isBlank()) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Keycloak token does not contain email");
 		}
+		email = email.trim().toLowerCase(Locale.ROOT);
 
 		userRepository.findByEmailWithRole(email).ifPresent(existing -> {
 			if (!Boolean.TRUE.equals(existing.getIsActive())) {
