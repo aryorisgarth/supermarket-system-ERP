@@ -65,17 +65,17 @@ const AppHeader = ({ sidebarOpen, onToggleSidebar }) => {
     : 'px-2 py-1.5 sm:px-3 sm:py-2 md:px-4';
 
   const clockChipClass =
-    'inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold tabular-nums uppercase tracking-wide text-slate-600 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300 sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[11px]';
+    'inline-flex items-center gap-1 rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-2 py-0.5 text-[10px] font-bold tabular-nums uppercase tracking-wide text-[var(--app-text-muted)] sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[11px]';
 
   const userCardClass =
-    'flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-2 py-1 shadow-sm dark:border-zinc-700 dark:bg-zinc-800/60 sm:px-3 sm:py-1.5';
+    'flex items-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)]/80 px-2 py-1 shadow-sm sm:px-3 sm:py-1.5';
 
   const toolsWrapClass =
-    'flex items-center gap-0.5 border-slate-200 sm:gap-1 md:border-l md:border-r md:px-1 dark:border-zinc-700';
+    'flex items-center gap-0.5 border-[var(--app-border)] sm:gap-1 md:border-l md:border-r md:px-1';
 
   return (
     <header
-      className={`app-header sticky top-0 z-30 w-full shrink-0 border-b border-slate-200 bg-white/95 text-slate-900 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95 dark:text-zinc-100 ${headerShellClass} ${isPosPage ? 'app-header--pos' : ''}`}
+      className={`app-header sticky top-0 z-30 w-full shrink-0 border-b border-[var(--app-border)] bg-[var(--app-surface)]/95 text-[var(--app-text)] backdrop-blur-md ${headerShellClass} ${isPosPage ? 'app-header--pos' : ''}`}
     >
       <div className="flex w-full flex-col gap-1.5 sm:gap-2">
         <div className="flex min-w-0 items-center justify-between gap-2">
@@ -101,7 +101,7 @@ const AppHeader = ({ sidebarOpen, onToggleSidebar }) => {
 
             {!isPosPage && (
               <div className={`${clockChipClass} hidden md:inline-flex`}>
-                <Clock size={12} className="shrink-0 text-blue-800 dark:text-blue-400" />
+                <Clock size={12} className="shrink-0 text-[var(--app-primary)]" />
                 <span>
                   {dateLabel} - {timeLabel}
                 </span>
@@ -110,18 +110,18 @@ const AppHeader = ({ sidebarOpen, onToggleSidebar }) => {
 
             {!isPosPage && (
               <div className={`${clockChipClass} md:hidden`}>
-                <Clock size={11} className="shrink-0 text-blue-800 dark:text-blue-400" />
+                <Clock size={11} className="shrink-0 text-[var(--app-primary)]" />
                 <span>{timeLabel}</span>
               </div>
             )}
 
             {isPosPage && (
               <div className="flex min-w-0 items-center gap-2">
-                <span className="truncate text-[10px] font-extrabold uppercase tracking-[0.08em] text-slate-500 dark:text-zinc-400 sm:text-[11px]">
+                <span className="truncate text-[10px] font-extrabold uppercase tracking-[0.08em] text-[var(--app-text-muted)] sm:text-[11px]">
                   Terminal POS
                 </span>
                 <div className={`${clockChipClass} hidden lg:inline-flex`}>
-                  <Clock size={12} className="shrink-0 text-blue-800 dark:text-blue-400" />
+                  <Clock size={12} className="shrink-0 text-[var(--app-primary)]" />
                   <span>{posTimeLabel}</span>
                 </div>
               </div>
@@ -142,15 +142,15 @@ const AppHeader = ({ sidebarOpen, onToggleSidebar }) => {
 
             <div className={userCardClass}>
               <div className="app-header-user-text hidden min-w-0 sm:block">
-                <p className="truncate text-[11px] font-extrabold leading-tight text-slate-900 dark:text-zinc-100">
+                <p className="truncate text-[11px] font-extrabold leading-tight text-[var(--app-text)]">
                   {fullName}
                 </p>
-                <p className="truncate text-[9px] font-bold uppercase tracking-[0.06em] text-slate-500 dark:text-zinc-400">
+                <p className="truncate text-[9px] font-bold uppercase tracking-[0.06em] text-[var(--app-text-muted)]">
                   {roleName.replace(/_/g, ' ')}
                 </p>
               </div>
               <span
-                className="app-header-avatar flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-[11px] font-extrabold text-blue-800 sm:hidden dark:bg-blue-500/20 dark:text-blue-300"
+                className="app-header-avatar flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--app-primary-soft)] text-[11px] font-extrabold text-[var(--app-primary)] sm:hidden"
                 title={fullName}
               >
                 {getInitials(fullName)}

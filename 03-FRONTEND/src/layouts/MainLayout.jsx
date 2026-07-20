@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import AuthService from '../services/AuthService';
 import AppHeader from '../components/layout/AppHeader';
+import { LayoutContext } from '../context/LayoutContext';
 
 const MainLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -49,13 +50,15 @@ const MainLayout = ({ children }) => {
     await AuthService.logout();
   };
 
+  const toggleSidebar = () => setSidebarOpen((open) => !open);
+
   return (
     <div className="app-shell flex h-screen w-full bg-[var(--app-bg)] overflow-hidden">
       {sidebarOpen && (
         <button
           type="button"
           aria-label="Cerrar navegacion"
-          className="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-[var(--app-bg)]/45 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -77,25 +80,29 @@ const MainLayout = ({ children }) => {
       </div>
 
       <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <AppHeader
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={() => setSidebarOpen((open) => !open)}
-          onLogout={handleLogout}
-        />
+        <LayoutContext.Provider value={{ sidebarOpen, onToggleSidebar: toggleSidebar }}>
+          {!isPosPage && (
+            <AppHeader
+              sidebarOpen={sidebarOpen}
+              onToggleSidebar={toggleSidebar}
+              onLogout={handleLogout}
+            />
+          )}
 
-        <div
-          className={`flex min-h-0 flex-1 flex-col overflow-x-hidden safe-padding-x ${
-            isPosPage ? 'overflow-hidden p-1 sm:p-2' : 'overflow-y-auto p-4 sm:p-6 pos-scroll'
-          }`}
-        >
           <div
-            className={`app-page-flex mx-auto w-full min-w-0 ${
-              isPosPage ? 'h-full max-w-none min-h-0 animate-fade-in' : 'max-w-[1600px] animate-fade-in'
+            className={`flex min-h-0 flex-1 flex-col overflow-x-hidden safe-padding-x ${
+              isPosPage ? 'overflow-hidden p-1 sm:p-2' : 'overflow-y-auto p-4 sm:p-6 pos-scroll'
             }`}
           >
-            {children}
+            <div
+              className={`app-page-flex mx-auto w-full min-w-0 ${
+                isPosPage ? 'h-full max-w-none min-h-0 animate-fade-in' : 'max-w-[1600px] animate-fade-in'
+              }`}
+            >
+              {children}
+            </div>
           </div>
-        </div>
+        </LayoutContext.Provider>
       </main>
     </div>
   );

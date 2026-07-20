@@ -20,25 +20,31 @@ const CheckoutFooter = ({
   const canManagePostSale = AuthService.hasPermission('SALE_CANCEL');
 
   return (
-    <footer className="bg-transparent border-t border-slate-200 dark:border-slate-800 p-4 space-y-3 relative z-10">
+    <footer className="relative z-10 space-y-3 border-t border-[var(--app-border)] bg-transparent p-4">
       <button
         type="button"
         disabled={!canCheckout}
         onClick={onCheckout}
-        className={`relative flex items-center justify-center gap-2.5 w-full h-14 rounded-2xl font-black uppercase tracking-widest transition-all duration-200 cursor-pointer overflow-hidden ${
+        className={`relative flex h-14 w-full cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-2xl font-black uppercase tracking-widest transition-all duration-200 ${
           canCheckout
-            ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_8px_20px_rgba(79,70,229,0.25)] hover:shadow-[0_10px_25px_rgba(79,70,229,0.35)] active:scale-[0.98]'
-            : 'bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-slate-200 border-dashed'
+            ? 'bg-[var(--app-primary)] text-white shadow-[0_8px_20px_rgba(30,58,138,0.25)] hover:opacity-95 hover:shadow-[0_10px_25px_rgba(30,58,138,0.35)] active:scale-[0.98]'
+            : 'cursor-not-allowed border-2 border-dashed border-[var(--app-border)] bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)]'
         }`}
       >
         {canCheckout && (
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite]"></div>
+          <div className="absolute inset-0 translate-x-[-100%] animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         )}
-        <Wallet size={20} strokeWidth={2.5} className={canCheckout ? 'text-indigo-200' : ''} />
+        <Wallet size={20} strokeWidth={2.5} className={canCheckout ? 'text-white/80' : ''} />
         <span className="text-lg">
           {isMultiPayment ? 'Finalizar Venta' : `Cobrar ${formatMoney(total)}`}
         </span>
-        <div className={`absolute right-3 hidden sm:flex items-center justify-center px-2 py-1 rounded-lg text-xs font-bold ${canCheckout ? 'bg-indigo-800/50 text-indigo-100 border border-indigo-500/30' : 'bg-slate-200 text-slate-500'}`}>
+        <div
+          className={`absolute right-3 hidden items-center justify-center rounded-lg px-2 py-1 text-xs font-bold sm:flex ${
+            canCheckout
+              ? 'border border-white/20 bg-black/20 text-white/90'
+              : 'bg-[var(--app-border)]/40 text-[var(--app-text-muted)]'
+          }`}
+        >
           F10
         </div>
       </button>
@@ -50,7 +56,7 @@ const CheckoutFooter = ({
             variant="secondary"
             icon={Printer}
             onClick={onPrintReceipt}
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 h-10 text-[11px] font-bold tracking-wider text-slate-700 dark:text-slate-300 shadow-sm"
+            className="h-10 w-full rounded-xl border border-[var(--app-border)] text-[11px] font-bold tracking-wider text-[var(--app-text-soft)] shadow-sm hover:bg-[var(--app-bg-subtle)]"
           >
             Ticket
           </Button>
@@ -61,14 +67,14 @@ const CheckoutFooter = ({
             variant="secondary"
             icon={XCircle}
             onClick={onCancelCurrentPurchase}
-            className="w-full rounded-xl border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 h-10 text-[11px] font-bold tracking-wider shadow-sm"
+            className="h-10 w-full rounded-xl border border-[var(--app-danger)]/30 text-[11px] font-bold tracking-wider text-[var(--app-danger)] shadow-sm hover:bg-[var(--app-danger-soft)]"
           >
             Cancelar
           </Button>
         )}
       </div>
 
-      <div className="border-t border-slate-200 dark:border-slate-800 pt-3 mt-1">
+      <div className="mt-1 border-t border-[var(--app-border)] pt-3">
         <div className={`grid gap-2 ${canManagePostSale ? 'grid-cols-3' : 'grid-cols-1'}`}>
           <Button
             type="button"
@@ -76,7 +82,7 @@ const CheckoutFooter = ({
             size="sm"
             icon={Printer}
             onClick={onReprintTicket}
-            className="rounded-xl h-11 text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200"
+            className="h-11 rounded-xl border border-transparent text-xs font-bold uppercase tracking-wider text-[var(--app-text-soft)] hover:border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]"
           >
             Reimprimir
           </Button>
@@ -87,7 +93,7 @@ const CheckoutFooter = ({
               size="sm"
               icon={Edit}
               onClick={onEditSale}
-              className="rounded-xl h-11 text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200"
+              className="h-11 rounded-xl border border-transparent text-xs font-bold uppercase tracking-wider text-[var(--app-text-soft)] hover:border-[var(--app-border)] hover:bg-[var(--app-bg-subtle)]"
             >
               Editar
             </Button>
@@ -99,7 +105,7 @@ const CheckoutFooter = ({
               size="sm"
               icon={XCircle}
               onClick={onCancelSale}
-              className="rounded-xl h-11 text-xs font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100"
+              className="h-11 rounded-xl border border-transparent text-xs font-bold uppercase tracking-wider text-[var(--app-danger)] hover:border-[var(--app-danger)]/20 hover:bg-[var(--app-danger-soft)]"
             >
               Anular
             </Button>

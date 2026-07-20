@@ -1,0 +1,1 @@
+import{r as e}from"./AuthService-BWw2KQHr.js";var t={getConfig:async()=>(await e.get(`/scale-config`)).data,updateConfig:async t=>(await e.put(`/scale-config`,t)).data};export{t};

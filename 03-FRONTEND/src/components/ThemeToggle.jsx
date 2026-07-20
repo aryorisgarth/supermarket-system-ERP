@@ -9,15 +9,11 @@ const ThemeToggle = ({ className = '' }) => {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 ${className}`}
+      className={`flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-[var(--app-text-muted)] transition hover:bg-[var(--app-bg-subtle)] hover:text-[var(--app-text)] ${className}`}
       aria-label="Toggle theme"
       title={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
     >
-      {theme === 'light' ? (
-        <Moon size={16} />
-      ) : (
-        <Sun size={16} />
-      )}
+      {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
     </button>
   );
 };

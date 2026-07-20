@@ -1,22 +1,26 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Award, Edit2, Gift, Plus, Search, Star, Trash2, User, X,
-  TrendingUp, ChevronLeft, ChevronRight, RefreshCw, History
+  Edit2, Gift, Plus, Search, Star, Trash2, User, X,
+  TrendingUp, ChevronLeft, ChevronRight, RefreshCw, History, Loader2,
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import CustomerService from '../services/CustomerService';
 import AuthService from '../services/AuthService';
-
-
+import PageHeader from '../components/ui/PageHeader';
 import CustomerModal from '../components/customers/CustomerModal';
 import PointsModal from '../components/customers/PointsModal';
 import SalesHistoryModal from '../components/customers/SalesHistoryModal';
 
+const fmtDate = (d) =>
+  d ? new Date(d).toLocaleDateString('es-GT', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es-GT', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const POINTS_PER_QUETZAL = 10;
 
-const POINTS_PER_QUETZAL = 10;   
-
+const pointsBadgeClass = (points) => {
+  if (points >= 500) return 'bg-[var(--app-warning-soft)] text-[var(--app-warning)]';
+  if (points >= 100) return 'bg-[var(--app-bg-subtle)] text-[var(--app-text-muted)]';
+  return 'bg-[var(--app-primary-soft)] text-[var(--app-primary)]';
+};
 
 const Customers = () => {
   const user = AuthService.getCurrentUser();
@@ -26,17 +30,14 @@ const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [searching, setSearching] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
-  
+
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
-  
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [pointsCustomer, setPointsCustomer] = useState(null);
-  
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyCustomerId, setHistoryCustomerId] = useState(null);
 
@@ -57,16 +58,9 @@ const Customers = () => {
     }
   }, []);
 
-  useEffect(() => { loadCustomers(0, search.trim()); }, [loadCustomers]);
-
-  
   useEffect(() => {
     clearTimeout(searchTimeout.current);
-    setSearching(true);
-    searchTimeout.current = setTimeout(() => {
-      loadCustomers(0, search.trim());
-      setSearching(false);
-    }, 350);
+    searchTimeout.current = setTimeout(() => loadCustomers(0, search.trim()), 350);
     return () => clearTimeout(searchTimeout.current);
   }, [search, loadCustomers]);
 
@@ -81,26 +75,6 @@ const Customers = () => {
       return [saved, ...prev];
     });
     loadCustomers(page, search.trim());
-  };
-
-  const handleEdit = (customer) => {
-    setEditingCustomer(customer);
-    setShowModal(true);
-  };
-
-  const handleNew = () => {
-    setEditingCustomer(null);
-    setShowModal(true);
-  };
-
-  const handlePointsAdjustment = (customer) => {
-    setPointsCustomer(customer);
-    setShowPointsModal(true);
-  };
-
-  const handleHistory = (id) => {
-    setHistoryCustomerId(id);
-    setShowHistoryModal(true);
   };
 
   const handleDelete = async (customer) => {
@@ -124,261 +98,230 @@ const Customers = () => {
     }
   };
 
-  
   const totalPts = customers.reduce((a, c) => a + (c.points || 0), 0);
   const withPoints = customers.filter((c) => (c.points || 0) > 0).length;
   const goldCount = customers.filter((c) => (c.points || 0) >= 500).length;
 
+  const stats = [
+    { icon: User, label: 'Total Clientes', value: totalElements.toLocaleString(), tone: 'primary' },
+    { icon: Gift, label: 'Con puntos', value: withPoints, tone: 'warning' },
+    { icon: Star, label: 'Nivel Oro (500+)', value: goldCount, tone: 'warning' },
+    { icon: TrendingUp, label: 'Pts. en pantalla', value: totalPts.toLocaleString(), tone: 'success' },
+  ];
+
+  const toneClass = {
+    primary: 'bg-[var(--app-primary-soft)] text-[var(--app-primary)]',
+    warning: 'bg-[var(--app-warning-soft)] text-[var(--app-warning)]',
+    success: 'bg-[var(--app-success-soft)] text-[var(--app-success)]',
+  };
+
   return (
-    <div className="app-page animate-fade-in" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+    <div className="mx-auto w-full max-w-[1400px] space-y-6 animate-fade-in">
+      <PageHeader
+        title="Clientes y Fidelización"
+        description={`${totalElements.toLocaleString()} clientes registrados · 1 punto por cada Q${POINTS_PER_QUETZAL} de compra`}
+        actions={
+          <button
+            id="btn-new-customer"
+            type="button"
+            onClick={() => { setEditingCustomer(null); setShowModal(true); }}
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--app-primary)] to-blue-700 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:scale-[1.02] sm:w-auto"
+          >
+            <Plus size={18} />
+            Nuevo Cliente
+          </button>
+        }
+      />
 
-      {}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyBetween: 'space-between', gap: '16px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{
-            width: '48px', height: '48px', borderRadius: '14px', flexShrink: 0,
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Award size={22} style={{ color: '#fff' }} />
-          </div>
-          <div>
-            <h1 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--app-text)', margin: 0 }}>
-              Clientes y Fidelización
-            </h1>
-            <p style={{ fontSize: '11px', color: 'var(--app-text-muted)', margin: '2px 0 0', fontWeight: 600 }}>
-              {totalElements.toLocaleString()} clientes registrados · 1 punto por cada Q{POINTS_PER_QUETZAL} de compra
-            </p>
-          </div>
-        </div>
-        <button
-          id="btn-new-customer"
-          type="button" onClick={handleNew}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '7px', padding: '0 18px', height: '42px',
-            borderRadius: '12px', border: 'none', background: 'var(--app-primary)',
-            color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 800,
-            textTransform: 'uppercase', letterSpacing: '0.06em',
-          }}
-        >
-          <Plus size={15} />
-          Nuevo Cliente
-        </button>
-      </div>
-
-      {}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
-        {[
-          { icon: <User size={16} />, label: 'Total Clientes', value: totalElements.toLocaleString(), color: '#6366f1' },
-          { icon: <Gift size={16} />, label: 'Con puntos', value: withPoints, color: '#f59e0b' },
-          { icon: <Star size={16} />, label: 'Nivel Oro (500+)', value: goldCount, color: '#f59e0b' },
-          { icon: <TrendingUp size={16} />, label: 'Pts. en pantalla', value: totalPts.toLocaleString(), color: '#10b981' },
-        ].map((s, i) => (
-          <div key={i} style={{
-            background: 'var(--app-surface)', border: '1px solid var(--app-border)',
-            borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px',
-          }}>
-            <div style={{
-              width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
-              background: s.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ color: s.color }}>{s.icon}</span>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {stats.map(({ icon: Icon, label, value, tone }) => (
+          <div
+            key={label}
+            className="flex items-center gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm"
+          >
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneClass[tone]}`}>
+              <Icon size={16} />
             </div>
-            <div>
-              <p style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--app-text-muted)', margin: 0 }}>{s.label}</p>
-              <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--app-text)', margin: 0, lineHeight: 1.1 }}>{s.value}</p>
+            <div className="min-w-0">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">{label}</p>
+              <p className="text-xl font-black leading-tight text-[var(--app-text)]">{value}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {}
-      <div style={{
-        background: 'var(--app-surface)', border: '1px solid var(--app-border)',
-        borderRadius: '14px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px',
-      }}>
-        <Search size={15} style={{ color: 'var(--app-text-muted)', flexShrink: 0 }} />
+      <div className="flex items-center gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm">
+        <Search size={16} className="shrink-0 text-[var(--app-text-muted)]" />
         <input
           id="customer-search"
-          type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nombre, teléfono o DPI…"
-          style={{
-            flex: 1, background: 'transparent', border: 'none', outline: 'none',
-            fontSize: '13px', fontWeight: 600, color: 'var(--app-text)',
-          }}
+          className="flex-1 border-none bg-transparent text-sm font-medium text-[var(--app-text)] outline-none placeholder:text-[var(--app-text-muted)]"
         />
         {search && (
           <button
-            type="button" onClick={() => setSearch('')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--app-text-muted)', padding: 0 }}
+            type="button"
+            onClick={() => setSearch('')}
+            className="cursor-pointer border-none bg-transparent p-0 text-[var(--app-text-muted)] hover:text-[var(--app-text)]"
           >
             <X size={14} />
           </button>
         )}
         <button
-          type="button" onClick={() => loadCustomers(0, search.trim())} title="Recargar"
-          style={{
-            width: '34px', height: '34px', borderRadius: '8px', border: '1px solid var(--app-border)',
-            background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--app-text-muted)',
-          }}
+          type="button"
+          onClick={() => loadCustomers(0, search.trim())}
+          title="Recargar"
+          className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-muted)] transition-colors hover:bg-[var(--app-bg-subtle)] hover:text-[var(--app-text)]"
         >
-          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
 
-      {}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--app-text-muted)' }}>
-          <div style={{
-            width: '36px', height: '36px', borderRadius: '50%', border: '3px solid var(--app-border)',
-            borderTopColor: 'var(--app-primary)', animation: 'spin 0.7s linear infinite', margin: '0 auto 12px',
-          }} />
-          <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>Cargando clientes...</p>
+        <div className="py-16 text-center text-[var(--app-text-muted)]">
+          <Loader2 size={36} className="mx-auto mb-3 animate-spin text-[var(--app-primary)]" />
+          <p className="text-xs font-bold uppercase tracking-wider">Cargando clientes...</p>
         </div>
       ) : customers.length === 0 ? (
-        <div style={{
-          textAlign: 'center', padding: '60px 0', background: 'var(--app-surface)',
-          border: '1px dashed var(--app-border)', borderRadius: '16px',
-        }}>
-          <User size={36} style={{ margin: '0 auto 12px', opacity: 0.3, display: 'block' }} />
-          <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--app-text-muted)' }}>
+        <div className="rounded-2xl border border-dashed border-[var(--app-border)] bg-[var(--app-surface)] py-16 text-center">
+          <User size={36} className="mx-auto mb-3 opacity-30 text-[var(--app-text-muted)]" />
+          <p className="text-sm font-bold text-[var(--app-text-muted)]">
             {search ? 'Sin resultados para esa búsqueda' : 'No hay clientes registrados aún'}
           </p>
           {!search && (
             <button
-              type="button" onClick={handleNew}
-              style={{
-                marginTop: '12px', padding: '8px 20px', borderRadius: '10px',
-                border: 'none', background: 'var(--app-primary)', color: '#fff',
-                cursor: 'pointer', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase',
-              }}
+              type="button"
+              onClick={() => { setEditingCustomer(null); setShowModal(true); }}
+              className="mt-4 cursor-pointer rounded-xl bg-[var(--app-primary)] px-5 py-2.5 text-xs font-bold uppercase text-white"
             >
               Registrar primer cliente
             </button>
           )}
         </div>
       ) : (
-        <div style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', borderRadius: '16px', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-            <thead>
-              <tr style={{ background: 'var(--app-surface)', borderBottom: '2px solid var(--app-border)', color: 'var(--app-text-muted)', textTransform: 'uppercase', fontSize: '10px', fontWeight: 800, height: '42px' }}>
-                <th style={{ padding: '12px 16px' }}>#</th>
-                <th style={{ padding: '12px 16px' }}>Nombre</th>
-                <th style={{ padding: '12px 16px' }}>Teléfono</th>
-                <th style={{ padding: '12px 16px' }}>Documento</th>
-                <th style={{ padding: '12px 16px' }}>Puntos</th>
-                <th style={{ padding: '12px 16px' }}>Últ. Compra</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map((c, index) => {
-                const rowIndex = page * 12 + index + 1;
-                return (
-                  <tr key={c.id} style={{ borderBottom: '1px solid var(--app-border)', height: '48px' }} className="table-row-hover">
-                    <td style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--app-text-muted)' }}>{rowIndex}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <User size={13} style={{ color: 'var(--app-primary)' }} />
+        <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)] text-[10px] font-extrabold uppercase tracking-widest text-[var(--app-text-muted)]">
+                  <th className="px-4 py-3 pl-6">#</th>
+                  <th className="px-4 py-3">Nombre</th>
+                  <th className="px-4 py-3">Teléfono</th>
+                  <th className="px-4 py-3">Documento</th>
+                  <th className="px-4 py-3">Puntos</th>
+                  <th className="px-4 py-3">Últ. Compra</th>
+                  <th className="px-4 py-3 pr-6 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--app-border)]">
+                {customers.map((c, index) => {
+                  const rowIndex = page * 12 + index + 1;
+                  return (
+                    <tr key={c.id} className="transition-colors hover:bg-[var(--app-bg-subtle)]/60">
+                      <td className="px-4 py-3 pl-6 font-bold text-[var(--app-text-muted)]">{rowIndex}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--app-primary-soft)]">
+                            <User size={13} className="text-[var(--app-primary)]" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-bold text-[var(--app-text)]">{c.fullName}</p>
+                            {c.email && (
+                              <p className="truncate text-[10px] text-[var(--app-text-muted)]">{c.email}</p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p style={{ fontWeight: 700, color: 'var(--app-text)', margin: 0 }}>{c.fullName}</p>
-                          {c.email && <p style={{ fontSize: '10px', color: 'var(--app-text-muted)', margin: 0 }}>{c.email}</p>}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-[var(--app-text-soft)]">{c.phone || '—'}</td>
+                      <td className="px-4 py-3 font-medium text-[var(--app-text-soft)]">{c.documentId || '—'}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`rounded-md px-2 py-0.5 text-[11px] font-extrabold ${pointsBadgeClass(c.points || 0)}`}>
+                            {(c.points || 0).toLocaleString()} pts
+                          </span>
+                          <span className="text-[11px] font-semibold text-[var(--app-text-muted)]">
+                            ≈ Q{(c.points || 0).toFixed(0)}
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--app-text-soft)' }}>{c.phone || '—'}</td>
-                    <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--app-text-soft)' }}>{c.documentId || '—'}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{
-                          padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800,
-                          background: c.points >= 500 ? 'rgba(245,158,11,0.15)' : c.points >= 100 ? 'rgba(148,163,184,0.15)' : 'rgba(205,124,82,0.15)',
-                          color: c.points >= 500 ? '#f59e0b' : c.points >= 100 ? '#94a3b8' : '#cd7c52'
-                        }}>
-                          {c.points.toLocaleString()} pts
-                        </span>
-                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--app-text-muted)' }}>≈ Q{c.points.toFixed(0)}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--app-text-soft)' }}>
-                      {c.lastPurchaseDate ? fmtDate(c.lastPurchaseDate) : 'Sin compras'}
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                        <button
-                          type="button" onClick={() => handleHistory(c.id)} title="Historial de compras"
-                          style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid var(--app-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-text-muted)' }}
-                        >
-                          <History size={13} />
-                        </button>
-                        {isAdmin && (
+                      </td>
+                      <td className="px-4 py-3 font-medium text-[var(--app-text-soft)]">
+                        {c.lastPurchaseDate ? fmtDate(c.lastPurchaseDate) : 'Sin compras'}
+                      </td>
+                      <td className="px-4 py-3 pr-6">
+                        <div className="flex justify-end gap-1.5">
                           <button
-                            type="button" onClick={() => handlePointsAdjustment(c)} title="Ajustar puntos"
-                            style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid var(--app-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}
+                            type="button"
+                            onClick={() => { setHistoryCustomerId(c.id); setShowHistoryModal(true); }}
+                            title="Historial de compras"
+                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-muted)] transition-colors hover:bg-[var(--app-bg-subtle)] hover:text-[var(--app-primary)]"
                           >
-                            <Gift size={13} />
+                            <History size={13} />
                           </button>
-                        )}
-                        <button
-                          type="button" onClick={() => handleEdit(c)} title="Editar"
-                          style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid var(--app-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-text-muted)' }}
-                        >
-                          <Edit2 size={13} />
-                        </button>
-                        {isAdmin && (
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => { setPointsCustomer(c); setShowPointsModal(true); }}
+                              title="Ajustar puntos"
+                              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-warning)] transition-colors hover:bg-[var(--app-warning-soft)]"
+                            >
+                              <Gift size={13} />
+                            </button>
+                          )}
                           <button
-                            type="button" onClick={() => handleDelete(c)} title="Eliminar"
-                            style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.3)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}
+                            type="button"
+                            onClick={() => { setEditingCustomer(c); setShowModal(true); }}
+                            title="Editar"
+                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-muted)] transition-colors hover:bg-[var(--app-bg-subtle)] hover:text-[var(--app-primary)]"
                           >
-                            <Trash2 size={13} />
+                            <Edit2 size={13} />
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(c)}
+                              title="Eliminar"
+                              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-[var(--app-danger)]/30 text-[var(--app-danger)] transition-colors hover:bg-[var(--app-danger-soft)]"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      {}
       {totalPages > 1 && !search && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+        <div className="ui-card ui-card-pad flex items-center justify-center gap-3">
           <button
-            type="button" onClick={() => loadCustomers(page - 1, '')} disabled={page === 0}
-            style={{
-              width: '36px', height: '36px', borderRadius: '8px', border: '1px solid var(--app-border)',
-              background: page === 0 ? 'var(--app-bg)' : 'var(--app-surface)', cursor: page === 0 ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-text-muted)',
-              opacity: page === 0 ? 0.4 : 1,
-            }}
+            type="button"
+            onClick={() => loadCustomers(page - 1, '')}
+            disabled={page === 0}
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-muted)] transition-colors hover:bg-[var(--app-bg-subtle)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronLeft size={16} />
           </button>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--app-text-muted)' }}>
+          <span className="text-xs font-bold text-[var(--app-text-muted)]">
             Pág. {page + 1} de {totalPages} ({totalElements.toLocaleString()} clientes)
           </span>
           <button
-            type="button" onClick={() => loadCustomers(page + 1, '')} disabled={page >= totalPages - 1}
-            style={{
-              width: '36px', height: '36px', borderRadius: '8px', border: '1px solid var(--app-border)',
-              background: page >= totalPages - 1 ? 'var(--app-bg)' : 'var(--app-surface)',
-              cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-text-muted)',
-              opacity: page >= totalPages - 1 ? 0.4 : 1,
-            }}
+            type="button"
+            onClick={() => loadCustomers(page + 1, '')}
+            disabled={page >= totalPages - 1}
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-muted)] transition-colors hover:bg-[var(--app-bg-subtle)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronRight size={16} />
           </button>
         </div>
       )}
 
-      {}
       {showModal && (
         <CustomerModal
           customer={editingCustomer}
@@ -401,13 +344,6 @@ const Customers = () => {
           onClose={() => { setShowHistoryModal(false); setHistoryCustomerId(null); }}
         />
       )}
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .table-row-hover:hover {
-          background-color: rgba(99,102,241,0.04) !important;
-        }
-      `}</style>
     </div>
   );
 };

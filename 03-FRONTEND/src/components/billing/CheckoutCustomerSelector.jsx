@@ -52,11 +52,11 @@ const CheckoutCustomerSelector = ({
   return (
     <div className="pos-checkout-customer-compact relative">
       {selectedCustomer ? (
-        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2">
-          <User size={14} className="shrink-0 text-slate-700" />
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-3 py-2">
+          <User size={14} className="shrink-0 text-[var(--app-primary)]" />
           <div className="min-w-0 flex-1 flex flex-col text-left">
             <span className="truncate text-xs font-bold text-[var(--app-text)]">{selectedCustomer.fullName}</span>
-            <span className="text-[10px] font-semibold text-amber-600">Puntos: {selectedCustomer.points || 0} pts</span>
+            <span className="text-[10px] font-semibold text-[var(--app-warning)]">Puntos: {selectedCustomer.points || 0} pts</span>
           </div>
           <button
             type="button"
@@ -91,7 +91,7 @@ const CheckoutCustomerSelector = ({
                 value={customerQuery}
                 onChange={handleCustomerInputChange}
                 onFocus={() => customerQuery.length >= 2 && setShowCustomerDropdown(true)}
-                className="ui-input w-full pl-9 pr-3 text-xs rounded-xl focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                className="ui-input w-full pl-9 pr-3 text-xs rounded-xl focus:border-[var(--app-primary)] focus:ring-4 focus:ring-[var(--app-primary)]/20"
                 autoComplete="off"
               />
               {showCustomerDropdown && customerQuery.length >= 2 && (
@@ -120,7 +120,7 @@ const CheckoutCustomerSelector = ({
                             handleSelectCustomer(c);
                             setShowCustomerSearch(false);
                           }}
-                          className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+                          className="flex w-full cursor-pointer items-center justify-between px-3 py-2.5 text-left text-xs transition-colors hover:bg-[var(--app-bg-subtle)]"
                         >
                           <span className="truncate font-semibold text-[var(--app-text)]">{c.fullName}</span>
                           {c.phone && <span className="text-[10px] text-[var(--app-text-muted)]">{c.phone}</span>}

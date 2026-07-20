@@ -2,20 +2,29 @@ import React, { useEffect, useRef, useState } from 'react';
 import ShoppingCart from '../components/billing/ShoppingCart';
 import CheckoutPanel from '../components/billing/CheckoutPanel';
 import ReceiptModal from '../components/billing/ReceiptModal';
-import Badge from '../components/ui/Badge';
 import CashRegisterOpenGate from '../components/CashRegisterOpenGate';
 import PosLineEntryBar from '../components/billing/PosLineEntryBar';
 import PosCategoryPicker from '../components/billing/PosCategoryPicker';
 import PosQuickCodesPanel from '../components/billing/PosQuickCodesPanel';
 import StripePaymentModal from '../components/billing/StripePaymentModal';
+import ThemeToggle from '../components/ThemeToggle';
+import CashRegisterStatus from '../components/CashRegisterStatus';
+import Button from '../components/ui/Button';
 import { useBilling } from '../hooks/useBilling';
-import { ChevronDown, Layers, Tag } from 'lucide-react';
+import { useLayout } from '../context/LayoutContext';
+import AuthService from '../services/AuthService';
+import { ChevronDown, Layers, Menu, Tag, X } from 'lucide-react';
 import { formatMoney } from '../utils/formatMoney';
+
+const CASH_ROLES = ['CAJERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'];
 
 const Billing = () => {
   const [showQuickCodes, setShowQuickCodes] = useState(false);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const categoryMenuRef = useRef(null);
+  const layout = useLayout();
+  const roleName = AuthService.getCurrentUser()?.role?.name || '';
+  const showCash = CASH_ROLES.includes(roleName);
 
   const {
     
@@ -98,8 +107,21 @@ const Billing = () => {
       <div className="pos-billing-page animate-fade-in no-print app-page-flex w-full min-w-0 overflow-hidden bg-[var(--app-bg)] font-sans">
         
         <div className="pos-toolbar shrink-0">
-          <div className="pos-toolbar-actions">
-            <input
+          <div className="pos-toolbar-row">
+            <div className="pos-toolbar-actions">
+              {layout && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="pos-toolbar-menu shrink-0 lg:hidden"
+                  onClick={layout.onToggleSidebar}
+                  aria-label={layout.sidebarOpen ? 'Cerrar menu' : 'Abrir menu'}
+                >
+                  {layout.sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+                </Button>
+              )}
+              <input
               id="pos-search-input"
               type="text"
               placeholder="F2 • Escanear o buscar…"
@@ -167,10 +189,18 @@ const Billing = () => {
                 )}
               </div>
             )}
+            </div>
+
+            <div className="pos-toolbar-meta">
+              {showCash && (
+                <CashRegisterStatus compact className="pos-toolbar-cash max-w-[220px] sm:max-w-[260px]" />
+              )}
+              <ThemeToggle className="pos-toolbar-theme" />
+            </div>
           </div>
         </div>
 
-        <div className="pos-shell min-h-0 flex-1 h-[calc(100vh-140px)]">
+        <div className="pos-shell min-h-0 flex-1">
           <div className="pos-cart-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] lg:rounded-2xl">
             <ShoppingCart
               cart={cart}

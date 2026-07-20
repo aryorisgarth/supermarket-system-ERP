@@ -32,6 +32,10 @@ const CheckoutQuickPay = ({
     return () => window.removeEventListener('keydown', handler);
   }, [onPaymentMethodChange]);
 
+  const payBtnInactive =
+    'border-[var(--app-border)] bg-[var(--app-bg-subtle)] text-[var(--app-text-soft)] hover:bg-[var(--app-primary-soft)] hover:text-[var(--app-primary)]';
+  const payBtnActive = 'border-[var(--app-primary)] bg-[var(--app-primary)] text-white shadow-sm';
+
   return (
     <div className="flex-1 flex flex-col gap-3">
       <div className="pos-checkout-quick-row shrink-0 grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -41,9 +45,7 @@ const CheckoutQuickPay = ({
           onClick={() => onPaymentMethodChange('CASH')}
           title="Efectivo (F1)"
           className={`relative flex h-10 sm:h-9 items-center justify-center gap-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors duration-100 cursor-pointer ${
-            paymentMethod === 'CASH'
-              ? 'border-primary bg-primary text-white shadow-sm'
-              : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
+            paymentMethod === 'CASH' ? payBtnActive : payBtnInactive
           }`}
         >
           <Banknote size={15} />
@@ -60,9 +62,7 @@ const CheckoutQuickPay = ({
           onClick={() => onPaymentMethodChange('CARD')}
           title="Tarjeta (F2)"
           className={`relative flex h-10 sm:h-9 items-center justify-center gap-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors duration-100 cursor-pointer ${
-            paymentMethod === 'CARD'
-              ? 'border-primary bg-primary text-white shadow-sm'
-              : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
+            paymentMethod === 'CARD' ? payBtnActive : payBtnInactive
           }`}
         >
           <CreditCard size={15} />
@@ -79,9 +79,7 @@ const CheckoutQuickPay = ({
           onClick={() => onPaymentMethodChange('TRANSFER')}
           title="Transferencia (F3)"
           className={`relative flex h-10 sm:h-9 items-center justify-center gap-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors duration-100 cursor-pointer ${
-            paymentMethod === 'TRANSFER'
-              ? 'border-primary bg-primary text-white shadow-sm'
-              : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
+            paymentMethod === 'TRANSFER' ? payBtnActive : payBtnInactive
           }`}
         >
           <ArrowLeftRight size={15} />
@@ -95,7 +93,7 @@ const CheckoutQuickPay = ({
       </div>
 
       {paymentMethod === 'CARD' && billingConfig?.paymentGatewayProvider && (
-        <p className="shrink-0 rounded-lg border border-slate-250 bg-slate-50 px-3 py-2 text-[10px] font-bold text-slate-700 leading-relaxed">
+        <p className="shrink-0 rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-3 py-2 text-[10px] font-bold text-[var(--app-text-soft)] leading-relaxed">
           Pasarela activa: <span className="font-bold uppercase">{billingConfig.paymentGatewayProvider}</span>
           {billingConfig.paymentGatewayEnabled === false ? ' (deshabilitada — solo registro)' : ' — autorización al cobrar'}
         </p>
@@ -103,25 +101,25 @@ const CheckoutQuickPay = ({
 
       {paymentMethod === 'TRANSFER' && (
         <div className="shrink-0 space-y-2.5">
-          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 bg-[var(--app-bg-subtle)] p-3 rounded-xl border border-[var(--app-border)]">
             <div className="space-y-1">
-              <label className="block text-[9px] font-black uppercase tracking-widest text-slate-500">
+              <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
                 Banco Destino
               </label>
               <select
                 value={transferBank}
                 onChange={(e) => onTransferBankChange(e.target.value)}
-                className="ui-input ui-select h-11 w-full text-[13px] rounded-lg font-bold bg-white border-slate-300 text-slate-900 shadow-sm"
+                className="ui-input ui-select h-11 w-full text-[13px] rounded-lg font-bold bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-text)] shadow-sm"
               >
                 {(banks || []).map((b) => (
-                  <option key={b.id || b.accountNumber} value={b.bankName} className="bg-slate-100 text-slate-900">
+                  <option key={b.id || b.accountNumber} value={b.bankName}>
                     {b.bankName} - {b.name} ({b.accountNumber?.slice(-4) || 'N/A'})
                   </option>
                 ))}
               </select>
             </div>
             <div className="space-y-1">
-              <label className="block text-[9px] font-black uppercase tracking-widest text-slate-500">
+              <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--app-text-muted)]">
                 N° Referencia
               </label>
               <input
@@ -129,14 +127,14 @@ const CheckoutQuickPay = ({
                 value={transferRef}
                 onChange={(e) => onTransferRefChange(e.target.value)}
                 placeholder="N° de Baucher o Referencia"
-                className="ui-input h-11 w-full text-[13px] rounded-lg font-bold bg-white border-slate-300 text-slate-900 focus:bg-white shadow-sm"
+                className="ui-input h-11 w-full text-[13px] rounded-lg font-bold bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-text)] shadow-sm"
               />
             </div>
           </div>
           <button
             type="button"
             onClick={() => onOpenSimulator(total, transferBank, (ref) => onTransferRefChange(ref))}
-            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 h-10 text-[11px] font-black uppercase text-indigo-700 transition-colors cursor-pointer shadow-sm"
+            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-[var(--app-primary)]/30 bg-[var(--app-primary-soft)] hover:bg-[var(--app-primary)]/15 h-10 text-[11px] font-black uppercase text-[var(--app-primary)] transition-colors cursor-pointer shadow-sm"
           >
             Simular Transferencia
           </button>
@@ -177,15 +175,15 @@ const CheckoutQuickPay = ({
                 </>
               ) : numAmountReceived >= numTotal ? (
                 <div className="w-full flex flex-col items-center">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500 mb-0.5">Vuelto</span>
-                  <p className="text-lg font-black tracking-tight text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded border border-emerald-900/50 w-full text-center">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--app-success)] mb-0.5">Vuelto</span>
+                  <p className="text-lg font-black tracking-tight text-[var(--app-success)] bg-[var(--app-success-soft)] px-3 py-1 rounded border border-[var(--app-success)]/30 w-full text-center">
                     {formatMoney(numAmountReceived - numTotal)}
                   </p>
                 </div>
               ) : (
                 <div className="w-full flex flex-col items-center">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-rose-500 mb-0.5">Restante</span>
-                  <p className="text-lg font-black tracking-tight text-rose-400 bg-rose-950/40 px-3 py-1 rounded border border-rose-900/50 w-full text-center">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--app-danger)] mb-0.5">Restante</span>
+                  <p className="text-lg font-black tracking-tight text-[var(--app-danger)] bg-[var(--app-danger-soft)] px-3 py-1 rounded border border-[var(--app-danger)]/30 w-full text-center">
                     {formatMoney(numTotal - numAmountReceived)}
                   </p>
                 </div>
@@ -199,7 +197,7 @@ const CheckoutQuickPay = ({
                 key={val}
                 type="button"
                 onClick={() => addCashAmount(val)}
-                className="rounded-lg border border-slate-300 bg-slate-100 hover:bg-slate-200 py-1.5 text-[9px] font-bold text-slate-700 transition-colors cursor-pointer"
+                className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-subtle)] hover:bg-[var(--app-primary-soft)] py-1.5 text-[9px] font-bold text-[var(--app-text-soft)] transition-colors cursor-pointer"
               >
                 +{val}
               </button>

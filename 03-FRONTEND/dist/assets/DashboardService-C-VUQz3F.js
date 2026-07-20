@@ -1,1 +1,0 @@
-import{r as e}from"./AuthService-BD0f_Luu.js";var t={getWeeklySales:async()=>(await e.get(`/dashboard/sales-weekly`)).data,getTopProducts:async()=>(await e.get(`/dashboard/top-products`)).data,getInventoryStatus:async()=>(await e.get(`/dashboard/inventory-status`)).data};export{t};

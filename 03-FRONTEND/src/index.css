@@ -791,8 +791,8 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(460px, 520px);
   gap: 18px;
-  height: calc(100vh - 110px);
-  min-height: 700px;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -1112,6 +1112,37 @@ button:disabled {
   padding: 0 0 2px;
   min-height: 0;
   flex-shrink: 0;
+}
+
+.pos-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.pos-toolbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.pos-toolbar-menu {
+  height: 34px;
+  width: 34px;
+  padding: 0;
+}
+
+.pos-toolbar-theme {
+  height: 34px;
+  width: 34px;
+}
+
+.pos-toolbar-cash {
+  min-width: 0;
 }
 
 .pos-top-badge {

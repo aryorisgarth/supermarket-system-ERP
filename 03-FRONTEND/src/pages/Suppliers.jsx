@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { Plus, Building2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 import SupplierService from '../services/SupplierService';
 import SupplierFilters from '../components/suppliers/SupplierFilters';
 import SupplierTable from '../components/suppliers/SupplierTable';
 import SupplierFormModal from '../components/suppliers/SupplierFormModal';
+import PageHeader from '../components/ui/PageHeader';
 
 import BackendPagination from '../components/ui/BackendPagination';
 import useBackendList from '../hooks/useBackendList';
@@ -161,23 +162,19 @@ const Suppliers = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-            <Building2 className="text-violet-600 shrink-0" size={26} />
-            Gestión de Proveedores
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-            Directorio de proveedores y contactos comerciales.
-          </p>
-        </div>
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-indigo-600 hover:to-violet-600 text-white px-5 py-3 rounded-xl transition-all shadow-enterprise font-bold hover:shadow-enterprise-lg hover:-translate-y-0.5 duration-200 w-full md:w-auto justify-center cursor-pointer text-sm border-0"
-        >
-          <Plus size={18} /> Nuevo Proveedor
-        </button>
-      </div>
+      <PageHeader
+        title="Gestión de Proveedores"
+        description="Directorio de proveedores y contactos comerciales."
+        actions={
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--app-primary)] to-blue-700 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:scale-[1.02] sm:w-auto"
+          >
+            <Plus size={18} /> Nuevo Proveedor
+          </button>
+        }
+      />
 
       <SupplierFilters
         searchTerm={searchTerm}

@@ -1,11 +1,17 @@
 import React, { useState, useCallback } from 'react';
-import { Plus, Tag, X, Save, Loader2 } from 'lucide-react';
+import { Plus, Tag, Save, Loader2 } from 'lucide-react';
 import CategoryService from '../services/CategoryService';
 import CategoryFilters from '../components/categories/CategoryFilters';
 import CategoryTable from '../components/categories/CategoryTable';
 import BackendPagination from '../components/ui/BackendPagination';
+import PageHeader from '../components/ui/PageHeader';
+import ResponsiveModal from '../components/ui/ResponsiveModal';
 import useBackendList from '../hooks/useBackendList';
 import Swal from 'sweetalert2';
+
+const FIELD =
+  'h-10 w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-3 text-xs font-medium text-[var(--app-text)] outline-none transition-all placeholder:text-[var(--app-text-muted)] focus:border-[var(--app-primary)] focus:ring-2 focus:ring-[var(--app-primary)]/20 resize-none';
+const LABEL = 'mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-muted)]';
 
 const Categories = () => {
   const loadPage = useCallback((params) => CategoryService.getPage(params), []);
@@ -148,22 +154,19 @@ const Categories = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark tracking-tight flex items-center gap-2">
-            <Tag className="text-primary shrink-0" size={26} />
-            Gestión de Categorías
-          </h1>
-          <p className="text-text-secondary dark:text-text-secondary-dark text-sm font-medium">Clasificación y organización de productos.</p>
-        </div>
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-5 py-3 rounded-xl transition-all shadow-enterprise font-bold hover:shadow-enterprise-lg hover:scale-[1.02] duration-250 w-full md:w-auto justify-center cursor-pointer text-sm"
-        >
-          <Plus size={18} /> Nueva Categoría
-        </button>
-      </div>
+      <PageHeader
+        title="Gestión de Categorías"
+        description="Clasificación y organización de productos."
+        actions={
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--app-primary)] to-blue-700 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:scale-[1.02] sm:w-auto"
+          >
+            <Plus size={18} /> Nueva Categoría
+          </button>
+        }
+      />
 
       
       <CategoryFilters
@@ -195,89 +198,70 @@ const Categories = () => {
 
       
       {showModal && (
-        <div className="fixed inset-0 bg-[var(--app-bg)]/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-[var(--app-surface)] rounded-3xl shadow-2xl border border-[var(--app-border)] max-w-md w-full overflow-hidden">
-            
-            <div className="bg-gradient-to-r from-primary to-primary-dark p-5 text-white flex justify-between items-center shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-lg text-white">
-                  <Tag size={18} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider">
-                    {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
-                  </h3>
-                  <p className="text-white/80 text-[10px] font-medium">
-                    {editingCategory ? 'Actualizar información de la categoría' : 'Registrar nueva categoría'}
-                  </p>
-                </div>
-              </div>
+        <ResponsiveModal
+          onClose={() => setShowModal(false)}
+          icon={Tag}
+          title={editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
+          subtitle={editingCategory ? 'Actualizar información de la categoría' : 'Registrar nueva categoría'}
+          initialSize="md"
+          sizeOptions={['sm', 'md']}
+          headerClassName="bg-gradient-to-r from-[var(--app-primary)] to-[var(--app-primary-strong)] text-white"
+          footer={
+            <div className="flex gap-3 px-6 py-4">
               <button
+                type="button"
                 onClick={() => setShowModal(false)}
-                className="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all cursor-pointer"
+                className="flex-1 cursor-pointer rounded-xl border border-[var(--app-border)] px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-soft)] transition-all hover:bg-[var(--app-bg-subtle)]"
               >
-                <X size={16} />
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                form="category-form"
+                disabled={saving}
+                className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--app-primary)] px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white shadow-lg transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save size={14} />
+                    {editingCategory ? 'Actualizar' : 'Guardar'}
+                  </>
+                )}
               </button>
             </div>
-
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-[var(--app-surface)]">
-              <div>
-                <label className="block text-xs font-bold text-[var(--app-text)] mb-1.5 uppercase tracking-wider">
-                  Nombre de la Categoría *
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-medium text-[var(--app-text)]"
-                  placeholder="Ej: Lácteos"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[var(--app-text)] mb-1.5 uppercase tracking-wider">
-                  Descripción
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows="3"
-                  className="w-full px-4 py-2.5 bg-[var(--app-bg-subtle)]/50 border border-[var(--app-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs font-medium text-[var(--app-text)] resize-none"
-                  placeholder="Ej: Productos lácteos como leche, queso, yogur, etc."
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2.5 bg-[var(--app-surface)] text-[var(--app-text-soft)] border border-[var(--app-border)] rounded-lg font-bold text-xs hover:bg-[var(--app-bg-subtle)] transition-all cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-lg font-bold text-xs transition-all shadow-enterprise hover:shadow-enterprise-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    <>
-                      <Save size={14} />
-                      {editingCategory ? 'Actualizar' : 'Guardar'}
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          }
+        >
+          <form id="category-form" onSubmit={handleSubmit} className="space-y-4 p-6">
+            <div>
+              <label className={LABEL}>
+                Nombre de la Categoría <span className="text-[var(--app-danger)]">*</span>
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={FIELD}
+                placeholder="Ej: Lácteos"
+                required
+              />
+            </div>
+            <div>
+              <label className={LABEL}>Descripción</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows="3"
+                className={`${FIELD} min-h-[72px] py-2.5`}
+                placeholder="Ej: Productos lácteos como leche, queso, yogur, etc."
+              />
+            </div>
+          </form>
+        </ResponsiveModal>
       )}
     </div>
   );
