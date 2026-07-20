@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.supermarket.exception.ResourceNotFoundException;
 import com.supermarket.product.dto.ProductRequestDTO;
 import com.supermarket.product.dto.ProductResponseDTO;
 import com.supermarket.product.dto.UpdateSalePriceRequestDTO;
@@ -30,8 +31,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 
+@Slf4j
 @RestController
 @RequestMapping("/api/products")
 @Validated
@@ -68,8 +71,28 @@ public class ProductController {
 	}
 
 	@GetMapping("/search")
-	public ResponseEntity<List<ProductResponseDTO>> searchProducts(@RequestParam String q) {
-		return ResponseEntity.ok(productService.searchProducts(q));
+	public ResponseEntity<List<ProductResponseDTO>> searchProducts(
+			@RequestParam String q,
+			@RequestParam(value = "source", defaultValue = "api") String source) {
+		try {
+			List<ProductResponseDTO> results = productService.searchProducts(q);
+			if (results == null || results.isEmpty()) {
+				logSearchNotFound(source, q);
+				return ResponseEntity.ok(results != null ? results : List.of());
+			}
+			return ResponseEntity.ok(results);
+		} catch (ResourceNotFoundException ex) {
+			logSearchNotFound(source, q);
+			throw ex;
+		}
+	}
+
+	private void logSearchNotFound(String source, String query) {
+		if ("balanza".equalsIgnoreCase(source)) {
+			log.warn("[BALANZA] C\u00f3digo no encontrado: {}", query);
+		} else {
+			log.warn("[API-BUSQUEDA] T\u00e9rmino no encontrado: {}", query);
+		}
 	}
 
 	@GetMapping("/barcode/{barcode}")
