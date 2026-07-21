@@ -22,6 +22,8 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 
 	boolean existsByInvoiceNumberIgnoreCase(String invoiceNumber);
 
+	long countByUser_Id(Long userId);
+
 	@EntityGraph(attributePaths = {"customer", "user", "details", "details.product", "details.batch"})
 	Optional<Sale> findById(Long id);
 

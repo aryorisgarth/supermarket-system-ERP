@@ -126,14 +126,14 @@ const UsersTable = ({
                         <button
                           onClick={() => onToggleStatus(user)}
                           className="p-2 text-[var(--app-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all cursor-pointer"
-                          title="Estado"
+                          title={user.isActive !== false ? 'Desactivar acceso' : 'Reactivar acceso'}
                         >
                           <UserX size={15} strokeWidth={2.5} />
                         </button>
                         <button
                           onClick={() => onDelete(user)}
                           className="p-2 text-[var(--app-text-muted)] hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer"
-                          title="Eliminar"
+                          title="Eliminar (solo sin historial)"
                         >
                           <Trash2 size={15} strokeWidth={2.5} />
                         </button>

@@ -10,6 +10,10 @@ const API_ERROR_TRANSLATIONS = {
     'Ya existe otro producto con ese código de barras.',
   'No se pudo actualizar las presentaciones del producto porque hay movimientos de inventario vinculados.':
     'No se pudo guardar porque hay movimientos de inventario vinculados a las presentaciones del producto.',
+  'No se puede eliminar: el usuario tiene datos relacionados. Desactívelo en su lugar.':
+    'No se puede eliminar: el usuario tiene historial en el sistema. Desactívelo en su lugar.',
+  'No se puede eliminar: el usuario tiene datos relacionados en el sistema. Desactívelo en su lugar.':
+    'No se puede eliminar: el usuario tiene historial en el sistema. Desactívelo en su lugar.',
 };
 
 export function getApiErrorMessage(error, fallback = 'Ocurrió un error inesperado.') {

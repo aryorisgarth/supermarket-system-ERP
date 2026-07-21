@@ -37,6 +37,8 @@ public interface CashRegisterSessionRepository extends JpaRepository<CashRegiste
 			@Param("from") LocalDateTime from,
 			@Param("to") LocalDateTime to);
 
+	long countByCashier_Id(Long cashierId);
+
 	long countByStatus(SessionStatus status);
 
 	long countByStatusAndClosedAtBetween(SessionStatus status, LocalDateTime from, LocalDateTime to);

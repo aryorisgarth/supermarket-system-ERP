@@ -10,6 +10,7 @@ import UsersTable from '../components/users/UsersTable';
 import RolesPermissionsTab from '../components/users/RolesPermissionsTab';
 import UserFormModal from '../components/users/UserFormModal';
 import { formatRoleLabel } from '../utils/securityLabels';
+import { getApiErrorMessage } from '../utils/apiError';
 
 const Users = () => {
   const loadPage = useCallback((params) => UserService.getPage(params), []);
@@ -107,6 +108,26 @@ const Users = () => {
     setShowModal(true);
   };
 
+  const deactivateUser = async (user, { showSuccess = true } = {}) => {
+    try {
+      await UserService.toggleStatus(user.id);
+      if (showSuccess) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Usuario desactivado',
+          text: `${user.fullName} ya no podrá iniciar sesión, pero su historial se conserva.`,
+          timer: 2200,
+          showConfirmButton: false,
+        });
+      }
+      reload();
+      return true;
+    } catch (error) {
+      Swal.fire('Error', getApiErrorMessage(error, 'No se pudo desactivar el usuario.'), 'error');
+      return false;
+    }
+  };
+
   const handleToggleStatus = async (user) => {
     const actionText = user.isActive ? 'desactivar' : 'activar';
     const result = await Swal.fire({
@@ -131,12 +152,7 @@ const Users = () => {
         });
         reload();
       } catch (error) {
-        const message =
-          (typeof error === 'string' && error) ||
-          error?.response?.data?.message ||
-          error?.message ||
-          'No se pudo cambiar el estado del usuario.';
-        Swal.fire('Error', message, 'error');
+        Swal.fire('Error', getApiErrorMessage(error, 'No se pudo cambiar el estado del usuario.'), 'error');
       }
     }
   };
@@ -144,8 +160,11 @@ const Users = () => {
   const handleDeleteUser = async (user) => {
     const result = await Swal.fire({
       title: '¿Eliminar usuario?',
-      text: `Esta acción es permanente. ¿Deseas eliminar a ${user.fullName}?`,
-      icon: 'error',
+      html: `
+        <p>Esta acción es <b>permanente</b> y solo aplica si el usuario no tiene historial.</p>
+        <p class="mt-2">Si ya registró ventas, turnos de caja u otras operaciones, use <b>Desactivar</b> en su lugar.</p>
+      `,
+      icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#e11d48',
       cancelButtonColor: '#64748b',
@@ -164,7 +183,27 @@ const Users = () => {
         });
         reload();
       } catch (error) {
-        Swal.fire('Error', 'No se pudo eliminar el usuario (puede tener ventas u otros datos vinculados en base de datos).', 'error');
+        const message = getApiErrorMessage(error, 'No se pudo eliminar el usuario.');
+        const canOfferDeactivate = user.isActive !== false && /desactívelo/i.test(message);
+
+        if (canOfferDeactivate) {
+          const deactivate = await Swal.fire({
+            icon: 'info',
+            title: 'Usuario con historial',
+            html: `<p>${message}</p><p class="mt-2">En sistemas reales se <b>desactiva</b> al empleado para conservar auditoría y reportes.</p>`,
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Desactivar ahora',
+            cancelButtonText: 'Cerrar',
+          });
+          if (deactivate.isConfirmed) {
+            await deactivateUser(user);
+          }
+          return;
+        }
+
+        Swal.fire('Error', message, 'error');
       }
     }
   };
