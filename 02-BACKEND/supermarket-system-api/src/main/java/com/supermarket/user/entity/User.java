@@ -57,6 +57,9 @@ public class User {
 	@Column(nullable = false)
 	private Boolean isActive = true;
 
+	@Column(name = "is_system", nullable = false)
+	private Boolean isSystem = false;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "role_id", nullable = false, foreignKey = @jakarta.persistence.ForeignKey(name = "fk_users_roles"))
 	private Role role;

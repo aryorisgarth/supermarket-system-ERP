@@ -108,30 +108,42 @@ const Users = () => {
     setShowModal(true);
   };
 
-  const deactivateUser = async (user, { showSuccess = true } = {}) => {
-    try {
-      await UserService.toggleStatus(user.id);
-      if (showSuccess) {
+  const handleDeleteUser = async (user) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar usuario?',
+      html: `
+        <p>Se eliminará la cuenta de <b>${user.fullName}</b>.</p>
+        <p class="mt-2">Si tiene ventas u operaciones previas, el historial se conserva reasignado al usuario técnico <b>Usuario Eliminado</b>.</p>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e11d48',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await UserService.delete(user.id);
         Swal.fire({
           icon: 'success',
-          title: 'Usuario desactivado',
-          text: `${user.fullName} ya no podrá iniciar sesión, pero su historial se conserva.`,
+          title: 'Usuario eliminado',
+          text: 'La cuenta fue eliminada. El historial operativo se conservó en el sistema.',
           timer: 2200,
-          showConfirmButton: false,
+          showConfirmButton: false
         });
+        reload();
+      } catch (error) {
+        Swal.fire('Error', getApiErrorMessage(error, 'No se pudo eliminar el usuario.'), 'error');
       }
-      reload();
-      return true;
-    } catch (error) {
-      Swal.fire('Error', getApiErrorMessage(error, 'No se pudo desactivar el usuario.'), 'error');
-      return false;
     }
   };
 
   const handleToggleStatus = async (user) => {
     const actionText = user.isActive ? 'desactivar' : 'activar';
     const result = await Swal.fire({
-      title: `¿Confirmar acción?`,
+      title: '¿Confirmar acción?',
       text: `¿Estás seguro de que deseas ${actionText} a ${user.fullName}?`,
       icon: 'warning',
       showCancelButton: true,
@@ -157,62 +169,11 @@ const Users = () => {
     }
   };
 
-  const handleDeleteUser = async (user) => {
-    const result = await Swal.fire({
-      title: '¿Eliminar usuario?',
-      html: `
-        <p>Esta acción es <b>permanente</b> y solo aplica si el usuario no tiene historial.</p>
-        <p class="mt-2">Si ya registró ventas, turnos de caja u otras operaciones, use <b>Desactivar</b> en su lugar.</p>
-      `,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#e11d48',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await UserService.delete(user.id);
-        Swal.fire({
-          icon: 'success',
-          title: 'Usuario eliminado',
-          timer: 1500,
-          showConfirmButton: false
-        });
-        reload();
-      } catch (error) {
-        const message = getApiErrorMessage(error, 'No se pudo eliminar el usuario.');
-        const canOfferDeactivate = user.isActive !== false && /desactívelo/i.test(message);
-
-        if (canOfferDeactivate) {
-          const deactivate = await Swal.fire({
-            icon: 'info',
-            title: 'Usuario con historial',
-            html: `<p>${message}</p><p class="mt-2">En sistemas reales se <b>desactiva</b> al empleado para conservar auditoría y reportes.</p>`,
-            showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: 'Desactivar ahora',
-            cancelButtonText: 'Cerrar',
-          });
-          if (deactivate.isConfirmed) {
-            await deactivateUser(user);
-          }
-          return;
-        }
-
-        Swal.fire('Error', message, 'error');
-      }
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <UsersHeader 
-        activeTab={activeTab} 
-        onCreateClick={handleOpenCreateModal} 
+      <UsersHeader
+        activeTab={activeTab}
+        onCreateClick={handleOpenCreateModal}
       />
 
       <UsersTabs 

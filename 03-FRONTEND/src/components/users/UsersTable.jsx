@@ -133,7 +133,7 @@ const UsersTable = ({
                         <button
                           onClick={() => onDelete(user)}
                           className="p-2 text-[var(--app-text-muted)] hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer"
-                          title="Eliminar (solo sin historial)"
+                          title="Eliminar usuario"
                         >
                           <Trash2 size={15} strokeWidth={2.5} />
                         </button>

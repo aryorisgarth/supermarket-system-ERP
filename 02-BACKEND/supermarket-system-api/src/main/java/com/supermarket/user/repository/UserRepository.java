@@ -31,17 +31,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	List<User> findByIsActiveTrueOrderByFullNameAsc();
 
-	List<User> findAllByOrderByFullNameAsc();
+	List<User> findAllByIsSystemFalseOrderByFullNameAsc();
 
 	@EntityGraph(attributePaths = {"role", "directPermissions"})
 	@Query("""
 			SELECT u FROM User u
-			WHERE (:search IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%'))
+			WHERE u.isSystem = false
+			  AND (:search IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%'))
 				OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))
 			""")
 	Page<User> searchPage(@Param("search") String search, Pageable pageable);
 
-	@Query("SELECT u FROM User u WHERE u.fullName LIKE CONCAT('%', :search, '%') OR u.email LIKE CONCAT('%', :search, '%')")
+	@Query("SELECT u FROM User u WHERE u.isSystem = false AND (u.fullName LIKE CONCAT('%', :search, '%') OR u.email LIKE CONCAT('%', :search, '%'))")
 	List<User> searchUsers(@Param("search") String search);
 
 	@Query("SELECT u FROM User u WHERE u.role.id = :roleId AND u.isActive = :isActive ORDER BY u.fullName ASC")

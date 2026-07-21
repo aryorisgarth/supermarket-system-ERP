@@ -1,7 +1,6 @@
 package com.supermarket.user.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -14,12 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.supermarket.cashregister.repository.CashRegisterSessionRepository;
 import com.supermarket.role.entity.Role;
 import com.supermarket.role.repository.RoleRepository;
 import com.supermarket.permission.entity.Permission;
 import com.supermarket.permission.repository.PermissionRepository;
-import com.supermarket.sale.repository.SaleRepository;
 import com.supermarket.security.SecurityUtils;
 import com.supermarket.user.dto.UserRequestDTO;
 import com.supermarket.user.dto.UserResponseDTO;
@@ -44,12 +41,11 @@ public class UserServiceImpl implements UserService {
 	private final KeycloakAdminService keycloakAdminService;
 	private final EmailService emailService;
 	private final PermissionRepository permissionRepository;
-	private final SaleRepository saleRepository;
-	private final CashRegisterSessionRepository cashRegisterSessionRepository;
+	private final UserArchiveService userArchiveService;
 
 	@Override
 	public List<UserResponseDTO> findAll() {
-		return userRepository.findAllByOrderByFullNameAsc().stream()
+		return userRepository.findAllByIsSystemFalseOrderByFullNameAsc().stream()
 				.map(userMapper::toResponse)
 				.toList();
 	}
@@ -172,19 +168,19 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
+		if (userArchiveService.isSystemUser(user)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"No se puede eliminar el usuario técnico del sistema.");
+		}
+
 		Long currentUserId = SecurityUtils.currentUserId();
 		if (currentUserId != null && currentUserId.equals(id)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 					"No puede eliminar su propio usuario mientras tiene sesión activa.");
 		}
 
-		List<String> blockers = collectDeletionBlockers(id);
-		if (!blockers.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT,
-					"No se puede eliminar: el usuario tiene "
-							+ String.join(", ", blockers)
-							+ ". Desactívelo para bloquear el acceso sin perder el historial operativo.");
-		}
+		User archiveUser = userArchiveService.ensureArchiveUser();
+		userArchiveService.transferOperationalReferences(id, archiveUser.getId());
 
 		String email = user.getEmail();
 
@@ -192,7 +188,7 @@ public class UserServiceImpl implements UserService {
 			userRepository.delete(user);
 		} catch (DataIntegrityViolationException ex) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
-					"No se puede eliminar: el usuario tiene datos relacionados en el sistema. Desactívelo en su lugar.",
+					"No se pudo eliminar el usuario porque aún tiene datos vinculados no transferibles.",
 					ex);
 		}
 
@@ -232,19 +228,6 @@ public class UserServiceImpl implements UserService {
 			log.warn("Keycloak sync failed for user {} while toggling status to {}. Local status updated anyway.",
 					user.getEmail(), newStatus, ex);
 		}
-	}
-
-	private List<String> collectDeletionBlockers(Long userId) {
-		List<String> blockers = new ArrayList<>();
-		long sales = saleRepository.countByUser_Id(userId);
-		if (sales > 0) {
-			blockers.add(sales + " venta(s)");
-		}
-		long sessions = cashRegisterSessionRepository.countByCashier_Id(userId);
-		if (sessions > 0) {
-			blockers.add(sessions + " turno(s) de caja");
-		}
-		return blockers;
 	}
 
 	private static void normalize(UserRequestDTO request) {
