@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/scale-config")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ADMIN_INGENIERO')")
 public class ScaleConfigController {
 
     private final ScaleConfigService scaleConfigService;
@@ -22,6 +21,7 @@ public class ScaleConfigController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ADMIN_INGENIERO')")
     public ResponseEntity<ScaleConfigDTO> updateConfig(@Valid @RequestBody ScaleConfigDTO dto) {
         return ResponseEntity.ok(scaleConfigService.updateConfig(dto));
     }

@@ -96,7 +96,7 @@ public class SecurityConfiguration {
 							response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
 							response.setContentType("application/json");
 							response.getWriter().write(
-									"{\"message\": \"No tienes permisos para realizar esta operación de bodega/inventario.\"}");
+									"{\"message\": \"No tienes permisos para realizar esta operación.\"}");
 						})
 				)
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
