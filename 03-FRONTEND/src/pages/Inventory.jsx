@@ -1,11 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Package, AlertTriangle, Tag } from 'lucide-react';
+import Swal from 'sweetalert2';
 import ProductService from '../services/ProductService';
+import LabelService from '../services/LabelService';
 import MetadataService from '../services/MetadataService';
 import BrandService from '../services/BrandService';
 import DashboardService from '../services/DashboardService';
 import { normalizeProductList } from '../utils/normalizeProduct';
 import { getApiErrorMessage } from '../utils/apiError';
+import { generateShelfStripPDF } from '../utils/pdf/labelPDF';
 import { getStockBadge } from '../utils/getStockBadge';
 import InventoryFilters from '../components/inventory/InventoryFilters';
 import InventoryTable from '../components/inventory/InventoryTable';
@@ -145,6 +148,27 @@ const Inventory = () => {
     }
   };
 
+  const handlePrintLabel = async (product) => {
+    try {
+      Swal.fire({
+        title: 'Generando fleje...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+      const data = await LabelService.getShelfLabelData([product.id]);
+      generateShelfStripPDF(data);
+      Swal.fire({
+        icon: 'success',
+        title: 'Fleje listo',
+        text: 'El PDF se descargó correctamente.',
+        timer: 1600,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      Swal.fire('Error', getApiErrorMessage(error, 'No se pudo generar el fleje.'), 'error');
+    }
+  };
+
   const clearFilters = () => {
     setCatFilter('');
     setSupFilter('');
@@ -250,6 +274,7 @@ const Inventory = () => {
           onOpenKardex={handleOpenKardex}
           onOpenEdit={handleOpenEdit}
           onDeleteProduct={handleDeleteProduct}
+          onPrintLabel={handlePrintLabel}
           getStockBadge={getStockBadge}
         />
       )}

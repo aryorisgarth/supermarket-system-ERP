@@ -1,4 +1,4 @@
-import { Package, Barcode, RefreshCw, Edit2, Trash2, History } from 'lucide-react';
+import { Package, Barcode, RefreshCw, Edit2, Trash2, History, Printer } from 'lucide-react';
 import { formatMoney } from '../../utils/formatMoney';
 
 const InventoryMobileList = ({
@@ -8,6 +8,7 @@ const InventoryMobileList = ({
   onOpenKardex,
   onOpenEdit,
   onDeleteProduct,
+  onPrintLabel,
   getStockBadge,
 }) => (
   <ul className="inventory-mobile-list divide-y divide-[var(--app-border)] lg:hidden">
@@ -66,6 +67,13 @@ const InventoryMobileList = ({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onPrintLabel?.(product)}
+            className="flex flex-1 min-w-[100px] items-center justify-center gap-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[11px] font-bold text-emerald-700"
+          >
+            <Printer size={12} /> Fleje
+          </button>
           <button
             type="button"
             onClick={() => onOpenAdjust(product)}

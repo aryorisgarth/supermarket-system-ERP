@@ -45,6 +45,7 @@ import {
   LazyLocations,
   LazyCustomers,
   LazyScaleConfig,
+  LazyLabels,
 } from './routes/lazyPages';
 
 const LazyPage = ({ Page }) => (
@@ -198,6 +199,12 @@ function App() {
             <Route path="/inventario" element={
               <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST']} allowPermissionOverride>
                 <LazyPage Page={LazyInventory} />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/etiquetas" element={
+              <ProtectedRoute allowedRoles={['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR']} allowedPermissions={['INVENTORY_ADJUST', 'INVENTORY_VIEW']} allowPermissionOverride>
+                <LazyPage Page={LazyLabels} />
               </ProtectedRoute>
             } />
 

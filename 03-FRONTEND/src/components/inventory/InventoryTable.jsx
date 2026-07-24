@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, Barcode, RefreshCw, Edit2, Trash2, Loader2, Inbox, History, MapPin } from 'lucide-react';
+import { Package, Barcode, RefreshCw, Edit2, Trash2, Loader2, Inbox, History, MapPin, Printer } from 'lucide-react';
 import InventoryMobileList from './InventoryMobileList';
 import ProductLocationsSection from './ProductLocationsSection';
 import { formatMoney } from '../../utils/formatMoney';
@@ -12,6 +12,7 @@ const InventoryTable = ({
   onOpenKardex,
   onOpenEdit,
   onDeleteProduct,
+  onPrintLabel,
   getStockBadge
 }) => {
   const [expandedProductId, setExpandedProductId] = useState(null);
@@ -47,6 +48,7 @@ const InventoryTable = ({
         onOpenKardex={onOpenKardex}
         onOpenEdit={onOpenEdit}
         onDeleteProduct={onDeleteProduct}
+        onPrintLabel={onPrintLabel}
         getStockBadge={getStockBadge}
       />
 
@@ -132,6 +134,14 @@ const InventoryTable = ({
                         title="Ubicaciones"
                       >
                         <MapPin size={16} strokeWidth={2} />
+                      </button>
+
+                      <button 
+                        onClick={() => onPrintLabel?.(product)}
+                        className="p-2 bg-white text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-all cursor-pointer border border-gray-200"
+                        title="Imprimir fleje"
+                      >
+                        <Printer size={16} strokeWidth={2} />
                       </button>
 
                       <button 

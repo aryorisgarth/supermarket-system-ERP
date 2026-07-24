@@ -138,6 +138,11 @@ public class SecurityConfiguration {
 						
 						
 						.requestMatchers("/api/maintenance/**").hasRole("ADMIN_INGENIERO")
+
+						.requestMatchers("/api/labels/**")
+								.access(anyRoleOrAuthority(
+										new String[] {"BODEGUERO", "ADMINISTRADOR", "ADMIN_INGENIERO", "SUPERVISOR"},
+										new String[] {"INVENTORY_ADJUST", "INVENTORY_VIEW"}))
 						
 						.requestMatchers("/api/purchase-orders/*/receive").hasAuthority("PURCHASE_RECEIVE")
 						.requestMatchers("/api/purchase-orders/*/claim").hasAuthority("PURCHASE_RECEIVE")

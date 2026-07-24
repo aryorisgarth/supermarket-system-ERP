@@ -35,3 +35,4 @@ export const LazyBrands = lazy(() => import('../pages/Brands'));
 export const LazyLocations = lazy(() => import('../pages/Locations'));
 export const LazyCustomers = lazy(() => import('../pages/Customers'));
 export const LazyScaleConfig = lazy(() => import('../pages/ScaleConfig'));
+export const LazyLabels = lazy(() => import('../pages/Labels'));

@@ -53,7 +53,8 @@ services:
     networks:
       - supermarket-net
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      # prod + local: misma config de prod pero con Swagger habilitado (application-local.yml)
+      SPRING_PROFILES_ACTIVE: prod,local
       KEYCLOAK_CLIENT_ID: supermarket-app
       KEYCLOAK_REALM: supermarket
       KEYCLOAK_ADMIN_CLIENT_ID: supermarket-admin-client

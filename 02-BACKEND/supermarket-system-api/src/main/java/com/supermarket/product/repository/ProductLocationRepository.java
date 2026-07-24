@@ -16,6 +16,13 @@ public interface ProductLocationRepository extends JpaRepository<ProductLocation
 
 	@Query("""
 			SELECT pl FROM ProductLocation pl
+			JOIN FETCH pl.location
+			WHERE pl.product.id IN :productIds
+			""")
+	List<ProductLocation> findByProductIdIn(@Param("productIds") List<Long> productIds);
+
+	@Query("""
+			SELECT pl FROM ProductLocation pl
 			JOIN FETCH pl.product
 			JOIN FETCH pl.location
 			WHERE pl.location.id = :locationId

@@ -23,6 +23,7 @@ import {
   Settings as SettingsIcon,
   Scale,
   ArrowRightLeft,
+  Tags,
 } from 'lucide-react';
 
 export const sections = [
@@ -135,6 +136,15 @@ export const sections = [
         roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
         permissions: ['INVENTORY_ADJUST'],
         allowPermissionOverride: true,
+      },
+      {
+        icon: Tags,
+        label: 'Etiquetas y flejes',
+        path: '/etiquetas',
+        roles: ['BODEGUERO', 'ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
+        permissions: ['INVENTORY_ADJUST', 'INVENTORY_VIEW'],
+        allowPermissionOverride: true,
+        badge: { text: 'PDF', variant: 'new' },
       },
       {
         icon: CalendarClock,
