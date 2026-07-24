@@ -13,30 +13,39 @@ const SHELF_CELL = {
   height: (PAGE.height - PAGE.margin * 2 - 12) / SHELF_GRID.rows,
 };
 
-const PRODUCT_GRID = { cols: 4, rows: 8 };
+const PRODUCT_GRID = { cols: 2, rows: 4 };
 const PRODUCT_CELL = {
   width: (PAGE.width - PAGE.margin * 2) / PRODUCT_GRID.cols,
   height: (PAGE.height - PAGE.margin * 2 - 10) / PRODUCT_GRID.rows,
 };
 
-function createBarcodeDataUrl(value) {
+function createBarcodeDataUrl(value, { height = 40, width = 1.8, displayValue = false } = {}) {
   if (!value) return null;
   const canvas = document.createElement('canvas');
   const code = String(value).trim();
-  try {
-    const format = /^\d{13}$/.test(code) ? 'EAN13' : 'CODE128';
-    JsBarcode(canvas, code, {
-      format,
-      displayValue: true,
-      fontSize: 10,
-      height: 32,
-      margin: 0,
-      width: 1.4,
-    });
-    return canvas.toDataURL('image/png');
-  } catch {
-    return null;
+  if (!code) return null;
+
+  const formats = [];
+  if (/^\d{13}$/.test(code)) formats.push('EAN13');
+  if (/^\d{8}$/.test(code)) formats.push('EAN8');
+  formats.push('CODE128');
+
+  for (const format of formats) {
+    try {
+      JsBarcode(canvas, code, {
+        format,
+        displayValue,
+        fontSize: 11,
+        height,
+        margin: 4,
+        width,
+      });
+      return canvas.toDataURL('image/png');
+    } catch {
+      // probar siguiente formato
+    }
   }
+  return null;
 }
 
 function truncateText(doc, text, maxWidth) {
@@ -79,7 +88,7 @@ function drawShelfStrip(doc, item, x, y, width, height, companyName) {
   const nameLines = doc.splitTextToSize(item.name || 'Producto', innerWidth);
   doc.text(nameLines.slice(0, 2), x + padding, y + 30);
 
-  const barcodeUrl = createBarcodeDataUrl(item.barcode);
+  const barcodeUrl = createBarcodeDataUrl(item.barcode, { height: 40, width: 1.6 });
   if (barcodeUrl) {
     doc.addImage(barcodeUrl, 'PNG', x + padding, y + 38, innerWidth, 12);
   } else {
@@ -105,28 +114,49 @@ function drawShelfStrip(doc, item, x, y, width, height, companyName) {
 }
 
 function drawProductLabel(doc, item, x, y, width, height) {
-  const padding = 2;
+  const padding = 4;
   const innerWidth = width - padding * 2;
+  let cursorY = y + padding + 4;
 
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.2);
+  doc.setDrawColor(30, 41, 59);
+  doc.setLineWidth(0.35);
   doc.rect(x, y, width, height);
 
   doc.setFont('Helvetica', 'bold');
-  doc.setFontSize(6.5);
+  doc.setFontSize(10);
   doc.setTextColor(15, 23, 42);
   const nameLines = doc.splitTextToSize(item.name || 'Producto', innerWidth);
-  doc.text(nameLines.slice(0, 2), x + padding, y + 4);
+  doc.text(nameLines.slice(0, 2), x + padding, cursorY);
+  cursorY += nameLines.length > 1 ? 11 : 7;
 
-  const barcodeUrl = createBarcodeDataUrl(item.barcode);
+  const barcodeUrl = createBarcodeDataUrl(item.barcode, { height: 52, width: 2.2 });
+  const barcodeBlockHeight = 22;
   if (barcodeUrl) {
-    doc.addImage(barcodeUrl, 'PNG', x + padding, y + 9, innerWidth, 8);
+    doc.addImage(barcodeUrl, 'PNG', x + padding, cursorY, innerWidth, barcodeBlockHeight);
+    cursorY += barcodeBlockHeight + 2;
   }
 
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(51, 65, 85);
+  doc.text(String(item.barcode || 'S/C'), x + width / 2, cursorY, { align: 'center' });
+  cursorY += 6;
+
   doc.setFont('Helvetica', 'bold');
-  doc.setFontSize(10);
+  doc.setFontSize(18);
   doc.setTextColor(...PRIMARY_COLOR);
-  doc.text(formatMoney(item.salePrice), x + padding, y + height - 3);
+  doc.text(formatMoney(item.salePrice), x + padding, cursorY);
+  cursorY += 8;
+
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  const meta = [
+    `POR ${formatUomLabel(item.uomBase)}`,
+    item.categoryName,
+    item.brandName,
+  ].filter(Boolean).join(' · ');
+  doc.text(truncateText(doc, meta.toUpperCase(), innerWidth), x + padding, Math.min(cursorY, y + height - 4));
 }
 
 function drawGridPages(doc, items, grid, cell, drawItem, headerTitle) {

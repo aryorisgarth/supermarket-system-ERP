@@ -400,8 +400,8 @@ const Labels = () => {
           <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 text-[11px] leading-relaxed text-[var(--app-text-soft)]">
             <p className="font-bold uppercase tracking-wide text-[var(--app-text)]">Formato MVP</p>
             <p className="mt-2">
-              Flejes: 2×4 por hoja A4 con precio, barcode, ubicación y categoría. Etiquetas unitarias: 4×8 por hoja
-              A4 con barcode y precio.
+              Flejes: 2×4 por hoja A4 con precio, barcode, ubicación y categoría. Etiquetas unitarias: 2×4 por hoja
+              A4 con barcode escaneable, código, precio y unidad.
             </p>
           </div>
         </div>
