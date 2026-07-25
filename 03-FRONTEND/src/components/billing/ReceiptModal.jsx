@@ -26,31 +26,31 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
   const isMixedPayment = paymentLines.length > 1;
 
   const modalFooter = (
-    <div className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-end sm:p-4">
+    <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-3 sm:p-4">
       <Button
         type="button"
-        variant="secondary"
-        onClick={onClose}
-        className="order-3 h-11 w-full sm:order-1 sm:w-auto sm:min-w-[140px]"
+        variant="primary"
+        icon={Printer}
+        onClick={onPrint}
+        className="h-11 w-full"
       >
-        Nueva venta
+        Imprimir ticket
       </Button>
       <button
         type="button"
         onClick={() => generateInvoicePDF(receiptData)}
-        className="order-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-4 text-xs font-bold uppercase tracking-wide text-[var(--app-text)] transition-colors hover:bg-[var(--app-surface)] sm:w-auto sm:min-w-[160px]"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-4 text-xs font-bold uppercase tracking-wide text-[var(--app-text)] transition-colors hover:bg-[var(--app-surface)]"
       >
         <FileDown size={16} />
         Exportar PDF
       </button>
       <Button
         type="button"
-        variant="primary"
-        icon={Printer}
-        onClick={onPrint}
-        className="order-1 h-11 w-full sm:order-3 sm:w-auto sm:min-w-[160px]"
+        variant="secondary"
+        onClick={onClose}
+        className="h-11 w-full"
       >
-        Imprimir ticket
+        Nueva venta
       </Button>
     </div>
   );
@@ -62,15 +62,16 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
       icon={ReceiptText}
       title={`Venta procesada · ${money(receiptData.total)}`}
       subtitle={`Factura ${receiptData.invoiceNumber}`}
-      initialSize="lg"
-      sizeOptions={['md', 'lg', 'xl', 'full']}
+      initialSize="md"
+      sizeOptions={['sm', 'md', 'lg', 'xl', 'full']}
       bodyClassName="flex min-h-0 flex-1 flex-col overflow-hidden p-0"
-      panelClassName="flex max-h-[min(92vh,920px)] flex-col"
+      panelClassName="flex h-[min(92vh,860px)] max-h-[92vh] w-[min(96vw,720px)] flex-col"
       headerClassName="shrink-0 bg-[var(--app-bg-subtle)] text-[var(--app-text)] border-b border-[var(--app-border)]"
       footer={modalFooter}
+      resizable={false}
     >
-      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)]">
-        <aside className="shrink-0 overflow-y-auto border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 lg:border-b-0 lg:border-r">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:grid lg:grid-cols-[minmax(240px,300px)_minmax(0,1fr)]">
+        <aside className="max-h-[38vh] shrink-0 overflow-y-auto border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-3 pos-scroll lg:max-h-none lg:border-b-0 lg:border-r lg:p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="ui-eyebrow">Venta procesada</p>
@@ -79,21 +80,25 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
                 Factura {receiptData.invoiceNumber}
               </p>
             </div>
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--app-success-soft)] text-[var(--app-success)]">
-              <CheckCircle2 size={22} />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--app-success-soft)] text-[var(--app-success)]">
+              <CheckCircle2 size={20} />
             </span>
           </div>
 
-          <div className="mt-4 space-y-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
+          <div className="mt-3 space-y-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3">
             <div className="flex justify-between gap-3 text-sm font-semibold">
               <span className="text-[var(--app-text-muted)]">Cliente</span>
               <span className="max-w-[160px] truncate text-right text-[var(--app-text)]">{receiptData.customerName}</span>
             </div>
             <div className="flex justify-between gap-3 text-sm font-semibold">
+              <span className="text-[var(--app-text-muted)]">Pago</span>
+              <span className="text-right text-[var(--app-text)]">{receiptData.paymentMethod}</span>
+            </div>
+            <div className="flex justify-between gap-3 text-sm font-semibold">
               <span className="text-[var(--app-text-muted)]">Artículos</span>
               <span className="text-[var(--app-text)]">{receiptData.items.length}</span>
             </div>
-            <div className="border-t border-dashed border-[var(--app-border)] pt-3">
+            <div className="border-t border-dashed border-[var(--app-border)] pt-2">
               <div className="flex justify-between text-sm font-semibold text-[var(--app-text-muted)]">
                 <span>Subtotal</span>
                 <span>{money(receiptData.subtotal)}</span>
@@ -105,38 +110,38 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
-              {isMixedPayment ? 'Desglose de pago mixto' : 'Forma de pago'}
-            </p>
-            <div className="mt-2 space-y-2">
-              {paymentLines.map((payment, index) => (
-                <div key={`${payment.label}-${index}`} className="flex items-start justify-between gap-3 text-sm font-semibold">
-                  <span className="text-[var(--app-text-soft)]">{payment.label}</span>
-                  <span className="text-[var(--app-text)]">{money(payment.amount)}</span>
-                </div>
-              ))}
-            </div>
-            {!isMixedPayment && (
-              <p className="mt-3 text-xs font-bold uppercase tracking-wide text-[var(--app-primary)]">
-                {receiptData.paymentMethod}
+          {isMixedPayment && (
+            <div className="mt-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
+                Desglose de pago mixto
               </p>
-            )}
-          </div>
+              <div className="mt-2 space-y-1.5">
+                {paymentLines.map((payment, index) => (
+                  <div key={`${payment.label}-${index}`} className="flex items-start justify-between gap-3 text-sm font-semibold">
+                    <span className="text-[var(--app-text-soft)]">{payment.label}</span>
+                    <span className="text-[var(--app-text)]">{money(payment.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {receiptData.change > 0 && (
-            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-center dark:border-emerald-900/30 dark:bg-emerald-950/20">
+            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center dark:border-emerald-900/30 dark:bg-emerald-950/20">
               <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
                 Vuelto a entregar
               </p>
-              <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+              <p className="mt-1 text-xl font-bold text-emerald-700 dark:text-emerald-300">
                 {money(receiptData.change)}
               </p>
             </div>
           )}
         </aside>
 
-        <section className="min-h-0 overflow-y-auto bg-[var(--app-bg-subtle)] p-4 pos-scroll">
+        <section className="min-h-0 flex-1 overflow-y-auto bg-[var(--app-bg-subtle)] p-3 pos-scroll lg:p-4">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)] lg:hidden">
+            Vista previa del ticket
+          </p>
           <ThermalReceiptView
             receiptData={receiptData}
             taxRate={taxRate}

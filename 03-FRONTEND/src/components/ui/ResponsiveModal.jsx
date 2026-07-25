@@ -35,6 +35,7 @@ const ResponsiveModal = ({
   headerClassName = 'bg-[var(--app-primary)] text-white',
   resizable = true,
   footer = null,
+  footerClassName = '',
 }) => {
   const panelRef = useRef(null);
   const availableSizes = useMemo(
@@ -123,7 +124,7 @@ const ResponsiveModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-2 sm:p-3 md:p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/80 backdrop-blur-sm p-2 sm:items-center sm:p-3 md:p-4 animate-fade-in"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose?.();
       }}
@@ -131,7 +132,7 @@ const ResponsiveModal = ({
       <div
         ref={panelRef}
         style={panelStyle}
-        className={`relative flex flex-col overflow-hidden rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl ${panelSizeClass} ${panelClassName}`}
+        className={`relative my-auto flex flex-col overflow-hidden rounded-3xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl ${panelSizeClass} ${panelClassName}`}
       >
         <div className={`flex items-center justify-between gap-3 p-4 md:p-5 ${headerClassName}`}>
           <div className="flex min-w-0 items-center gap-3">
@@ -190,9 +191,13 @@ const ResponsiveModal = ({
           </div>
         </div>
 
-        <div className={`min-h-0 flex-1 overflow-y-auto ${bodyClassName}`}>{children}</div>
+        <div className={`min-h-0 flex-1 ${footer ? 'overflow-hidden' : 'overflow-y-auto'} ${bodyClassName}`}>{children}</div>
 
-        {footer ? <div className="shrink-0 border-t border-[var(--app-border)]">{footer}</div> : null}
+        {footer ? (
+          <div className={`relative z-20 shrink-0 border-t border-[var(--app-border)] bg-[var(--app-surface)] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] ${footerClassName}`}>
+            {footer}
+          </div>
+        ) : null}
 
         {resizable ? (
           <button
