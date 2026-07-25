@@ -29,6 +29,8 @@ const ThermalReceiptView = ({
   printedTime,
   articleCount,
   discountTotal,
+  paymentLines = [],
+  isMixedPayment = false,
 }) => {
   const getLineDiscount = (item) => Number(item.discountAmount || item.discount || 0);
   const getLineGross = (item) => Number(item.salePrice || 0) * Number(item.quantity || 0);
@@ -117,7 +119,19 @@ const ThermalReceiptView = ({
       <div className="my-2 border-b border-dashed border-slate-300" />
 
       <div className="space-y-1">
-        <div className="flex justify-between"><span>CANCELO CON:</span><b>{receiptData.paymentMethod}</b></div>
+        {isMixedPayment && paymentLines?.length > 1 ? (
+          <>
+            <p className="text-[8px] font-bold uppercase text-slate-600">Pagos registrados</p>
+            {paymentLines.map((payment, index) => (
+              <div key={`${payment.label}-${index}`} className="flex justify-between text-[8px]">
+                <span>{payment.label}</span>
+                <b>{money(payment.amount)}</b>
+              </div>
+            ))}
+          </>
+        ) : (
+          <div className="flex justify-between"><span>CANCELO CON:</span><b>{receiptData.paymentMethod}</b></div>
+        )}
         {receiptData.amountReceived > 0 && (
           <div className="flex justify-between"><span>RECIBIDO:</span><b>{money(receiptData.amountReceived)}</b></div>
         )}

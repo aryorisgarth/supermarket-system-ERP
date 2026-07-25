@@ -1,59 +1,18 @@
-import { CheckCircle2, Printer, ReceiptText } from 'lucide-react';
+import { useMemo } from 'react';
+import { CheckCircle2, FileDown, Printer, ReceiptText } from 'lucide-react';
 import Button from '../ui/Button';
 import ResponsiveModal from '../ui/ResponsiveModal';
 import { formatMoney } from '../../utils/formatMoney';
 import { generateInvoicePDF } from '../../utils/pdfGenerator';
+import { loadTicketSettings } from '../../utils/ticketSettings';
 import ThermalReceiptView from './ThermalReceiptView';
 
 const money = formatMoney;
 
 const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPrint }) => {
+  const ticketSettings = useMemo(() => loadTicketSettings(billingConfig), [billingConfig]);
+
   if (!show || !receiptData) return null;
-
-  const saved = localStorage.getItem('supernova_settings');
-  let company = 'SuperNova Market';
-  let ownerName = '';
-  let addr = '12 Calle 4-55 Zona 10, Ciudad de Guatemala';
-  let ruc = billingConfig?.issuerTaxId || '1234567-8';
-  let phone = '';
-  let telefax = '';
-  let enableMulti = false;
-  let rate = 36.85;
-  let showTicketLogo = true;
-  let ticketHeaderMessage = 'Gracias por elegir SuperNova';
-  let ticketFooterMessage = '*** GRACIAS POR SU COMPRA ***';
-  let ticketAsfcCode = 'ASFC 19/0001/08/2020/5';
-  let ticketSeries = 'A';
-  let ticketPaymentLabel = 'PAGO CONTADO';
-  let ticketExchangeNote = 'POR FAVOR PRESENTAR FACTURA PARA REALIZAR CAMBIOS';
-  let ticketFontFamily = 'monospace';
-  let ticketFontSize = 10;
-  let ticketShowTaxId = true;
-  let ticketLogo = localStorage.getItem('supernova_ticket_logo') || localStorage.getItem('supernova_logo');
-
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed.companyName) company = parsed.companyName;
-      if (parsed.ownerName) ownerName = parsed.ownerName;
-      if (parsed.address) addr = parsed.address;
-      if (parsed.taxId) ruc = parsed.taxId;
-      if (parsed.phone) phone = parsed.phone;
-      if (parsed.telefax) telefax = parsed.telefax;
-      enableMulti = parsed.enableMultiCurrency ?? false;
-      rate = parsed.exchangeRate ?? 36.85;
-      showTicketLogo = parsed.showTicketLogo ?? true;
-      ticketHeaderMessage = parsed.ticketHeaderMessage || '';
-      ticketFooterMessage = parsed.ticketFooterMessage || '*** GRACIAS POR SU COMPRA ***';
-      ticketAsfcCode = parsed.ticketAsfcCode || ticketAsfcCode;
-      ticketSeries = parsed.ticketSeries || ticketSeries;
-      ticketPaymentLabel = parsed.ticketPaymentLabel || ticketPaymentLabel;
-      ticketExchangeNote = parsed.ticketExchangeNote || ticketExchangeNote;
-      ticketFontFamily = parsed.ticketFontFamily || 'monospace';
-      ticketFontSize = parsed.ticketFontSize || 10;
-      ticketShowTaxId = parsed.ticketShowTaxId ?? true;
-    } catch (e) {}
-  }
 
   const printedAt = receiptData.date ? new Date(receiptData.date) : new Date();
   const printedDate = Number.isNaN(printedAt.getTime()) ? receiptData.date : printedAt.toLocaleDateString();
@@ -61,6 +20,40 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
   const articleCount = receiptData.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const getLineDiscount = (item) => Number(item.discountAmount || item.discount || 0);
   const discountTotal = receiptData.discountTotal ?? receiptData.items.reduce((sum, item) => sum + getLineDiscount(item), 0);
+  const paymentLines = Array.isArray(receiptData.payments) && receiptData.payments.length > 0
+    ? receiptData.payments
+    : [{ label: receiptData.paymentMethod, amount: receiptData.amountReceived || receiptData.total }];
+  const isMixedPayment = paymentLines.length > 1;
+
+  const modalFooter = (
+    <div className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-end sm:p-4">
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={onClose}
+        className="order-3 h-11 w-full sm:order-1 sm:w-auto sm:min-w-[140px]"
+      >
+        Nueva venta
+      </Button>
+      <button
+        type="button"
+        onClick={() => generateInvoicePDF(receiptData)}
+        className="order-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] px-4 text-xs font-bold uppercase tracking-wide text-[var(--app-text)] transition-colors hover:bg-[var(--app-surface)] sm:w-auto sm:min-w-[160px]"
+      >
+        <FileDown size={16} />
+        Exportar PDF
+      </button>
+      <Button
+        type="button"
+        variant="primary"
+        icon={Printer}
+        onClick={onPrint}
+        className="order-1 h-11 w-full sm:order-3 sm:w-auto sm:min-w-[160px]"
+      >
+        Imprimir ticket
+      </Button>
+    </div>
+  );
 
   return (
     <ResponsiveModal
@@ -69,14 +62,15 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
       icon={ReceiptText}
       title={`Venta procesada · ${money(receiptData.total)}`}
       subtitle={`Factura ${receiptData.invoiceNumber}`}
-      initialSize="xl"
+      initialSize="lg"
       sizeOptions={['md', 'lg', 'xl', 'full']}
-      bodyClassName="p-0 overflow-hidden no-print"
-      panelClassName="max-h-[92vh]"
-      headerClassName="bg-[var(--app-bg-subtle)] text-[var(--app-text)] border-b border-[var(--app-border)]"
+      bodyClassName="flex min-h-0 flex-1 flex-col overflow-hidden p-0"
+      panelClassName="flex max-h-[min(92vh,920px)] flex-col"
+      headerClassName="shrink-0 bg-[var(--app-bg-subtle)] text-[var(--app-text)] border-b border-[var(--app-border)]"
+      footer={modalFooter}
     >
-      <div className="grid max-h-[calc(92vh-120px)] w-full grid-cols-[minmax(280px,360px)_minmax(320px,1fr)] overflow-hidden max-lg:grid-cols-1">
-        <aside className="flex flex-col border-r border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-5 max-lg:hidden">
+      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)]">
+        <aside className="shrink-0 overflow-y-auto border-b border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 lg:border-b-0 lg:border-r">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="ui-eyebrow">Venta procesada</p>
@@ -90,17 +84,13 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
             </span>
           </div>
 
-          <div className="mt-6 space-y-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
-            <div className="flex justify-between text-sm font-semibold">
+          <div className="mt-4 space-y-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
+            <div className="flex justify-between gap-3 text-sm font-semibold">
               <span className="text-[var(--app-text-muted)]">Cliente</span>
-              <span className="max-w-[160px] truncate text-[var(--app-text)]">{receiptData.customerName}</span>
+              <span className="max-w-[160px] truncate text-right text-[var(--app-text)]">{receiptData.customerName}</span>
             </div>
-            <div className="flex justify-between text-sm font-semibold">
-              <span className="text-[var(--app-text-muted)]">Pago</span>
-              <span className="text-[var(--app-text)]">{receiptData.paymentMethod}</span>
-            </div>
-            <div className="flex justify-between text-sm font-semibold">
-              <span className="text-[var(--app-text-muted)]">Articulos</span>
+            <div className="flex justify-between gap-3 text-sm font-semibold">
+              <span className="text-[var(--app-text-muted)]">Artículos</span>
               <span className="text-[var(--app-text)]">{receiptData.items.length}</span>
             </div>
             <div className="border-t border-dashed border-[var(--app-border)] pt-3">
@@ -115,80 +105,49 @@ const ReceiptModal = ({ show, receiptData, billingConfig, taxRate, onClose, onPr
             </div>
           </div>
 
+          <div className="mt-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">
+              {isMixedPayment ? 'Desglose de pago mixto' : 'Forma de pago'}
+            </p>
+            <div className="mt-2 space-y-2">
+              {paymentLines.map((payment, index) => (
+                <div key={`${payment.label}-${index}`} className="flex items-start justify-between gap-3 text-sm font-semibold">
+                  <span className="text-[var(--app-text-soft)]">{payment.label}</span>
+                  <span className="text-[var(--app-text)]">{money(payment.amount)}</span>
+                </div>
+              ))}
+            </div>
+            {!isMixedPayment && (
+              <p className="mt-3 text-xs font-bold uppercase tracking-wide text-[var(--app-primary)]">
+                {receiptData.paymentMethod}
+              </p>
+            )}
+          </div>
+
           {receiptData.change > 0 && (
-            <div className="mt-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 rounded-xl p-3.5 text-center">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">Vuelto a entregar</p>
-              <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">{money(receiptData.change)}</p>
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-center dark:border-emerald-900/30 dark:bg-emerald-950/20">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                Vuelto a entregar
+              </p>
+              <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                {money(receiptData.change)}
+              </p>
             </div>
           )}
-
-          <div className="mt-auto flex flex-col gap-2 pt-5">
-            <div className="grid grid-cols-2 gap-2">
-              <Button type="button" variant="primary" icon={Printer} onClick={onPrint}>
-                Imprimir
-              </Button>
-              <Button type="button" variant="secondary" onClick={onClose}>
-                Nueva venta
-              </Button>
-            </div>
-            <button
-              type="button"
-              onClick={() => generateInvoicePDF(receiptData)}
-              className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-slate-350 bg-slate-100 hover:bg-slate-200 h-10 text-xs font-bold uppercase text-slate-800 transition-colors cursor-pointer"
-            >
-              Exportar PDF (A4)
-            </button>
-          </div>
         </aside>
 
-        <section className="flex min-h-0 flex-col">
-          <div className="pos-scroll min-h-0 flex-1 overflow-auto bg-[var(--app-bg-subtle)] p-5">
-            <ThermalReceiptView
-              receiptData={receiptData}
-              taxRate={taxRate}
-              company={company}
-              ownerName={ownerName}
-              addr={addr}
-              ruc={ruc}
-              phone={phone}
-              telefax={telefax}
-              enableMulti={enableMulti}
-              rate={rate}
-              showTicketLogo={showTicketLogo}
-              ticketLogo={ticketLogo}
-              ticketHeaderMessage={ticketHeaderMessage}
-              ticketFooterMessage={ticketFooterMessage}
-              ticketAsfcCode={ticketAsfcCode}
-              ticketSeries={ticketSeries}
-              ticketPaymentLabel={ticketPaymentLabel}
-              ticketExchangeNote={ticketExchangeNote}
-              ticketFontFamily={ticketFontFamily}
-              ticketFontSize={ticketFontSize}
-              ticketShowTaxId={ticketShowTaxId}
-              printedDate={printedDate}
-              printedTime={printedTime}
-              articleCount={articleCount}
-              discountTotal={discountTotal}
-            />
-          </div>
-
-          <footer className="flex flex-col gap-2 border-t border-[var(--app-border)] p-4 lg:hidden">
-            <div className="grid grid-cols-2 gap-2">
-              <Button type="button" variant="primary" icon={Printer} onClick={onPrint}>
-                Imprimir
-              </Button>
-              <Button type="button" variant="secondary" onClick={onClose}>
-                Nueva venta
-              </Button>
-            </div>
-            <button
-              type="button"
-              onClick={() => generateInvoicePDF(receiptData)}
-              className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-slate-350 bg-slate-100 hover:bg-slate-200 h-10 text-xs font-bold uppercase text-slate-800 transition-colors cursor-pointer"
-            >
-              Exportar PDF (A4)
-            </button>
-          </footer>
+        <section className="min-h-0 overflow-y-auto bg-[var(--app-bg-subtle)] p-4 pos-scroll">
+          <ThermalReceiptView
+            receiptData={receiptData}
+            taxRate={taxRate}
+            {...ticketSettings}
+            printedDate={printedDate}
+            printedTime={printedTime}
+            articleCount={articleCount}
+            discountTotal={discountTotal}
+            paymentLines={paymentLines}
+            isMixedPayment={isMixedPayment}
+          />
         </section>
       </div>
     </ResponsiveModal>

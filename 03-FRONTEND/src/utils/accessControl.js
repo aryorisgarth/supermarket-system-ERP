@@ -1,13 +1,17 @@
 import AuthService from '../services/AuthService';
+import { normalizeRoleName } from './rolePermissions';
 
-export const canViewReports = () => AuthService.hasPermission('REPORT_VIEW');
+export const canViewReports = () => {
+  const roleName = normalizeRoleName(AuthService.getCurrentUser()?.role?.name);
+  return (
+    ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CONSULTOR'].includes(roleName)
+    && AuthService.hasPermission('REPORT_VIEW')
+  );
+};
 
 export const canViewSystemAlerts = () => {
-  const roleName = AuthService.getCurrentUser()?.role?.name;
-  return (
-    ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'BODEGUERO'].includes(roleName) ||
-    AuthService.hasPermission('REPORT_VIEW')
-  );
+  const roleName = normalizeRoleName(AuthService.getCurrentUser()?.role?.name);
+  return ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'].includes(roleName);
 };
 
 export const canViewFinance = () => AuthService.hasPermission('FINANCE_VIEW');

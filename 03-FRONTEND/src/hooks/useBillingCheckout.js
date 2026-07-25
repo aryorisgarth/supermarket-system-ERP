@@ -270,7 +270,6 @@ export const useBillingCheckout = ({
     setStripeChargeAmount(0);
 
     await processCheckoutLogic(checkoutContext.customerName, mappedPayments);
-    Swal.fire({ icon: 'success', title: 'Pago Exitoso', text: 'La factura ha sido registrada', timer: 2000, showConfirmButton: false });
   };
 
   const handleStripeModalClose = () => {
@@ -320,6 +319,12 @@ export const useBillingCheckout = ({
           tax,
           total,
           paymentMethod: paymentSummary,
+          payments: mappedPayments.map((payment) => ({
+            label: describePaymentMethod(payment),
+            amount: Number(payment.amount || 0),
+            method: payment.method,
+            reference: payment.reference,
+          })),
           amountReceived: totalPaid,
           change,
           pointsEarned: sale.pointsEarned || 0,
@@ -365,6 +370,17 @@ export const useBillingCheckout = ({
     if (ref) {
       try {
         const sale = await findSaleByReference(ref);
+        const salePayments = (sale.payments || []).map((payment) => ({
+          label: describePaymentMethod({
+            method: payment.paymentMethod,
+            amount: payment.amount,
+            reference: payment.reference,
+            couponCode: payment.couponCode,
+          }),
+          amount: Number(payment.amount || 0),
+          method: payment.paymentMethod,
+          reference: payment.reference,
+        }));
         setReceiptData({
           saleId: sale.id,
           invoiceNumber: sale.invoiceNumber,
@@ -382,7 +398,10 @@ export const useBillingCheckout = ({
           discountTotal: sale.lines?.reduce((sum, l) => sum + Number(l.discountAmount || 0), 0) || 0,
           tax: sale.totalTax,
           total: sale.totalAmount,
-          paymentMethod: sale.payments?.length > 1 ? 'PAGO MIXTO' : (sale.payments[0]?.paymentMethod === 'CASH' ? 'EFECTIVO' : 'TARJETA'),
+          paymentMethod: salePayments.length > 1
+            ? `PAGO MIXTO (${salePayments.map((p) => p.label).join(' + ')})`
+            : (salePayments[0]?.label || 'EFECTIVO'),
+          payments: salePayments,
           amountReceived: sale.payments?.reduce((s, p) => s + p.amount, 0),
           change: sale.changeAmount,
           pointsEarned: sale.pointsEarned || 0,

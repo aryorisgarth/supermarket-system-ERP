@@ -50,7 +50,7 @@ const CheckoutFooter = ({
       </button>
 
       <div className="grid grid-cols-2 gap-3">
-        {showPrintButton && !isMultiPayment && (
+        {showPrintButton && (
           <Button
             type="button"
             variant="secondary"

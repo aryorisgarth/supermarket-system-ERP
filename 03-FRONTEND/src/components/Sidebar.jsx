@@ -9,6 +9,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthService from '../services/AuthService';
 import { sections } from '../config/sidebarRoutes';
+import { normalizeRoleName } from '../utils/rolePermissions';
 
 
 const badgeStyles = {
@@ -102,7 +103,7 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
   const collapsed = isCollapsed;
 
   const user = AuthService.getCurrentUser();
-  const roleName = user?.role?.name;
+  const roleName = normalizeRoleName(user?.role?.name);
   const permissionKey = (user?.permissions || []).join(',');
 
   const [expandedSections, setExpandedSections] = useState(() => {
@@ -175,16 +176,15 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
           ...section,
           items: section.items.filter((item) => {
             const permissions = Array.isArray(item.permissions) ? item.permissions : [];
-            const roleAllowed = item.roles ? item.roles.includes(roleName) : true;
-            const allowPermissionOverride = item.allowPermissionOverride === true;
-            
+            const roleAllowed = item.roles
+              ? item.roles.some((role) => normalizeRoleName(role) === roleName)
+              : true;
+
+            if (!roleAllowed) return false;
             if (permissions.length > 0) {
-              return allowPermissionOverride
-                ? AuthService.hasAnyPermission(permissions)
-                : roleAllowed && AuthService.hasAnyPermission(permissions);
+              return AuthService.hasAnyPermission(permissions);
             }
-            
-            return roleAllowed;
+            return true;
           }),
         }))
         .filter((section) => section.items.length > 0),

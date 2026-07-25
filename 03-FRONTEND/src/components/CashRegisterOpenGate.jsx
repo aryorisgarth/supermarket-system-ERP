@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Wallet, Power, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCashRegister } from '../context/CashRegisterContext';
 
 
 const CashRegisterOpenGate = ({ children }) => {
+  const navigate = useNavigate();
   const { enabled, isOpen, loading, promptAndOpenSession, session } = useCashRegister();
 
   if (!enabled) {
@@ -73,7 +75,7 @@ const CashRegisterOpenGate = ({ children }) => {
                 </motion.div>
                 <motion.button
                   type="button"
-                  onClick={() => window.location.href = '/control-cajas'}
+                  onClick={() => navigate('/cajero')}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.3 }}
@@ -82,7 +84,7 @@ const CashRegisterOpenGate = ({ children }) => {
                   className="w-full py-3 px-6 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 transition-colors"
                 >
                   <Wallet size={18} />
-                  Ir al Dashboard a Cerrar Turno
+                  Ir a Mi Turno para Cerrar Caja
                 </motion.button>
               </motion.div>
             </div>
