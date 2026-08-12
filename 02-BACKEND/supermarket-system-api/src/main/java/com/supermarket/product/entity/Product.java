@@ -72,6 +72,7 @@ public class Product {
 	@Column(name = "average_cost", nullable = false, precision = 12, scale = 4)
 	private BigDecimal averageCost;
 
+	/** Markup mínimo sobre costo (nombre histórico de columna; no migrado). */
 	@NotNull
 	@DecimalMin(value = "0.0", inclusive = true)
 	@Column(name = "min_margin_percent", nullable = false, precision = 8, scale = 4)

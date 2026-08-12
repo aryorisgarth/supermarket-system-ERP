@@ -28,6 +28,7 @@ import com.supermarket.product.entity.ProductPurchasePack;
 import com.supermarket.product.entity.ProductUomConversion;
 import com.supermarket.product.model.ProductPricingPolicy;
 import com.supermarket.producthistory.model.ProductSalePriceHistoryReason;
+import com.supermarket.purchase.model.PurchasePricingDecision;
 import com.supermarket.product.repository.ProductPurchasePackRepository;
 import com.supermarket.product.repository.ProductRepository;
 import com.supermarket.product.repository.ProductUomConversionRepository;
@@ -280,13 +281,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 						saved.getId(),
 						item.getId(),
 						actor);
-				applyPurchaseSalePrices(product, item, actor);
+				SalePriceApplyResult priceApply = applyPurchaseSalePrices(product, item, actor);
 
 				ProductBatch batch = createBatchFromReceipt(lineRequest, item, product, quantityToReceive, saved.getOrderNumber());
 				String receiptNotes = buildReceiptNotes(lineRequest, saved.getOrderNumber());
 				inventoryLedger.record(actor, product, batch, InventoryMovementType.ENTRY, quantityToReceive,
 						(byte) 1, saved.getId(), item.getId(), "PURCHASE_ORDER", item.getUnitCost(), receiptNotes);
-				receiptImpacts.add(toReceiptImpact(costUpdate, product));
+				receiptImpacts.add(toReceiptImpact(costUpdate, product, priceApply));
 				item.setQuantityReceived(nz(item.getQuantityReceived()).add(quantityToReceive));
 			}
 
@@ -474,11 +475,35 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 				item.getLineTotal());
 	}
 
-	private PurchaseReceiptImpactDTO toReceiptImpact(ProductCostUpdateResult result, Product product) {
+	private PurchaseReceiptImpactDTO toReceiptImpact(ProductCostUpdateResult result, Product product,
+			SalePriceApplyResult priceApply) {
 		BigDecimal salePrice = product.getSalePrice() != null ? product.getSalePrice() : result.salePrice();
+		BigDecimal previousSale = priceApply != null && priceApply.previousSalePrice() != null
+				? priceApply.previousSalePrice()
+				: salePrice;
+		BigDecimal currentMarkup = productCostService.calculateMarkupPercent(salePrice, result.newAverageCost());
 		BigDecimal currentMargin = productCostService.calculateMarginPercent(salePrice, result.newAverageCost());
-		BigDecimal minMargin = result.minMarginPercent();
-		boolean marginAlert = currentMargin != null && minMargin != null && currentMargin.compareTo(minMargin) < 0;
+		BigDecimal minMarkup = result.minMarkupPercent();
+		boolean markupAlert = currentMarkup != null && minMarkup != null && currentMarkup.compareTo(minMarkup) < 0;
+
+		BigDecimal suggestedSalePrice = priceApply != null && priceApply.suggestedSalePrice() != null
+				? priceApply.suggestedSalePrice()
+				: productCostService.calculateSuggestedSalePrice(result.newLastCost(), minMarkup);
+		if (suggestedSalePrice == null) {
+			suggestedSalePrice = result.suggestedSalePrice();
+		}
+
+		ProductPricingPolicy policy = priceApply != null && priceApply.policy() != null
+				? priceApply.policy()
+				: (product.getPricingPolicy() != null ? product.getPricingPolicy() : ProductPricingPolicy.MANUAL);
+		PurchasePricingDecision decision = priceApply != null && priceApply.decision() != null
+				? priceApply.decision()
+				: PurchasePricingDecision.NO_CHANGE;
+		String decisionMessage = priceApply != null && priceApply.decisionMessage() != null
+				? priceApply.decisionMessage()
+				: "Sin cambio de precio de venta.";
+		boolean salePriceApplied = priceApply != null && priceApply.salePriceApplied();
+
 		return new PurchaseReceiptImpactDTO(
 				result.productId(),
 				result.productName(),
@@ -489,56 +514,96 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 				result.quantityBefore(),
 				result.quantityReceived(),
 				result.quantityAfter(),
+				previousSale,
 				salePrice,
+				suggestedSalePrice,
+				currentMarkup,
 				currentMargin,
-				minMargin,
-				result.suggestedSalePrice(),
-				marginAlert);
+				minMarkup,
+				policy,
+				decision,
+				decisionMessage,
+				salePriceApplied,
+				markupAlert,
+				minMarkup,
+				markupAlert);
 	}
 
 	/**
-	 * Aplica precio de venta unitario y de empaque definidos en la OC.
-	 * Si no vienen en la línea: AUTO_BY_MARGIN calcula y aplica; MANUAL/SUGGEST solo alertan (no tocan venta).
+	 * Aplica (o no) el precio de venta según la política del producto y reporta la decisión.
+	 * - AUTO_BY_MARGIN: recalcula venta desde el nuevo costo + markup mínimo y aplica.
+	 * - SUGGEST_ON_PURCHASE: no aplica; solo recomienda.
+	 * - MANUAL: aplica solo si la línea de OC trae precios de venta explícitos.
 	 */
-	private void applyPurchaseSalePrices(Product product, PurchaseOrderItem item, User actor) {
+	private SalePriceApplyResult applyPurchaseSalePrices(Product product, PurchaseOrderItem item, User actor) {
 		BigDecimal factor = item.getUnitsPerPack() != null && item.getUnitsPerPack().compareTo(BigDecimal.ZERO) > 0
 				? item.getUnitsPerPack()
 				: BigDecimal.ONE;
-		BigDecimal saleUnit = item.getSalePricePerUnit();
-		BigDecimal salePack = item.getSalePricePerPack();
+		ProductPricingPolicy policy = product.getPricingPolicy() != null
+				? product.getPricingPolicy()
+				: ProductPricingPolicy.MANUAL;
+		BigDecimal previousSalePrice = product.getSalePrice();
+		BigDecimal cost = product.getLastPurchaseCost() != null
+				? product.getLastPurchaseCost()
+				: item.getUnitCost();
+		BigDecimal suggestedUnit = productCostService.calculateSuggestedSalePrice(cost, product.getMinMarginPercent());
 
-		if (saleUnit == null && salePack != null) {
-			saleUnit = salePack.divide(factor, 4, RoundingMode.HALF_UP);
-		}
-		if (salePack == null && saleUnit != null) {
-			salePack = saleUnit.multiply(factor).setScale(4, RoundingMode.HALF_UP);
+		if (policy == ProductPricingPolicy.SUGGEST_ON_PURCHASE) {
+			String msg = suggestedUnit != null
+					? "Política sugerir: venta vigente C$" + money(previousSalePrice)
+							+ "; recomendado C$" + money(suggestedUnit) + " (no se aplicó)."
+					: "Política sugerir: no hay precio recomendado calculable; venta sin cambios.";
+			return new SalePriceApplyResult(policy, previousSalePrice, previousSalePrice, suggestedUnit,
+					PurchasePricingDecision.SUGGESTED_ONLY, msg, false);
 		}
 
-		if (saleUnit == null) {
-			ProductPricingPolicy policy = product.getPricingPolicy() != null
-					? product.getPricingPolicy()
-					: ProductPricingPolicy.MANUAL;
-			if (policy != ProductPricingPolicy.AUTO_BY_MARGIN) {
-				return;
-			}
-			BigDecimal cost = product.getLastPurchaseCost() != null
-					? product.getLastPurchaseCost()
-					: item.getUnitCost();
-			saleUnit = productCostService.calculateSuggestedSalePrice(cost, product.getMinMarginPercent());
+		BigDecimal saleUnit;
+		BigDecimal salePack;
+		ProductSalePriceHistoryReason reason;
+		String notes;
+		PurchasePricingDecision decision;
+
+		if (policy == ProductPricingPolicy.AUTO_BY_MARGIN) {
+			saleUnit = suggestedUnit;
 			if (saleUnit == null) {
-				return;
+				return new SalePriceApplyResult(policy, previousSalePrice, previousSalePrice, null,
+						PurchasePricingDecision.NO_CHANGE,
+						"Política automático: no se pudo calcular venta sugerida; sin cambios.",
+						false);
 			}
 			salePack = saleUnit.multiply(factor).setScale(4, RoundingMode.HALF_UP);
 			item.setSalePricePerUnit(saleUnit);
 			item.setSalePricePerPack(salePack);
+			reason = ProductSalePriceHistoryReason.PURCHASE_RECEIPT;
+			notes = "Automático por markup en recepción de compra";
+			decision = PurchasePricingDecision.APPLIED_AUTO;
+		} else {
+			saleUnit = item.getSalePricePerUnit();
+			salePack = item.getSalePricePerPack();
+			if (saleUnit == null && salePack != null) {
+				saleUnit = salePack.divide(factor, 4, RoundingMode.HALF_UP);
+			}
+			if (salePack == null && saleUnit != null) {
+				salePack = saleUnit.multiply(factor).setScale(4, RoundingMode.HALF_UP);
+			}
+			if (saleUnit == null) {
+				return new SalePriceApplyResult(policy, previousSalePrice, previousSalePrice, suggestedUnit,
+						PurchasePricingDecision.NO_CHANGE,
+						"Política manual: la OC no trajo precio de venta; se mantuvo C$" + money(previousSalePrice) + ".",
+						false);
+			}
+			reason = ProductSalePriceHistoryReason.PURCHASE_RECEIPT;
+			notes = "Precio manual desde orden de compra (recepción)";
+			decision = PurchasePricingDecision.APPLIED_MANUAL;
 		}
 
+		boolean changed = previousSalePrice == null || previousSalePrice.compareTo(saleUnit) != 0;
 		productPriceService.updateSalePrice(
 				product,
-				product.getSalePrice(),
+				previousSalePrice,
 				saleUnit,
-				ProductSalePriceHistoryReason.PURCHASE_RECEIPT,
-				"Actualización por recepción de compra (unidad)",
+				reason,
+				notes,
 				actor);
 
 		ProductUomConversion conversion = item.getUomConversion();
@@ -546,6 +611,38 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 			conversion.setSalePrice(salePack.setScale(4, RoundingMode.HALF_UP));
 			productUomConversionRepository.save(conversion);
 		}
+
+		String msg;
+		if (decision == PurchasePricingDecision.APPLIED_AUTO) {
+			msg = changed
+					? "Política automático: se aplicó venta C$" + money(saleUnit)
+							+ " (antes C$" + money(previousSalePrice) + ") por markup mínimo."
+					: "Política automático: venta sugerida C$" + money(saleUnit) + " ya coincidía; sin cambio efectivo.";
+		} else {
+			msg = changed
+					? "Política manual: se aplicó venta de la OC C$" + money(saleUnit)
+							+ " (antes C$" + money(previousSalePrice) + ")."
+					: "Política manual: precio de la OC C$" + money(saleUnit) + " igual al vigente; sin cambio efectivo.";
+		}
+
+		return new SalePriceApplyResult(policy, previousSalePrice, saleUnit, suggestedUnit, decision, msg, changed);
+	}
+
+	private static String money(BigDecimal value) {
+		if (value == null) {
+			return "0.00";
+		}
+		return value.setScale(2, RoundingMode.HALF_UP).toPlainString();
+	}
+
+	private record SalePriceApplyResult(
+			ProductPricingPolicy policy,
+			BigDecimal previousSalePrice,
+			BigDecimal resultingSalePrice,
+			BigDecimal suggestedSalePrice,
+			PurchasePricingDecision decision,
+			String decisionMessage,
+			boolean salePriceApplied) {
 	}
 
 	private ResolvedPurchaseLine resolveLine(PurchaseOrderItemRequestDTO line, Product product) {

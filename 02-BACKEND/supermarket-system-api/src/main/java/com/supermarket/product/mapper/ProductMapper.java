@@ -1,7 +1,6 @@
 package com.supermarket.product.mapper;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -16,6 +15,7 @@ import com.supermarket.product.entity.ProductPurchasePack;
 import com.supermarket.product.entity.ProductUomConversion;
 import com.supermarket.product.repository.ProductPurchasePackRepository;
 import com.supermarket.product.repository.ProductLocationRepository;
+import com.supermarket.product.service.ProductCostService;
 import com.supermarket.supplier.dto.SupplierResponseDTO;
 import com.supermarket.tax.dto.TaxCategoryResponseDTO;
 import com.supermarket.brand.dto.BrandResponseDTO;
@@ -28,6 +28,7 @@ public class ProductMapper {
 
 	private final ProductPurchasePackRepository productPurchasePackRepository;
 	private final ProductLocationRepository productLocationRepository;
+	private final ProductCostService productCostService;
 
 	public Product toEntity(ProductRequestDTO dto) {
 		Product product = new Product();
@@ -119,8 +120,10 @@ public class ProductMapper {
 			entity.getLastPurchaseCost(),
 			entity.getAverageCost(),
 			entity.getMinMarginPercent(),
+			entity.getMinMarginPercent(),
 			entity.getPricingPolicy(),
-			calculateCurrentMarginPercent(entity)
+			productCostService.calculateCurrentMarkupPercent(entity),
+			productCostService.calculateCurrentMarginPercent(entity)
 		);
 	}
 
@@ -169,17 +172,4 @@ public class ProductMapper {
 		}
 	}
 
-	private BigDecimal calculateCurrentMarginPercent(Product entity) {
-		BigDecimal cost = entity.getAverageCost() != null
-				? entity.getAverageCost()
-				: entity.getLastPurchaseCost() != null ? entity.getLastPurchaseCost() : entity.getPurchasePrice();
-		if (entity.getSalePrice() == null || cost == null || cost.compareTo(BigDecimal.ZERO) <= 0) {
-			return null;
-		}
-		return entity.getSalePrice()
-				.subtract(cost)
-				.divide(cost, 4, RoundingMode.HALF_UP)
-				.multiply(BigDecimal.valueOf(100))
-				.setScale(4, RoundingMode.HALF_UP);
-	}
 }

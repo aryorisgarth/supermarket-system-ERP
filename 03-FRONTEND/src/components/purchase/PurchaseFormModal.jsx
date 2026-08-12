@@ -5,6 +5,8 @@ import {
   computeLineTotal,
   formatPackSummary,
   getDefaultPurchasePack,
+  getPricingPolicy,
+  PRICING_POLICY_LABELS,
   suggestCostPerPack,
   suggestSalePricesForPack,
 } from '../../utils/purchaseUnits';
@@ -209,7 +211,7 @@ const PurchaseFormModal = ({
       onClose={onClose}
       icon={PackagePlus}
       title={isEditing ? 'Editar Orden de Compra' : 'Registrar Orden de Compra'}
-      subtitle="Define costo y precio de venta por unidad y empaque. Se aplican al recibir en bodega."
+      subtitle="El costo se actualiza al recibir. El precio de venta sigue la política del producto (manual, sugerido o automático por markup)."
       initialSize="xl"
       sizeOptions={['md', 'lg', 'xl', 'full']}
       bodyClassName="bg-[var(--app-surface)] p-0"
@@ -335,6 +337,17 @@ const PurchaseFormModal = ({
                         Number(item.costPerPack || 0) > 0 && Number(selectedPack?.factor || 1) > 0
                           ? Number(item.costPerPack) / Number(selectedPack.factor)
                           : 0;
+                      const policy = getPricingPolicy(product);
+                      const saleRequired = policy === 'MANUAL' && (
+                        Number(item.salePricePerUnit) > 0 || Number(item.salePricePerPack) > 0
+                      );
+                      const saleHint =
+                        policy === 'AUTO_BY_MARGIN'
+                          ? 'Se aplicará solo al recibir (markup)'
+                          : policy === 'SUGGEST_ON_PURCHASE'
+                            ? 'Solo sugerido; no cambia la venta solo'
+                            : 'Vacío = no cambia venta al recibir';
+                      const markupMin = Number(product?.minMarkupPercent ?? product?.minMarginPercent ?? 20);
 
                       return (
                         <tr key={index} className="align-top transition-all hover:bg-[var(--app-bg-subtle)]/20">
@@ -351,8 +364,11 @@ const PurchaseFormModal = ({
                               onClear={() => clearProductForLine(index)}
                             />
                             {item.productId && product && (
-                              <div className="mt-1 text-[9px] font-semibold text-[var(--app-text-muted)]">
-                                Margen mín. {Number(product.minMarginPercent ?? 20)}%
+                              <div className="mt-1 space-y-0.5 text-[9px] font-semibold text-[var(--app-text-muted)]">
+                                <div>Markup mín. {markupMin}%</div>
+                                <div className="text-[var(--app-primary)]">
+                                  Política: {PRICING_POLICY_LABELS[policy] || policy}
+                                </div>
                               </div>
                             )}
                           </td>
@@ -422,16 +438,22 @@ const PurchaseFormModal = ({
                               type="number"
                               min="0.01"
                               step="0.01"
-                              required
+                              required={saleRequired}
                               value={item.salePricePerUnit}
                               onChange={(e) => updateLine(index, 'salePricePerUnit', e.target.value)}
-                              disabled={!item.productId}
+                              disabled={!item.productId || policy === 'AUTO_BY_MARGIN'}
+                              readOnly={policy === 'SUGGEST_ON_PURCHASE'}
                               placeholder="C$ 0.00"
                               className={`${ROW_NUMBER_INPUT} border-blue-500/30 focus:border-blue-500 focus:ring-blue-500/20`}
                             />
                             <div className="mt-1 text-right text-[9px] font-bold text-blue-700 dark:text-blue-300">
                               Venta unidad
                             </div>
+                            {item.productId && (
+                              <div className="mt-0.5 text-right text-[8px] font-medium text-[var(--app-text-muted)]">
+                                {saleHint}
+                              </div>
+                            )}
                           </td>
 
                           <td className="px-2 py-3">
@@ -439,10 +461,11 @@ const PurchaseFormModal = ({
                               type="number"
                               min="0.01"
                               step="0.01"
-                              required
+                              required={saleRequired}
                               value={item.salePricePerPack}
                               onChange={(e) => updateLine(index, 'salePricePerPack', e.target.value)}
-                              disabled={!item.productId}
+                              disabled={!item.productId || policy === 'AUTO_BY_MARGIN'}
+                              readOnly={policy === 'SUGGEST_ON_PURCHASE'}
                               placeholder="C$ 0.00"
                               className={`${ROW_NUMBER_INPUT} border-blue-500/30 focus:border-blue-500 focus:ring-blue-500/20`}
                             />

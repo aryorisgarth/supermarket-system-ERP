@@ -38,8 +38,13 @@ export function normalizeProduct(raw) {
     purchasePrice: Number(raw.purchasePrice ?? raw.purchase_price ?? 0),
     lastPurchaseCost: Number(raw.lastPurchaseCost ?? raw.last_purchase_cost ?? raw.purchasePrice ?? raw.purchase_price ?? 0),
     averageCost: Number(raw.averageCost ?? raw.average_cost ?? raw.purchasePrice ?? raw.purchase_price ?? 0),
-    minMarginPercent: Number(raw.minMarginPercent ?? raw.min_margin_percent ?? 20),
+    // min_margin_percent en BD = markup mínimo (compat)
+    minMarginPercent: Number(raw.minMarginPercent ?? raw.minMarkupPercent ?? raw.min_margin_percent ?? 20),
+    minMarkupPercent: Number(raw.minMarkupPercent ?? raw.minMarginPercent ?? raw.min_margin_percent ?? 20),
     pricingPolicy: raw.pricingPolicy ?? raw.pricing_policy ?? 'MANUAL',
+    currentMarkupPercent:
+      raw.currentMarkupPercent ?? raw.current_markup_percent ?? null,
+    // Margen real sobre precio de venta
     currentMarginPercent:
       raw.currentMarginPercent ?? raw.current_margin_percent ?? null,
     currentStock: Number(raw.currentStock ?? raw.current_stock ?? 0),

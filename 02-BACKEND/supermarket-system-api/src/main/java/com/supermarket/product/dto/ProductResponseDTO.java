@@ -37,8 +37,14 @@ public record ProductResponseDTO(
 	BigDecimal prefilledQuantity,
 	BigDecimal lastPurchaseCost,
 	BigDecimal averageCost,
+	/** Compat: columna BD min_margin_percent = markup mínimo. */
 	BigDecimal minMarginPercent,
+	/** Alias semántico de minMarginPercent (markup mínimo). */
+	BigDecimal minMarkupPercent,
 	ProductPricingPolicy pricingPolicy,
+	/** Markup sobre costo: (venta - costo) / costo × 100 */
+	BigDecimal currentMarkupPercent,
+	/** Margen sobre venta: (venta - costo) / venta × 100 */
 	BigDecimal currentMarginPercent
 ) {
 }

@@ -34,6 +34,7 @@ import com.supermarket.product.entity.Product;
 import com.supermarket.product.entity.ProductPurchasePack;
 import com.supermarket.product.entity.ProductUomConversion;
 import com.supermarket.product.mapper.ProductMapper;
+import com.supermarket.product.model.ProductPricingPolicy;
 import com.supermarket.producthistory.model.ProductCostHistoryReason;
 import com.supermarket.producthistory.model.ProductSalePriceHistoryReason;
 import com.supermarket.product.repository.ProductPurchasePackRepository;
@@ -168,7 +169,9 @@ public class ProductServiceImpl implements ProductService {
 				response.lastPurchaseCost(),
 				response.averageCost(),
 				response.minMarginPercent(),
+				response.minMarkupPercent(),
 				response.pricingPolicy(),
+				response.currentMarkupPercent(),
 				response.currentMarginPercent()
 			);
 		}
@@ -205,7 +208,9 @@ public class ProductServiceImpl implements ProductService {
 				response.lastPurchaseCost(),
 				response.averageCost(),
 				response.minMarginPercent(),
+				response.minMarkupPercent(),
 				response.pricingPolicy(),
+				response.currentMarkupPercent(),
 				response.currentMarginPercent()
 			);
 		}
@@ -352,12 +357,25 @@ public class ProductServiceImpl implements ProductService {
 
 		product.setUpdatedAt(LocalDateTime.now());
 
-		if (previousCost == null || previousCost.compareTo(request.getPurchasePrice()) != 0) {
+		boolean costChanged = previousCost == null || previousCost.compareTo(request.getPurchasePrice()) != 0;
+		if (costChanged) {
 			productCostService.applyManualCostAdjustment(product, request.getPurchasePrice(),
 					ProductCostHistoryReason.MANUAL_COST_ADJUSTMENT, actor);
 		}
 
-		if (previousSalePrice == null || previousSalePrice.compareTo(request.getSalePrice()) != 0) {
+		ProductPricingPolicy policy = product.getPricingPolicy() != null
+				? product.getPricingPolicy()
+				: ProductPricingPolicy.MANUAL;
+		if (costChanged && policy == ProductPricingPolicy.AUTO_BY_MARGIN) {
+			BigDecimal suggested = productCostService.calculateSuggestedSalePrice(
+					product.getLastPurchaseCost() != null ? product.getLastPurchaseCost() : request.getPurchasePrice(),
+					product.getMinMarginPercent());
+			if (suggested != null) {
+				productPriceService.updateSalePrice(product, previousSalePrice, suggested,
+						ProductSalePriceHistoryReason.PURCHASE_RECEIPT,
+						"Automático por markup al actualizar costo en ficha", actor);
+			}
+		} else if (previousSalePrice == null || previousSalePrice.compareTo(request.getSalePrice()) != 0) {
 			productPriceService.updateSalePrice(product, previousSalePrice, request.getSalePrice(),
 					ProductSalePriceHistoryReason.MANUAL_UPDATE, "Cambio desde ficha de producto", actor);
 		}

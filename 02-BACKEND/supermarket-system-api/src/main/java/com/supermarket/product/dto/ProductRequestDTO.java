@@ -3,6 +3,8 @@ package com.supermarket.product.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.supermarket.product.model.ProductPricingPolicy;
 
 import jakarta.validation.Valid;
@@ -72,7 +74,13 @@ public class ProductRequestDTO {
 
 	private BigDecimal minStockExhibicion;
 
+	/**
+	 * Markup mínimo sobre costo (columna BD {@code min_margin_percent}).
+	 * Acepta también {@code minMarkupPercent} en el JSON de entrada.
+	 */
 	@DecimalMin(value = "0.0", inclusive = true)
+	@JsonAlias("minMarkupPercent")
+	@JsonProperty("minMarginPercent")
 	private BigDecimal minMarginPercent;
 
 	private ProductPricingPolicy pricingPolicy;

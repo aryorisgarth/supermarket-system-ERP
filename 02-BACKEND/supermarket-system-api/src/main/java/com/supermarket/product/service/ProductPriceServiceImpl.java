@@ -51,8 +51,9 @@ public class ProductPriceServiceImpl implements ProductPriceService {
 				: BigDecimal.ZERO.setScale(MONEY_SCALE, RoundingMode.HALF_UP));
 		history.setNewSalePrice(normalizedNewSalePrice);
 		history.setCostReference(costReference);
-		history.setMarginBeforePercent(productCostService.calculateMarginPercent(normalizedPreviousSalePrice, referenceCost));
-		history.setMarginAfterPercent(productCostService.calculateMarginPercent(normalizedNewSalePrice, referenceCost));
+		// Columnas BD margin_*_percent almacenan markup (sin migración).
+		history.setMarginBeforePercent(productCostService.calculateMarkupPercent(normalizedPreviousSalePrice, referenceCost));
+		history.setMarginAfterPercent(productCostService.calculateMarkupPercent(normalizedNewSalePrice, referenceCost));
 		history.setReason(reason != null ? reason : ProductSalePriceHistoryReason.MANUAL_UPDATE);
 		history.setNotes(notes);
 		history.setUser(actor);

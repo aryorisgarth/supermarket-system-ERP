@@ -18,11 +18,18 @@ public interface ProductCostService {
 	BigDecimal calculateWeightedAverageCost(BigDecimal quantityBefore, BigDecimal averageCostBefore,
 			BigDecimal quantityReceived, BigDecimal newUnitCost);
 
+	/** Markup sobre costo: (sale - cost) / cost × 100 */
+	BigDecimal calculateMarkupPercent(BigDecimal salePrice, BigDecimal cost);
+
+	/** Margen sobre precio de venta: (sale - cost) / sale × 100 */
 	BigDecimal calculateMarginPercent(BigDecimal salePrice, BigDecimal cost);
+
+	BigDecimal calculateCurrentMarkupPercent(Product product);
 
 	BigDecimal calculateCurrentMarginPercent(Product product);
 
-	BigDecimal calculateSuggestedSalePrice(BigDecimal cost, BigDecimal minMarginPercent);
+	/** Precio sugerido por markup: cost × (1 + minMarkup/100) */
+	BigDecimal calculateSuggestedSalePrice(BigDecimal cost, BigDecimal minMarkupPercent);
 
 	BigDecimal resolveOperationalCost(Product product);
 }

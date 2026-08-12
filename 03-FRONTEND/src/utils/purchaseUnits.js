@@ -169,32 +169,84 @@ export const suggestCostPerPack = (product, pack) => {
   return unitCost * factor;
 };
 
-/** Markup sobre costo: costo × (1 + margen%/100) — misma fórmula del backend. */
-export const suggestSalePriceFromCost = (cost, minMarginPercent = 20) => {
+/** Markup sobre costo: costo × (1 + markup%/100) — misma fórmula del backend. */
+export const suggestSalePriceFromCost = (cost, minMarkupPercent = 20) => {
   const c = Number(cost || 0);
-  const m = Number(minMarginPercent ?? 20);
+  const m = Number(minMarkupPercent ?? 20);
   if (c <= 0) return 0;
-  return Math.round(c * (1 + m / 100) * 100) / 100;
+  return Math.round(c * (1 + m / 100) * 10000) / 10000;
 };
 
+/** Markup: (sale - cost) / cost × 100 */
+export const calculateMarkupPercent = (salePrice, cost) => {
+  const sale = Number(salePrice);
+  const c = Number(cost);
+  if (!Number.isFinite(sale) || !Number.isFinite(c) || c <= 0) return null;
+  return Math.round(((sale - c) / c) * 10000) / 100;
+};
+
+/** Margen: (sale - cost) / sale × 100 */
+export const calculateMarginPercent = (salePrice, cost) => {
+  const sale = Number(salePrice);
+  const c = Number(cost);
+  if (!Number.isFinite(sale) || !Number.isFinite(c) || sale <= 0) return null;
+  return Math.round(((sale - c) / sale) * 10000) / 100;
+};
+
+export const getPricingPolicy = (product) => product?.pricingPolicy || 'MANUAL';
+
+export const PRICING_POLICY_LABELS = {
+  MANUAL: 'Manual',
+  SUGGEST_ON_PURCHASE: 'Sugerir al comprar',
+  AUTO_BY_MARGIN: 'Automático por markup',
+};
+
+/**
+ * Calcula precios de venta unidad/empaque según la política del producto.
+ * - AUTO / SUGGEST: siempre recalcula desde el nuevo costo + markup (no reusa precio viejo).
+ * - MANUAL: conserva el precio vigente del producto; el usuario puede cambiarlo a mano.
+ */
 export const suggestSalePricesForPack = (product, pack, costPerPack) => {
   const factor = Number(pack?.factor || 1) || 1;
   const packCost = Number(costPerPack || 0);
   const unitCost = packCost > 0 ? packCost / factor : Number(product?.averageCost ?? product?.purchasePrice ?? 0);
-  const margin = Number(product?.minMarginPercent ?? 20);
+  const markupMin = Number(product?.minMarkupPercent ?? product?.minMarginPercent ?? 20);
+  const policy = getPricingPolicy(product);
+
+  const fromMarginUnit = suggestSalePriceFromCost(unitCost, markupMin);
+  const fromMarginPack = fromMarginUnit > 0
+    ? Math.round(fromMarginUnit * factor * 10000) / 10000
+    : 0;
+
+  if (policy === 'AUTO_BY_MARGIN' || policy === 'SUGGEST_ON_PURCHASE') {
+    return {
+      salePricePerUnit: fromMarginUnit,
+      salePricePerPack: fromMarginPack,
+      unitCost,
+      policy,
+      fromMargin: true,
+    };
+  }
 
   const existingUnit = Number(product?.salePrice || 0);
   const uom = product?.uomConversions?.find((c) => c.label === pack?.label);
   const existingPack = Number(uom?.salePrice || 0);
 
-  const salePricePerUnit =
-    existingUnit > 0 ? existingUnit : suggestSalePriceFromCost(unitCost, margin);
+  const salePricePerUnit = existingUnit > 0 ? existingUnit : fromMarginUnit;
   const salePricePerPack =
     existingPack > 0
       ? existingPack
-      : Math.round(salePricePerUnit * factor * 100) / 100;
+      : salePricePerUnit > 0
+        ? Math.round(salePricePerUnit * factor * 10000) / 10000
+        : 0;
 
-  return { salePricePerUnit, salePricePerPack, unitCost };
+  return {
+    salePricePerUnit,
+    salePricePerPack,
+    unitCost,
+    policy,
+    fromMargin: existingUnit <= 0,
+  };
 };
 
 export const computeBaseUnits = (quantityInPacks, factor) =>

@@ -3,7 +3,12 @@ import ProductService from '../services/ProductService';
 import PurchaseOrderService from '../services/PurchaseOrderService';
 import { normalizeProductList } from '../utils/normalizeProduct';
 import { getApiErrorMessage } from '../utils/apiError';
-import { getDefaultPurchasePack, suggestCostPerPack, suggestSalePricesForPack } from '../utils/purchaseUnits';
+import {
+  getDefaultPurchasePack,
+  getPricingPolicy,
+  suggestCostPerPack,
+  suggestSalePricesForPack,
+} from '../utils/purchaseUnits';
 import Swal from 'sweetalert2';
 
 const emptyLine = () => ({
@@ -16,6 +21,11 @@ const emptyLine = () => ({
   salePricePerUnit: '',
   salePriceTouched: false,
 });
+
+const optionalPositive = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+};
 
 export const usePurchaseForm = ({ onSuccess }) => {
   const [supplierId, setSupplierId] = useState('');
@@ -107,8 +117,14 @@ export const usePurchaseForm = ({ onSuccess }) => {
         const factor = Number(item.unitsPerPack || pack?.factor || 1) || 1;
         const costPerPack = Number(item.costPerPack ?? item.unitCost ?? 0);
         const suggested = suggestSalePricesForPack(product, pack || { factor }, costPerPack);
-        const saleUnit = Number(item.salePricePerUnit || suggested.salePricePerUnit || 0);
-        const salePack = Number(item.salePricePerPack || suggested.salePricePerPack || saleUnit * factor);
+        const policy = getPricingPolicy(product);
+        const useMarginPreview = policy === 'AUTO_BY_MARGIN' || policy === 'SUGGEST_ON_PURCHASE';
+        const saleUnit = useMarginPreview
+          ? Number(suggested.salePricePerUnit || 0)
+          : Number(item.salePricePerUnit || suggested.salePricePerUnit || 0);
+        const salePack = useMarginPreview
+          ? Number(suggested.salePricePerPack || 0)
+          : Number(item.salePricePerPack || suggested.salePricePerPack || saleUnit * factor);
         return {
           productId: String(item.product?.id || ''),
           productSearch: item.product?.name || product?.name || '',
@@ -117,7 +133,7 @@ export const usePurchaseForm = ({ onSuccess }) => {
           costPerPack: String(item.costPerPack ?? item.unitCost ?? ''),
           salePricePerUnit: saleUnit > 0 ? String(saleUnit) : '',
           salePricePerPack: salePack > 0 ? String(salePack) : '',
-          salePriceTouched: Boolean(item.salePricePerUnit || item.salePricePerPack),
+          salePriceTouched: !useMarginPreview && Boolean(item.salePricePerUnit || item.salePricePerPack),
         };
       });
       setItems(mappedItems.length ? mappedItems : [emptyLine()]);
@@ -146,19 +162,29 @@ export const usePurchaseForm = ({ onSuccess }) => {
 
   const saveOrder = async (event) => {
     if (event) event.preventDefault();
-    const validItems = items.filter(
+    const baseValid = items.filter(
       (item) =>
         item.productId &&
         item.purchasePackId &&
         Number(item.quantityInPacks) > 0 &&
-        Number(item.costPerPack) > 0 &&
-        Number(item.salePricePerUnit) > 0 &&
-        Number(item.salePricePerPack) > 0
+        Number(item.costPerPack) > 0
     );
-    if (!supplierId || validItems.length === 0) {
+
+    // MANUAL: si pone un precio de venta, debe completar unidad y empaque.
+    const incompleteManualSale = baseValid.some((item) => {
+      const product = findProduct(item.productId);
+      if (getPricingPolicy(product) !== 'MANUAL') return false;
+      const hasUnit = Number(item.salePricePerUnit) > 0;
+      const hasPack = Number(item.salePricePerPack) > 0;
+      return hasUnit !== hasPack;
+    });
+
+    if (!supplierId || baseValid.length === 0 || incompleteManualSale) {
       Swal.fire(
         'Datos incompletos',
-        'Completa proveedor, producto, empaque, costo y precios de venta (unidad y empaque).',
+        incompleteManualSale
+          ? 'En política Manual completa ambos precios de venta (unidad y empaque) o déjalos vacíos para no cambiar la venta.'
+          : 'Completa proveedor, producto, empaque y costo de compra.',
         'warning'
       );
       return;
@@ -167,20 +193,24 @@ export const usePurchaseForm = ({ onSuccess }) => {
     const payload = {
       supplierId: Number(supplierId),
       notes,
-      items: validItems.map((item) => {
+      items: baseValid.map((item) => {
         const product = findProduct(item.productId);
         const selectedPack = findPack(product, item.purchasePackId);
         const equivalentConversion = product?.uomConversions?.find(
           (c) => c.label === selectedPack?.label
         );
+        const policy = getPricingPolicy(product);
+        // AUTO recalcula en recepción; SUGGEST no aplica venta. Solo MANUAL envía precios opcionales.
+        const saleUnit = policy === 'MANUAL' ? optionalPositive(item.salePricePerUnit) : null;
+        const salePack = policy === 'MANUAL' ? optionalPositive(item.salePricePerPack) : null;
         return {
           productId: Number(item.productId),
           purchasePackId: Number(item.purchasePackId),
           uomConversionId: equivalentConversion ? equivalentConversion.id : null,
           quantityInPacks: Number(item.quantityInPacks),
           costPerPack: Number(item.costPerPack),
-          salePricePerPack: Number(item.salePricePerPack),
-          salePricePerUnit: Number(item.salePricePerUnit),
+          salePricePerPack: salePack,
+          salePricePerUnit: saleUnit,
         };
       }),
     };
@@ -199,8 +229,8 @@ export const usePurchaseForm = ({ onSuccess }) => {
       Swal.fire({
         icon: 'success',
         title: wasEditing ? 'Compra actualizada' : 'Compra creada',
-        text: 'Al recibir en bodega se actualizarán costo y precios de venta.',
-        timer: 1800,
+        text: 'Al recibir en bodega se actualiza el costo. El precio de venta depende de la política de cada producto (manual / sugerido / automático por markup).',
+        timer: 2200,
         showConfirmButton: false,
       });
     } catch (error) {

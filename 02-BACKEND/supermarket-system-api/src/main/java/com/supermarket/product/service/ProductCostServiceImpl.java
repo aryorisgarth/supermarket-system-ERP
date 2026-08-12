@@ -123,7 +123,7 @@ public class ProductCostServiceImpl implements ProductCostService {
 	}
 
 	@Override
-	public BigDecimal calculateMarginPercent(BigDecimal salePrice, BigDecimal cost) {
+	public BigDecimal calculateMarkupPercent(BigDecimal salePrice, BigDecimal cost) {
 		if (salePrice == null || cost == null || cost.compareTo(BigDecimal.ZERO) <= 0) {
 			return null;
 		}
@@ -131,6 +131,27 @@ public class ProductCostServiceImpl implements ProductCostService {
 				.divide(cost, MONEY_SCALE, RoundingMode.HALF_UP)
 				.multiply(BigDecimal.valueOf(100))
 				.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+	}
+
+	@Override
+	public BigDecimal calculateMarginPercent(BigDecimal salePrice, BigDecimal cost) {
+		if (salePrice == null || cost == null
+				|| salePrice.compareTo(BigDecimal.ZERO) <= 0
+				|| cost.compareTo(BigDecimal.ZERO) < 0) {
+			return null;
+		}
+		return salePrice.subtract(cost)
+				.divide(salePrice, MONEY_SCALE, RoundingMode.HALF_UP)
+				.multiply(BigDecimal.valueOf(100))
+				.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+	}
+
+	@Override
+	public BigDecimal calculateCurrentMarkupPercent(Product product) {
+		if (product == null) {
+			return null;
+		}
+		return calculateMarkupPercent(product.getSalePrice(), resolveOperationalCost(product));
 	}
 
 	@Override
@@ -142,13 +163,13 @@ public class ProductCostServiceImpl implements ProductCostService {
 	}
 
 	@Override
-	public BigDecimal calculateSuggestedSalePrice(BigDecimal cost, BigDecimal minMarginPercent) {
+	public BigDecimal calculateSuggestedSalePrice(BigDecimal cost, BigDecimal minMarkupPercent) {
 		if (cost == null || cost.compareTo(BigDecimal.ZERO) <= 0) {
 			return null;
 		}
-		BigDecimal margin = minMarginPercent != null ? minMarginPercent : DEFAULT_MIN_MARGIN;
+		BigDecimal markup = minMarkupPercent != null ? minMarkupPercent : DEFAULT_MIN_MARGIN;
 		return cost.multiply(BigDecimal.ONE.add(
-				margin.divide(BigDecimal.valueOf(100), MONEY_SCALE, RoundingMode.HALF_UP)))
+				markup.divide(BigDecimal.valueOf(100), MONEY_SCALE, RoundingMode.HALF_UP)))
 				.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
 	}
 
@@ -163,9 +184,11 @@ public class ProductCostServiceImpl implements ProductCostService {
 	private ProductCostUpdateResult buildResult(Product product, BigDecimal previousLastCost, BigDecimal newLastCost,
 			BigDecimal previousAverageCost, BigDecimal newAverageCost, BigDecimal quantityBefore,
 			BigDecimal quantityReceived, BigDecimal quantityAfter) {
-		BigDecimal minMargin = product.getMinMarginPercent() != null ? product.getMinMarginPercent() : DEFAULT_MIN_MARGIN;
+		// Columna BD min_margin_percent = markup mínimo (sin migración).
+		BigDecimal minMarkup = product.getMinMarginPercent() != null ? product.getMinMarginPercent() : DEFAULT_MIN_MARGIN;
+		BigDecimal currentMarkup = calculateMarkupPercent(product.getSalePrice(), newAverageCost);
 		BigDecimal currentMargin = calculateMarginPercent(product.getSalePrice(), newAverageCost);
-		boolean marginAlert = currentMargin != null && currentMargin.compareTo(minMargin) < 0;
+		boolean markupAlert = currentMarkup != null && currentMarkup.compareTo(minMarkup) < 0;
 		return new ProductCostUpdateResult(
 				product.getId(),
 				product.getName(),
@@ -177,10 +200,11 @@ public class ProductCostServiceImpl implements ProductCostService {
 				quantityReceived,
 				quantityAfter,
 				product.getSalePrice(),
+				currentMarkup,
 				currentMargin,
-				minMargin,
-				calculateSuggestedSalePrice(newAverageCost, minMargin),
-				marginAlert);
+				minMarkup,
+				calculateSuggestedSalePrice(newAverageCost, minMarkup),
+				markupAlert);
 	}
 
 	private BigDecimal resolveCostReference(Product product) {

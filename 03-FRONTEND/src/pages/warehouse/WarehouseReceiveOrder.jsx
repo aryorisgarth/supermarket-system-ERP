@@ -36,32 +36,69 @@ import WarehouseFlowStrip from '../../components/warehouse/WarehouseFlowStrip';
 
 const money = formatMoney;
 
+const POLICY_LABELS = {
+  MANUAL: 'Manual',
+  SUGGEST_ON_PURCHASE: 'Sugerir al comprar',
+  AUTO_BY_MARGIN: 'Automático por markup',
+};
+
+const DECISION_LABELS = {
+  APPLIED_AUTO: 'Precio aplicado (automático)',
+  APPLIED_MANUAL: 'Precio aplicado (manual)',
+  SUGGESTED_ONLY: 'Solo sugerido',
+  NO_CHANGE: 'Sin cambio de venta',
+};
+
+const pct = (value) => (value != null ? `${Number(value).toFixed(2)}%` : 'Sin cálculo');
+
 const buildReceiptImpactHtml = (impacts = []) => {
   if (!impacts.length) return '';
   const rows = impacts.map((impact) => {
-    const margin = impact.currentMarginPercent != null ? `${Number(impact.currentMarginPercent).toFixed(2)}%` : 'Sin cálculo';
-    const suggested = impact.suggestedSalePrice != null ? money(impact.suggestedSalePrice) : 'N/D';
-    const alert = impact.marginAlert
-      ? `<div style="margin-top:4px;color:#b45309;font-weight:700">Margen bajo. Sugerido: ${suggested}</div>`
+    const policy = POLICY_LABELS[impact.pricingPolicy] || impact.pricingPolicy || '—';
+    const decision = DECISION_LABELS[impact.pricingDecision] || impact.pricingDecision || '—';
+    const decisionMsg = impact.decisionMessage || '';
+    const alert = (impact.markupAlert ?? impact.marginAlert)
+      ? `<div style="margin-top:4px;color:#b45309;font-weight:700">Markup bajo el mínimo configurado (${pct(impact.minMarkupPercent ?? impact.minMarginPercent)}).</div>`
+      : '';
+    const appliedBadge = impact.salePriceApplied
+      ? `<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;background:#dcfce7;color:#166534;font-size:10px;font-weight:800">APLICADO</span>`
       : '';
     return `
       <div style="text-align:left;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:10px">
-        <div style="font-weight:800;color:#0f172a">${impact.productName}</div>
-        <div style="font-size:12px;color:#475569;margin-top:4px">
-          Costo anterior: <b>${money(impact.previousLastCost)}</b> |
-          Nuevo costo: <b>${money(impact.newLastCost)}</b>
+        <div style="font-weight:800;color:#0f172a">${impact.productName}${appliedBadge}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px">Política: <b>${policy}</b> · Decisión: <b>${decision}</b></div>
+        <div style="font-size:12px;color:#475569;margin-top:6px">
+          Costo anterior: <b>${money(impact.previousLastCost)}</b>
         </div>
         <div style="font-size:12px;color:#475569;margin-top:2px">
-          Costo promedio: <b>${money(impact.newAverageCost)}</b> |
-          Precio venta: <b>${money(impact.salePrice)}</b> |
-          Margen actual: <b>${margin}</b>
+          Nuevo costo de compra: <b>${money(impact.newLastCost)}</b>
         </div>
+        <div style="font-size:12px;color:#475569;margin-top:2px">
+          Costo promedio: <b>${money(impact.newAverageCost)}</b>
+          ${impact.previousAverageCost != null ? ` <span style="color:#94a3b8">(antes ${money(impact.previousAverageCost)})</span>` : ''}
+        </div>
+        <div style="font-size:12px;color:#475569;margin-top:2px">
+          Precio de venta anterior: <b>${money(impact.previousSalePrice)}</b>
+        </div>
+        <div style="font-size:12px;color:#475569;margin-top:2px">
+          Precio de venta vigente: <b>${money(impact.salePrice)}</b>
+        </div>
+        <div style="font-size:12px;color:#475569;margin-top:2px">
+          Precio recomendado: <b>${impact.suggestedSalePrice != null ? money(impact.suggestedSalePrice) : 'N/D'}</b>
+        </div>
+        <div style="margin-top:6px;font-size:13px;font-weight:800;color:#0f172a">
+          Margen: ${pct(impact.currentMarginPercent)}
+        </div>
+        <div style="font-size:11px;color:#64748b;font-weight:600">
+          Markup: ${pct(impact.currentMarkupPercent)}
+        </div>
+        ${decisionMsg ? `<div style="margin-top:6px;font-size:12px;color:#334155;font-weight:600">${decisionMsg}</div>` : ''}
         ${alert}
       </div>
     `;
   }).join('');
 
-  return `<div style="max-height:320px;overflow:auto;padding-right:4px">${rows}</div>`;
+  return `<div style="max-height:360px;overflow:auto;padding-right:4px">${rows}</div>`;
 };
 
 const WarehouseReceiveOrder = () => {

@@ -29,7 +29,8 @@ const COST_REASON_LABELS = {
 
 const PRICE_REASON_LABELS = {
   MANUAL_UPDATE: 'Cambio manual',
-  PURCHASE_MARGIN_ALERT: 'Alerta de margen',
+  PURCHASE_RECEIPT: 'Recepción de compra',
+  PURCHASE_MARGIN_ALERT: 'Alerta de markup',
   MASS_UPDATE: 'Cambio masivo',
   PROMOTION_END: 'Fin de promoción',
 };
@@ -370,8 +371,8 @@ const History = () => {
                   <th className="px-4 py-3 text-left">Producto</th>
                   <th className="px-4 py-3 text-right">Precio anterior</th>
                   <th className="px-4 py-3 text-right">Precio nuevo</th>
-                  <th className="px-4 py-3 text-right">Margen antes</th>
-                  <th className="px-4 py-3 text-right">Margen después</th>
+                  <th className="px-4 py-3 text-right">Markup antes</th>
+                  <th className="px-4 py-3 text-right">Markup después</th>
                   <th className="px-4 py-3 text-left">Motivo</th>
                   <th className="px-4 py-3 text-left">Usuario</th>
                   <th className="px-4 py-3 text-left">Notas</th>

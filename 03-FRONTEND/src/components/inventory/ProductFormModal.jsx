@@ -225,6 +225,7 @@ const ProductFormModal = ({
 
   if (!isOpen) return null;
 
+  const currentMarkup = product?.currentMarkupPercent ?? null;
   const currentMargin = product?.currentMarginPercent ?? null;
   const averageCost = product?.averageCost ?? product?.purchasePrice ?? 0;
   const lastPurchaseCost = product?.lastPurchaseCost ?? product?.purchasePrice ?? 0;
@@ -244,7 +245,7 @@ const ProductFormModal = ({
       footer={
         <div className="flex flex-col items-end gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-end sm:gap-6">
           <p className="text-right text-[11px] font-bold text-[var(--app-text-muted)]">
-            {packCount} empaque{packCount === 1 ? '' : 's'} · margen mín. {formData.minMarginPercent || 0}%
+            {packCount} empaque{packCount === 1 ? '' : 's'} · markup mín. {formData.minMarginPercent || 0}%
           </p>
           <div className="flex w-full gap-3 sm:w-auto">
             <button
@@ -389,8 +390,8 @@ const ProductFormModal = ({
                 <input type="number" name="salePrice" required step="0.01" min="0.01" placeholder="C$ 0.00" className={PRODUCT_NUMBER_FIELD} value={formData.salePrice} onChange={handleChange} />
               </div>
               <div>
-                <label className={PRODUCT_LABEL}>Margen mínimo (%)</label>
-                <input type="number" name="minMarginPercent" required min="0" step="0.01" className={PRODUCT_NUMBER_FIELD} value={formData.minMarginPercent} onChange={handleChange} />
+                <label className={PRODUCT_LABEL}>Markup mínimo (%)</label>
+                <input type="number" name="minMarginPercent" required min="0" step="0.01" className={PRODUCT_NUMBER_FIELD} value={formData.minMarginPercent} onChange={handleChange} title="Sobre costo: sale = cost × (1 + markup/100). Campo BD: min_margin_percent" />
               </div>
               <div>
                 <label className={PRODUCT_LABEL}>Stock inicial</label>
@@ -410,11 +411,18 @@ const ProductFormModal = ({
               <select name="pricingPolicy" className={`${PRODUCT_FIELD} cursor-pointer max-w-md`} value={formData.pricingPolicy} onChange={handleChange}>
                 <option value="MANUAL">Manual</option>
                 <option value="SUGGEST_ON_PURCHASE">Sugerir al comprar</option>
-                <option value="AUTO_BY_MARGIN">Automático por margen</option>
+                <option value="AUTO_BY_MARGIN">Automático por markup</option>
               </select>
+              <p className="mt-1.5 text-[11px] text-[var(--app-text-muted)] max-w-md">
+                {formData.pricingPolicy === 'AUTO_BY_MARGIN'
+                  ? 'Al recibir compra (o cambiar costo aquí) recalcula y aplica el precio de venta con el markup mínimo sobre costo.'
+                  : formData.pricingPolicy === 'SUGGEST_ON_PURCHASE'
+                    ? 'Al recibir compra muestra el precio sugerido; no cambia la venta hasta que lo hagas manualmente.'
+                    : 'El precio de venta solo cambia si lo defines tú (en ficha o en la orden de compra).'}
+              </p>
             </div>
             {product && (
-              <div className="grid grid-cols-1 gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg-subtle)] p-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Último costo</p>
                   <p className="mt-1 text-sm font-bold tabular-nums text-[var(--app-text)]">{formatMoney(lastPurchaseCost)}</p>
@@ -425,9 +433,17 @@ const ProductFormModal = ({
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Margen actual</p>
-                  <p className={`mt-1 text-sm font-bold tabular-nums ${currentMargin !== null && Number(currentMargin) < Number(formData.minMarginPercent || 0) ? 'text-[var(--app-warning)]' : 'text-[var(--app-success)]'}`}>
+                  <p className="mt-1 text-sm font-bold tabular-nums text-[var(--app-text)]">
                     {currentMargin !== null ? `${Number(currentMargin).toFixed(2)}%` : 'Sin cálculo'}
                   </p>
+                  <p className="mt-0.5 text-[9px] text-[var(--app-text-muted)]">Sobre precio de venta</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--app-text-muted)]">Markup actual</p>
+                  <p className={`mt-1 text-sm font-bold tabular-nums ${currentMarkup !== null && Number(currentMarkup) < Number(formData.minMarginPercent || 0) ? 'text-[var(--app-warning)]' : 'text-[var(--app-success)]'}`}>
+                    {currentMarkup !== null ? `${Number(currentMarkup).toFixed(2)}%` : 'Sin cálculo'}
+                  </p>
+                  <p className="mt-0.5 text-[9px] text-[var(--app-text-muted)]">Sobre costo (vs mín. {formData.minMarginPercent || 0}%)</p>
                 </div>
               </div>
             )}

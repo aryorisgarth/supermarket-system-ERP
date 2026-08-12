@@ -13,9 +13,12 @@ public record ProductCostUpdateResult(
 		BigDecimal quantityReceived,
 		BigDecimal quantityAfter,
 		BigDecimal salePrice,
+		BigDecimal currentMarkupPercent,
 		BigDecimal currentMarginPercent,
-		BigDecimal minMarginPercent,
+		/** Markup mínimo (columna BD min_margin_percent). */
+		BigDecimal minMarkupPercent,
 		BigDecimal suggestedSalePrice,
-		boolean marginAlert
+		/** Alerta si markup actual < markup mínimo. */
+		boolean markupAlert
 ) {
 }
