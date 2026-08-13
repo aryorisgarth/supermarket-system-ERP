@@ -1,8 +1,20 @@
 import React from 'react';
 import { Doughnut, Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 import { PieChart as PieIcon, BarChart2, Users, Activity, AlertOctagon, AlertTriangle, Check } from 'lucide-react';
 import Card, { CardHeader } from '../ui/Card';
 import Badge from '../ui/Badge';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const chartOptions = {
   responsive: true,
