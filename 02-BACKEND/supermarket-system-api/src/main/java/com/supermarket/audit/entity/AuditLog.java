@@ -4,12 +4,15 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PreRemove;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -46,16 +49,34 @@ public class AuditLog {
 	@Column(name = "record_id")
 	private Long recordId;
 
-	@Column(name = "old_values", columnDefinition = "TEXT")
+	@Column(name = "old_values", columnDefinition = "TEXT", updatable = false)
 	private String oldValues;
 
-	@Column(name = "new_values", columnDefinition = "TEXT")
+	@Column(name = "new_values", columnDefinition = "TEXT", updatable = false)
 	private String newValues;
 
 	@Size(max = 45)
-	@Column(name = "ip_address", length = 45)
+	@Column(name = "ip_address", length = 45, updatable = false)
 	private String ipAddress;
+
+	@Size(max = 512)
+	@Column(name = "user_agent", length = 512, updatable = false)
+	private String userAgent;
+
+	@Size(max = 30)
+	@Column(name = "actor_role_name", length = 30, updatable = false)
+	private String actorRoleName;
+
+	@Size(max = 100)
+	@Column(name = "actor_display_name", length = 100, updatable = false)
+	private String actorDisplayName;
 
 	@Column(name = "log_date", nullable = false, updatable = false)
 	private LocalDateTime logDate;
+
+	@PreUpdate
+	@PreRemove
+	void preventMutation() {
+		throw new UnsupportedOperationException("Los registros de auditoría son inmutables (append-only)");
+	}
 }

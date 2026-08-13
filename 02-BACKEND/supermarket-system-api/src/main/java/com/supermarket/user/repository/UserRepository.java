@@ -23,6 +23,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	@Query("SELECT DISTINCT u FROM User u JOIN FETCH u.role LEFT JOIN FETCH u.directPermissions WHERE LOWER(u.email) = LOWER(:email)")
 	Optional<User> findByEmailWithRole(@Param("email") String email);
 
+	@Query("SELECT DISTINCT u FROM User u JOIN FETCH u.role LEFT JOIN FETCH u.directPermissions WHERE u.id = :id")
+	Optional<User> findByIdWithRoleAndPermissions(@Param("id") Long id);
+
 	boolean existsByEmail(String email);
 
 	boolean existsByEmailAndIdNot(String email, Long id);

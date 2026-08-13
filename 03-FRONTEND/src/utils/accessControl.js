@@ -1,17 +1,22 @@
 import AuthService from '../services/AuthService';
-import { normalizeRoleName } from './rolePermissions';
+import { canAccess } from './canAccess';
 
-export const canViewReports = () => {
-  const roleName = normalizeRoleName(AuthService.getCurrentUser()?.role?.name);
-  return (
-    ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CONSULTOR'].includes(roleName)
-    && AuthService.hasPermission('REPORT_VIEW')
-  );
-};
+export const canViewReports = () =>
+  canAccess({
+    user: AuthService.getCurrentUser(),
+    roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR', 'CONSULTOR'],
+    permissions: ['REPORT_VIEW'],
+    allowPermissionOverride: true,
+  });
 
 export const canViewSystemAlerts = () => {
-  const roleName = normalizeRoleName(AuthService.getCurrentUser()?.role?.name);
-  return ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'].includes(roleName);
+  const user = AuthService.getCurrentUser();
+  return canAccess({
+    user,
+    roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
+    permissions: ['REPORT_VIEW'],
+    allowPermissionOverride: true,
+  });
 };
 
 export const canViewFinance = () => AuthService.hasPermission('FINANCE_VIEW');
@@ -19,12 +24,12 @@ export const canViewFinance = () => AuthService.hasPermission('FINANCE_VIEW');
 export const canViewPurchases = () =>
   AuthService.hasPermission('PURCHASE_MANAGE') || AuthService.hasPermission('PURCHASE_RECEIVE');
 
-export const canViewDailyClose = () => {
-  const roleName = AuthService.getCurrentUser()?.role?.name;
-  return (
-    ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'].includes(roleName)
-    && AuthService.hasPermission('CASH_CLOSE')
-  );
-};
+export const canViewDailyClose = () =>
+  canAccess({
+    user: AuthService.getCurrentUser(),
+    roles: ['ADMINISTRADOR', 'ADMIN_INGENIERO', 'SUPERVISOR'],
+    permissions: ['CASH_CLOSE'],
+    allowPermissionOverride: true,
+  });
 
 export const canViewCashRegisterReport = () => canViewDailyClose();

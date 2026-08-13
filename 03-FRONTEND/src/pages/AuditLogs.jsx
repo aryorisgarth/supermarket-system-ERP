@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, RefreshCw, Database, BarChart2 } from 'lucide-react';
+import { Download, RefreshCw, Database, BarChart2, FileText } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
@@ -8,6 +8,7 @@ import Button from '../components/ui/Button';
 import useAuditLogs from '../hooks/useAuditLogs';
 import {
   actionOptions,
+  actionCategoryOptions,
   getActionLabel,
   getActionTone,
   getRisk,
@@ -33,7 +34,9 @@ const AuditLogs = () => {
     setFilters,
     applyFilters,
     clearFilters,
-    tableOptions,
+    moduleOptions,
+    userOptions,
+    actionCategoryOptions,
     quickFilter,
     handleQuickFilter,
     loading,
@@ -61,6 +64,8 @@ const AuditLogs = () => {
     handleOpenDetail,
     reload,
     exportToCSV,
+    exportToPDF,
+    exporting,
   } = auditState;
 
   const exportActions = (
@@ -101,8 +106,11 @@ const AuditLogs = () => {
         </div>
       </div>
 
-      <Button icon={Download} variant="secondary" onClick={exportToCSV}>
+      <Button icon={Download} variant="secondary" onClick={exportToCSV} disabled={exporting}>
         Exportar CSV
+      </Button>
+      <Button icon={FileText} variant="secondary" onClick={exportToPDF} disabled={exporting}>
+        Exportar PDF
       </Button>
       <Button icon={RefreshCw} variant="secondary" onClick={reload}>
         Actualizar
@@ -115,7 +123,7 @@ const AuditLogs = () => {
       <PageHeader
         eyebrow="Control interno y seguridad"
         title="Auditoría Operacional"
-        description="Trazabilidad de ventas, movimientos de caja, inventario, anulaciones y accesos de seguridad del supermercado."
+        description="Trazabilidad append-only de ventas, caja, inventario y accesos. Los registros no pueden editarse ni eliminarse."
         actions={exportActions}
         meta={
           <Badge tone="blue" className="px-3">
@@ -161,8 +169,10 @@ const AuditLogs = () => {
             applyFilters={applyFilters}
             clearFilters={clearFilters}
             actionOptions={actionOptions}
+            actionCategoryOptions={actionCategoryOptions}
             getActionLabel={getActionLabel}
-            tableOptions={tableOptions}
+            moduleOptions={moduleOptions}
+            userOptions={userOptions}
           />
 
           <AuditLogsTable

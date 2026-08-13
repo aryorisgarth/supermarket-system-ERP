@@ -9,6 +9,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthService from '../services/AuthService';
 import { sections } from '../config/sidebarRoutes';
+import { canAccess } from '../utils/canAccess';
 import { normalizeRoleName } from '../utils/rolePermissions';
 
 
@@ -104,7 +105,10 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
 
   const user = AuthService.getCurrentUser();
   const roleName = normalizeRoleName(user?.role?.name);
-  const permissionKey = (user?.permissions || []).join(',');
+  const permissionKey = [
+    ...(user?.permissions || []),
+    ...(user?.directPermissions || []),
+  ].sort().join(',');
 
   const [expandedSections, setExpandedSections] = useState(() => {
     try {
@@ -174,18 +178,14 @@ const Sidebar = ({ onNavigate, isCollapsed, setIsCollapsed }) => {
       sections
         .map((section) => ({
           ...section,
-          items: section.items.filter((item) => {
-            const permissions = Array.isArray(item.permissions) ? item.permissions : [];
-            const roleAllowed = item.roles
-              ? item.roles.some((role) => normalizeRoleName(role) === roleName)
-              : true;
-
-            if (!roleAllowed) return false;
-            if (permissions.length > 0) {
-              return AuthService.hasAnyPermission(permissions);
-            }
-            return true;
-          }),
+          items: section.items.filter((item) =>
+            canAccess({
+              user,
+              roles: item.roles,
+              permissions: item.permissions,
+              allowPermissionOverride: item.allowPermissionOverride === true,
+            })
+          ),
         }))
         .filter((section) => section.items.length > 0),
     [roleName, permissionKey]

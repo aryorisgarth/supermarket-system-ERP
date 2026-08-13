@@ -1,20 +1,32 @@
 import { AlertTriangle, FileWarning, ShieldCheck } from 'lucide-react';
+import { normalizeRoleName } from './rolePermissions';
 
 export const initialFilters = {
   search: '',
   action: '',
+  actionCategory: '',
   affectedTable: '',
+  userId: '',
   fromDate: '',
   toDate: '',
 };
 
+export const actionCategoryOptions = [
+  { value: 'CREATE', label: 'Crear' },
+  { value: 'UPDATE', label: 'Editar' },
+  { value: 'DELETE', label: 'Eliminar' },
+  { value: 'ACCESS', label: 'Acceso / Seguridad' },
+];
+
 export const actionOptions = [
   'SALE_CREATE',
   'SALE_CANCEL',
+  'SALE_REFUND',
   'CASH_OPEN',
   'CASH_CLOSE',
   'CASH_MOVEMENT',
   'INVENTORY_ADJUSTMENT',
+  'ROLE_PERMISSIONS_UPDATE',
   'CREATE',
   'INSERT',
   'UPDATE',
@@ -55,6 +67,8 @@ export const actionLabels = {
   CASH_MOVEMENT: 'Movimiento manual de caja',
   INVENTORY_ADJUSTMENT: 'Ajuste de inventario',
   ACCESS_DENIED: 'Acceso denegado',
+  ROLE_PERMISSIONS_UPDATE: 'Permisos de rol actualizados',
+  SALE_REFUND: 'Devolución de venta',
   CREATE: 'Creación',
   INSERT: 'Creación',
   UPDATE: 'Actualización',
@@ -65,6 +79,83 @@ export const actionLabels = {
 };
 
 export const highRiskTables = ['users', 'user', 'roles', 'permissions', 'payment_accounts', 'cash_register_sessions', 'cash_register_movements'];
+
+export const fieldLabels = {
+  invoice: 'Factura',
+  subtotal: 'Subtotal',
+  discountTotal: 'Descuento total',
+  tax: 'Impuesto',
+  total: 'Total',
+  change: 'Vuelto',
+  status: 'Estado',
+  openingBalance: 'Saldo inicial',
+  expectedCash: 'Efectivo esperado',
+  countedCash: 'Efectivo contado',
+  difference: 'Diferencia',
+  notes: 'Notas',
+  amount: 'Monto',
+  type: 'Tipo',
+  role: 'Rol',
+  permissions: 'Permisos',
+  fullName: 'Nombre completo',
+  email: 'Correo',
+  isActive: 'Activo',
+  salePrice: 'Precio de venta',
+  purchasePrice: 'Precio de compra',
+  currentStock: 'Stock actual',
+  quantity: 'Cantidad',
+  productId: 'Producto',
+  customerId: 'Cliente',
+};
+
+export const actionCategoryLabels = {
+  CREATE: 'Creación',
+  UPDATE: 'Edición',
+  DELETE: 'Eliminación',
+  ACCESS: 'Acceso',
+  OTHER: 'Otro',
+};
+
+export const isOperationalProfile = (user) => {
+  const role = normalizeRoleName(user?.role?.name);
+  return ['CAJERO', 'BODEGUERO', 'CONSULTOR'].includes(role);
+};
+
+export const getFieldLabel = (key, friendly = true) => {
+  if (!friendly || !key) return key;
+  return fieldLabels[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()).trim();
+};
+
+export const getActionCategoryLabel = (category) =>
+  actionCategoryLabels[String(category || '').toUpperCase()] || category || 'Evento';
+
+export const formatDiffValue = (value) => {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'object') return JSON.stringify(value, null, 2);
+  return String(value);
+};
+
+export const buildDiffEntries = (oldVal, newVal, parseJsonFn = parseJson) => {
+  const oldObj = parseJsonFn(oldVal);
+  const newObj = parseJsonFn(newVal);
+  if (!oldObj && !newObj) return [];
+
+  const keys = Array.from(new Set([...Object.keys(oldObj || {}), ...Object.keys(newObj || {})]));
+  return keys.map((key) => {
+    const oldRaw = oldObj?.[key];
+    const newRaw = newObj?.[key];
+    const oldStr = formatDiffValue(oldRaw);
+    const newStr = formatDiffValue(newRaw);
+    let type = 'equal';
+    if (oldRaw === undefined && newRaw !== undefined) type = 'added';
+    else if (oldRaw !== undefined && newRaw === undefined) type = 'deleted';
+    else if (oldStr !== newStr) type = 'modified';
+    return { key, oldStr, newStr, type };
+  }).sort((a, b) => {
+    const score = { added: 1, modified: 2, deleted: 3, equal: 4 };
+    return score[a.type] - score[b.type];
+  });
+};
 
 export const formatDateTime = (value) => {
   if (!value) return '-';

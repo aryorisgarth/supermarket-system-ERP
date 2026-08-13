@@ -13,6 +13,7 @@ import com.supermarket.role.entity.Role;
 import com.supermarket.role.repository.RoleRepository;
 import com.supermarket.user.entity.User;
 import com.supermarket.user.repository.UserRepository;
+import com.supermarket.user.service.KeycloakAdminService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class DataSeeder implements ApplicationRunner {
 	private final RoleRepository roleRepository;
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final KeycloakAdminService keycloakAdminService;
 
 	@Override
 	public void run(ApplicationArguments args) {
@@ -106,5 +108,24 @@ public class DataSeeder implements ApplicationRunner {
 		user.setIsActive(true);
 		user.setRole(role);
 		userRepository.save(user);
+		syncDemoUserToKeycloak(email, rawPassword, roleName, fullName);
+	}
+
+	private void syncDemoUserToKeycloak(String email, String rawPassword, String roleName, String fullName) {
+		try {
+			String keycloakId = keycloakAdminService.findUserIdByEmail(email).orElse(null);
+			if (keycloakId == null) {
+				String[] nameParts = fullName.trim().split("\\s+", 2);
+				String firstName = nameParts[0];
+				String lastName = nameParts.length > 1 ? nameParts[1] : "";
+				keycloakId = keycloakAdminService.createUser(email, firstName, lastName, rawPassword);
+			}
+			keycloakAdminService.resetPassword(keycloakId, rawPassword, false);
+			keycloakAdminService.clearRequiredActions(keycloakId);
+			keycloakAdminService.updateUserRole(keycloakId, roleName, "Rol " + roleName);
+		} catch (Exception ex) {
+			log.warn("No se pudo sincronizar {} con Keycloak (ejecuta scripts/keycloak-seed-demo-users.sh): {}",
+					email, ex.getMessage());
+		}
 	}
 }

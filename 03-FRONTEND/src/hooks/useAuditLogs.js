@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Swal from 'sweetalert2';
 import AuditLogService from '../services/AuditLogService';
+import UserService from '../services/UserService';
+import { generateAuditReportPDF } from '../utils/pdf/auditPDF';
 import {
   initialFilters,
   toApiDateTime,
@@ -10,16 +12,50 @@ import {
   moduleLabels,
   getModuleLabel,
   getActionLabel,
+  getActionCategoryLabel,
   formatDateTime,
-  criticalActions,
-  highRiskActions,
-  mediumRiskActions,
+  actionCategoryOptions,
 } from '../utils/auditLogsHelper';
+
+const buildFilterPayload = (appliedFilters) => ({
+  search: appliedFilters.search.trim(),
+  action: appliedFilters.action,
+  actionCategory: appliedFilters.actionCategory,
+  affectedTable: appliedFilters.affectedTable.trim(),
+  userId: appliedFilters.userId || undefined,
+  fromDate: toApiDateTime(appliedFilters.fromDate),
+  toDate: toApiDateTime(appliedFilters.toDate, true),
+});
+
+const describeFilters = (appliedFilters, userOptions) => {
+  const parts = [];
+  if (appliedFilters.fromDate || appliedFilters.toDate) {
+    parts.push(`Fechas ${appliedFilters.fromDate || '…'} a ${appliedFilters.toDate || '…'}`);
+  }
+  if (appliedFilters.userId) {
+    const user = userOptions.find((item) => String(item.id) === String(appliedFilters.userId));
+    parts.push(`Usuario ${user?.fullName || appliedFilters.userId}`);
+  }
+  if (appliedFilters.actionCategory) {
+    parts.push(`Categoría ${getActionCategoryLabel(appliedFilters.actionCategory)}`);
+  }
+  if (appliedFilters.action) {
+    parts.push(`Acción ${getActionLabel(appliedFilters.action)}`);
+  }
+  if (appliedFilters.affectedTable) {
+    parts.push(`Módulo ${getModuleLabel(appliedFilters.affectedTable)}`);
+  }
+  if (appliedFilters.search) {
+    parts.push(`Búsqueda "${appliedFilters.search}"`);
+  }
+  return parts.join(' · ') || 'Sin filtros';
+};
 
 export const useAuditLogs = () => {
   const [logs, setLogs] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
@@ -27,27 +63,26 @@ export const useAuditLogs = () => {
   const [filters, setFilters] = useState(initialFilters);
   const [appliedFilters, setAppliedFilters] = useState(initialFilters);
   const [selectedLog, setSelectedLog] = useState(null);
+  const [userOptions, setUserOptions] = useState([]);
 
-  
-  const [activeTab, setActiveTab] = useState('table'); 
+  const [activeTab, setActiveTab] = useState('table');
   const [quickFilter, setQuickFilter] = useState('ALL');
-  const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); 
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState(0);
   const [countdown, setCountdown] = useState(0);
 
-  
-  const [modalTab, setModalTab] = useState('diff'); 
+  const [modalTab, setModalTab] = useState('diff');
   const [showUnchanged, setShowUnchanged] = useState(false);
+
+  useEffect(() => {
+    UserService.getActive()
+      .then((users) => setUserOptions(users || []))
+      .catch(() => setUserOptions([]));
+  }, []);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
-      const payload = {
-        search: appliedFilters.search.trim(),
-        action: appliedFilters.action,
-        affectedTable: appliedFilters.affectedTable.trim(),
-        fromDate: toApiDateTime(appliedFilters.fromDate),
-        toDate: toApiDateTime(appliedFilters.toDate, true),
-      };
+      const payload = buildFilterPayload(appliedFilters);
       const logData = await AuditLogService.getAll(page, size, payload);
       const summaryData = await AuditLogService.getSummary().catch(() => null);
       setLogs(logData.content || []);
@@ -66,11 +101,10 @@ export const useAuditLogs = () => {
     fetchLogs();
   }, [page, size, appliedFilters, fetchLogs]);
 
-  
   useEffect(() => {
     if (autoRefreshInterval === 0) {
       setCountdown(0);
-      return;
+      return undefined;
     }
     setCountdown(autoRefreshInterval);
     const interval = setInterval(() => {
@@ -85,7 +119,7 @@ export const useAuditLogs = () => {
     return () => clearInterval(interval);
   }, [autoRefreshInterval, fetchLogs]);
 
-  const tableOptions = useMemo(() => {
+  const moduleOptions = useMemo(() => {
     const values = [...Object.keys(moduleLabels), ...logs.map((log) => log.affectedTable).filter(Boolean)];
     if (summary?.mostAffectedTable) values.push(summary.mostAffectedTable);
     return Array.from(new Set(values)).sort();
@@ -116,15 +150,15 @@ export const useAuditLogs = () => {
       setFilters(initialFilters);
       setAppliedFilters(initialFilters);
     } else if (type === 'DENIED') {
-      newFilters.action = 'ACCESS_DENIED';
+      newFilters.actionCategory = 'ACCESS';
       setFilters(newFilters);
       setAppliedFilters(newFilters);
     } else if (type === 'CASH') {
-      newFilters.search = 'cash_register';
+      newFilters.affectedTable = 'cash_register_sessions';
       setFilters(newFilters);
       setAppliedFilters(newFilters);
     } else if (type === 'INVENTORY') {
-      newFilters.search = 'product';
+      newFilters.affectedTable = 'products';
       setFilters(newFilters);
       setAppliedFilters(newFilters);
     } else if (type === 'TODAY') {
@@ -143,42 +177,47 @@ export const useAuditLogs = () => {
     return logs;
   }, [logs, quickFilter]);
 
-  const exportToCSV = () => {
-    if (displayedLogs.length === 0) {
-      Swal.fire('Sin Datos', 'No hay registros en la vista actual para exportar.', 'warning');
-      return;
+  const fetchExportRows = async () => {
+    const payload = buildFilterPayload(appliedFilters);
+    const data = await AuditLogService.getAll(0, 10000, payload);
+    return data.content || [];
+  };
+
+  const exportToCSV = async () => {
+    setExporting(true);
+    try {
+      const blob = await AuditLogService.exportCsv(buildFilterPayload(appliedFilters));
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `auditoria_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', 'No se pudo exportar el CSV de auditoría.', 'error');
+    } finally {
+      setExporting(false);
     }
+  };
 
-    const headers = ['Fecha y Hora', 'Usuario', 'Evento', 'Riesgo', 'Módulo', 'Registro ID', 'IP'];
-    const rows = displayedLogs.map((log) => [
-      formatDateTime(log.logDate),
-      log.userFullName || 'Sistema',
-      getActionLabel(log.action),
-      getRisk(log).label,
-      getModuleLabel(log.affectedTable),
-      log.recordId || '-',
-      log.ipAddress || '127.0.0.1',
-    ]);
-
-    let csvContent = '\uFEFF'; 
-    csvContent += headers.join(',') + '\n';
-    rows.forEach((row) => {
-      const escapedRow = row.map((val) => {
-        const text = String(val).replace(/"/g, '""');
-        return `"${text}"`;
-      });
-      csvContent += escapedRow.join(',') + '\n';
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    const dateStr = new Date().toISOString().slice(0, 10);
-    link.download = `auditoria_operacional_${dateStr}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const exportToPDF = async () => {
+    setExporting(true);
+    try {
+      const rows = await fetchExportRows();
+      if (rows.length === 0) {
+        Swal.fire('Sin datos', 'No hay registros para exportar con los filtros actuales.', 'warning');
+        return;
+      }
+      generateAuditReportPDF(rows, describeFilters(appliedFilters, userOptions));
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', 'No se pudo exportar el PDF de auditoría.', 'error');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const chartData = useMemo(() => {
@@ -191,10 +230,10 @@ export const useAuditLogs = () => {
 
     logs.forEach((log) => {
       const risk = getRisk(log).label;
-      if (risk === 'Crítico') critico++;
-      else if (risk === 'Alto') alto++;
-      else if (risk === 'Medio') medio++;
-      else bajo++;
+      if (risk === 'Crítico') critico += 1;
+      else if (risk === 'Alto') alto += 1;
+      else if (risk === 'Medio') medio += 1;
+      else bajo += 1;
 
       const mod = getModuleLabel(log.affectedTable);
       modules[mod] = (modules[mod] || 0) + 1;
@@ -203,55 +242,29 @@ export const useAuditLogs = () => {
       users[user] = (users[user] || 0) + 1;
     });
 
-    const topModules = Object.entries(modules)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-
-    const topUsers = Object.entries(users)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
+    const topModules = Object.entries(modules).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const topUsers = Object.entries(users).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
     return {
       risk: {
         labels: ['Crítico', 'Alto', 'Medio', 'Bajo'],
-        datasets: [
-          {
-            data: [critico, alto, medio, bajo],
-            backgroundColor: ['#dc2626', '#ef4444', '#f59e0b', '#059669'],
-            borderWidth: 0,
-          },
-        ],
+        datasets: [{ data: [critico, alto, medio, bajo], backgroundColor: ['#dc2626', '#ef4444', '#f59e0b', '#059669'], borderWidth: 0 }],
       },
       modules: {
         labels: topModules.map((m) => m[0]),
-        datasets: [
-          {
-            label: 'Eventos',
-            data: topModules.map((m) => m[1]),
-            backgroundColor: '#0F4C81',
-            borderRadius: 8,
-          },
-        ],
+        datasets: [{ label: 'Eventos', data: topModules.map((m) => m[1]), backgroundColor: '#0F4C81', borderRadius: 8 }],
       },
       users: {
         labels: topUsers.map((u) => u[0]),
-        datasets: [
-          {
-            label: 'Acciones',
-            data: topUsers.map((u) => u[1]),
-            backgroundColor: '#6366f1',
-            borderRadius: 8,
-          },
-        ],
+        datasets: [{ label: 'Acciones', data: topUsers.map((u) => u[1]), backgroundColor: '#6366f1', borderRadius: 8 }],
       },
     };
   }, [logs]);
 
-  const recentSecurityAlerts = useMemo(() => {
-    return logs
-      .filter((log) => ['Alto', 'Crítico'].includes(getRisk(log).label))
-      .slice(0, 6);
-  }, [logs]);
+  const recentSecurityAlerts = useMemo(
+    () => logs.filter((log) => ['Alto', 'Crítico'].includes(getRisk(log).label)).slice(0, 6),
+    [logs]
+  );
 
   const handleOpenDetail = (log) => {
     setSelectedLog(log);
@@ -263,6 +276,7 @@ export const useAuditLogs = () => {
     logs,
     summary,
     loading,
+    exporting,
     page,
     setPage,
     size,
@@ -277,6 +291,7 @@ export const useAuditLogs = () => {
     handleQuickFilter,
     displayedLogs,
     exportToCSV,
+    exportToPDF,
     autoRefreshInterval,
     setAutoRefreshInterval,
     countdown,
@@ -288,7 +303,9 @@ export const useAuditLogs = () => {
     setModalTab,
     showUnchanged,
     setShowUnchanged,
-    tableOptions,
+    moduleOptions,
+    userOptions,
+    actionCategoryOptions,
     operationalSummary,
     chartData,
     recentSecurityAlerts,

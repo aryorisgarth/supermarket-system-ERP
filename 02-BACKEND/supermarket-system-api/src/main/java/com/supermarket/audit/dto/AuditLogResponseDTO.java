@@ -7,10 +7,16 @@ public record AuditLogResponseDTO(
 		Long userId,
 		String userFullName,
 		String action,
+		String actionCategory,
 		String affectedTable,
 		Long recordId,
 		String oldValues,
 		String newValues,
 		String ipAddress,
-		LocalDateTime logDate) {
+		String userAgent,
+		LocalDateTime logDate,
+		AuditActorDTO actor,
+		AuditTargetDTO target,
+		AuditContextDTO context,
+		AuditPayloadDTO payload) {
 }

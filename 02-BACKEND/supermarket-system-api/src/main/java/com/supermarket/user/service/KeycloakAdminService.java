@@ -145,6 +145,35 @@ public class KeycloakAdminService {
 		}
 	}
 
+	public void clearRequiredActions(String userId) {
+		String token = getAccessToken();
+
+		try {
+			Map<String, Object> userRepresentation = restClient.get()
+					.uri(adminBase() + "/users/" + userId)
+					.header("Authorization", "Bearer " + token)
+					.retrieve()
+					.body(Map.class);
+
+			if (userRepresentation == null || userRepresentation.isEmpty()) {
+				return;
+			}
+
+			userRepresentation.put("requiredActions", List.of());
+
+			restClient.put()
+					.uri(adminBase() + "/users/" + userId)
+					.header("Authorization", "Bearer " + token)
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(userRepresentation)
+					.retrieve()
+					.toBodilessEntity();
+		} catch (HttpClientErrorException e) {
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+					"No se pudo limpiar acciones requeridas en Keycloak: " + e.getResponseBodyAsString(), e);
+		}
+	}
+
 	public void assignRole(String userId, String roleName) {
 		assignRole(userId, roleName, roleName);
 	}

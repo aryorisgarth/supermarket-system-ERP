@@ -29,15 +29,31 @@ public class AuditLogController {
 	public ResponseEntity<Page<AuditLogResponseDTO>> list(
 			@RequestParam(required = false) String search,
 			@RequestParam(required = false) String action,
+			@RequestParam(required = false) String actionCategory,
 			@RequestParam(required = false) String affectedTable,
+			@RequestParam(required = false) Long userId,
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
 			@PageableDefault(size = 50) Pageable pageable) {
-		return ResponseEntity.ok(auditLogService.search(search, action, affectedTable, fromDate, toDate, pageable));
+		return ResponseEntity.ok(
+				auditLogService.search(search, action, actionCategory, affectedTable, userId, fromDate, toDate,
+						pageable));
 	}
 
 	@GetMapping("/summary")
 	public ResponseEntity<AuditLogSummaryDTO> summary() {
 		return ResponseEntity.ok(auditLogService.getSummary());
+	}
+
+	@GetMapping("/export")
+	public ResponseEntity<byte[]> export(
+			@RequestParam(required = false) String search,
+			@RequestParam(required = false) String action,
+			@RequestParam(required = false) String actionCategory,
+			@RequestParam(required = false) String affectedTable,
+			@RequestParam(required = false) Long userId,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
+		return auditLogService.exportCsv(search, action, actionCategory, affectedTable, userId, fromDate, toDate);
 	}
 }

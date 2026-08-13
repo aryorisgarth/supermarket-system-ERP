@@ -118,7 +118,7 @@ public class UserServiceImpl implements UserService {
 		User user = userMapper.toEntity(request);
 		user.setPassword(passwordEncoder.encode("KEYCLOAK_MANAGED_USER"));
 		user.setRole(role);
-		user.setDirectPermissions(resolveDirectPermissions(request.getDirectPermissions(), role));
+		replaceDirectPermissions(user, resolveDirectPermissions(request.getDirectPermissions(), role));
 		user.setCreatedAt(LocalDateTime.now());
 		
 		User saved = userRepository.save(user);
@@ -132,7 +132,7 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public UserResponseDTO update(Long id, UserRequestDTO request) {
 		normalize(request);
-		User user = userRepository.findById(id)
+		User user = userRepository.findByIdWithRoleAndPermissions(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
 		String email = request.getEmail();
@@ -156,7 +156,7 @@ public class UserServiceImpl implements UserService {
 		}
 
 		user.setRole(role);
-		user.setDirectPermissions(resolveDirectPermissions(request.getDirectPermissions(), role));
+		replaceDirectPermissions(user, resolveDirectPermissions(request.getDirectPermissions(), role));
 
 		User saved = userRepository.save(user);
 		return userMapper.toResponse(saved);
@@ -250,13 +250,18 @@ public class UserServiceImpl implements UserService {
 		if (codes.isEmpty()) {
 			return new java.util.HashSet<>();
 		}
-		Set<String> inheritedCodes = role.getPermissions() == null
-				? Set.of()
-				: role.getPermissions().stream()
-						.map(Permission::getCode)
-						.collect(java.util.stream.Collectors.toSet());
+		Set<String> inheritedCodes = new java.util.HashSet<>(permissionRepository.findCodesByRoleId(role.getId()));
 		return permissionRepository.findByCodeIn(codes).stream()
 				.filter(permission -> !inheritedCodes.contains(permission.getCode()))
 				.collect(java.util.stream.Collectors.toCollection(java.util.HashSet::new));
+	}
+
+	/** Mutar la colección gestionada evita perder filas en user_permissions al reemplazar un bag lazy. */
+	private void replaceDirectPermissions(User user, Set<Permission> next) {
+		if (user.getDirectPermissions() == null) {
+			user.setDirectPermissions(new java.util.HashSet<>());
+		}
+		user.getDirectPermissions().clear();
+		user.getDirectPermissions().addAll(next);
 	}
 }

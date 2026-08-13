@@ -16,30 +16,35 @@ import com.supermarket.audit.entity.AuditLog;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
-	@EntityGraph(attributePaths = {"user"})
+	@EntityGraph(attributePaths = {"user", "user.role"})
 	Page<AuditLog> findAllByOrderByLogDateDesc(Pageable pageable);
 
-	@EntityGraph(attributePaths = {"user"})
+	@EntityGraph(attributePaths = {"user", "user.role"})
 	@Query("""
 			SELECT a FROM AuditLog a
 			LEFT JOIN a.user u
 			WHERE (:search IS NULL OR :search = ''
 				OR LOWER(a.action) LIKE LOWER(CONCAT('%', :search, '%'))
 				OR LOWER(a.affectedTable) LIKE LOWER(CONCAT('%', :search, '%'))
+				OR LOWER(COALESCE(a.actorDisplayName, '')) LIKE LOWER(CONCAT('%', :search, '%'))
 				OR LOWER(COALESCE(u.fullName, '')) LIKE LOWER(CONCAT('%', :search, '%'))
 				OR LOWER(COALESCE(a.ipAddress, '')) LIKE LOWER(CONCAT('%', :search, '%')))
 			AND (:action IS NULL OR :action = '' OR a.action = :action)
-			AND (:affectedTable IS NULL OR :affectedTable = '' OR a.affectedTable = :affectedTable)
+			AND (:affectedTable IS NULL OR :affectedTable = '' OR LOWER(a.affectedTable) = LOWER(:affectedTable))
+			AND (:userId IS NULL OR u.id = :userId)
 			AND (:fromDate IS NULL OR a.logDate >= :fromDate)
 			AND (:toDate IS NULL OR a.logDate <= :toDate)
+			AND (:actionIn IS NULL OR a.action IN :actionIn)
 			ORDER BY a.logDate DESC
 			""")
 	Page<AuditLog> search(
 			@Param("search") String search,
 			@Param("action") String action,
 			@Param("affectedTable") String affectedTable,
+			@Param("userId") Long userId,
 			@Param("fromDate") LocalDateTime fromDate,
 			@Param("toDate") LocalDateTime toDate,
+			@Param("actionIn") List<String> actionIn,
 			Pageable pageable);
 
 	long countByLogDateBetween(LocalDateTime fromDate, LocalDateTime toDate);

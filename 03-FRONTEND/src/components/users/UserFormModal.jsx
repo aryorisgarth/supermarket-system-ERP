@@ -129,14 +129,17 @@ const UserFormModal = ({
     try {
       if (isEditMode && user) {
         await UserService.update(user.id, userData);
-        if (String(AuthService.getCurrentUser()?.id) === String(user.id)) {
+        const editingSelf = String(AuthService.getCurrentUser()?.id) === String(user.id);
+        if (editingSelf) {
           await AuthService.refreshCurrentUser();
         }
         Swal.fire({
           icon: 'success',
           title: '¡Usuario actualizado!',
-          text: 'Los cambios fueron guardados exitosamente.',
-          timer: 1500,
+          text: editingSelf
+            ? 'Los cambios fueron guardados y tu sesión ya refleja los permisos.'
+            : 'Los cambios fueron guardados. El usuario verá los permisos adicionales al recargar la página o volver a enfocar la ventana.',
+          timer: editingSelf ? 1800 : 3200,
           showConfirmButton: false
         });
       } else {

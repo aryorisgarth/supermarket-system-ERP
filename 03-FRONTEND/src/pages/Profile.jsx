@@ -10,13 +10,14 @@ import ProfilePreferencesForm from '../components/profile/ProfilePreferencesForm
 import ProfileSecurityCard from '../components/profile/ProfileSecurityCard';
 import ProfileActivityCard from '../components/profile/ProfileActivityCard';
 import ProfilePermissionsCard from '../components/profile/ProfilePermissionsCard';
+import { getEffectivePermissions } from '../utils/rolePermissions';
 
 const formatRole = (roleName) => roleName?.replaceAll('_', ' ') || 'Sin rol';
 
 const Profile = () => {
   const user = AuthService.getCurrentUser() || {};
   const roleName = user?.role?.name;
-  const permissions = Array.isArray(user?.permissions) ? user.permissions : [];
+  const permissions = getEffectivePermissions(user);
 
   const [preferences, setPreferences] = useState(() => {
     const saved = localStorage.getItem('supernova_profile_preferences');

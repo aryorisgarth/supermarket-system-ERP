@@ -52,12 +52,19 @@ export const normalizeRoleName = (roleName = '') =>
 
 export const getEffectivePermissions = (user) => {
   if (!user) return [];
+
   const role = normalizeRoleName(user.role?.name);
+  const fromApi = Array.isArray(user.permissions) ? user.permissions : [];
+  const syncedFromBackend = Array.isArray(user.directPermissions) || Number.isFinite(user.id);
+
+  // Sesión sincronizada con /auth/me o listado de usuarios: confiar solo en el backend
+  if (syncedFromBackend) {
+    return fromApi;
+  }
+
+  // Fallback token Keycloak sin /auth/me (buildUserFromToken)
   if (role === 'ADMIN_INGENIERO' || role === 'ADMINISTRADOR_INGENIERO') {
     return Object.values(ROLE_DEFAULT_PERMISSIONS).flat();
   }
-  const defaults = ROLE_DEFAULT_PERMISSIONS[role] || [];
-  const fromApi = Array.isArray(user.permissions) ? user.permissions : [];
-  if (fromApi.length === 0) return defaults;
-  return [...new Set([...defaults, ...fromApi])];
+  return ROLE_DEFAULT_PERMISSIONS[role] || [];
 };
